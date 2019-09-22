@@ -1,0 +1,14 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/snake/AI/neat/neat.cpp
+neat.hpp
+/home/snake/AI/neat/neat.hpp
+
+/home/snake/AI/neat/neat.hpp
+

@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/snake/AI/neat/genom.cpp
+genom.hpp
+/home/snake/AI/neat/genom.hpp
+boost/random.hpp
+-
+
+/home/snake/AI/neat/genom.hpp
+vector
+-
+

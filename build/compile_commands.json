@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/snake/AI/build/neat",
+  "command": "/usr/bin/g++     -Wall -pedantic -std=c++17 -g   -o CMakeFiles/neat.dir/genom.cpp.o -c /home/snake/AI/neat/genom.cpp",
+  "file": "/home/snake/AI/neat/genom.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/neat",
+  "command": "/usr/bin/g++     -Wall -pedantic -std=c++17 -g   -o CMakeFiles/neat.dir/neat.cpp.o -c /home/snake/AI/neat/neat.cpp",
+  "file": "/home/snake/AI/neat/neat.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/g++   -I/home/snake/AI/test/..   -Wall -pedantic -std=c++17 -g   -o CMakeFiles/test.dir/CrossoverTest.cpp.o -c /home/snake/AI/test/CrossoverTest.cpp",
+  "file": "/home/snake/AI/test/CrossoverTest.cpp"
+}
+]
