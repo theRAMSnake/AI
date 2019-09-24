@@ -7,6 +7,7 @@ include_directories("..")
 
 add_executable(test 
 CrossoverTest.cpp
+MutationTest.cpp
 )
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)

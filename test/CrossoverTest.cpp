@@ -14,7 +14,7 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::createMinimalGenom(3, 2);
+       return neat::Genom::createMinimal(3, 2);
    }
 };
 
@@ -23,16 +23,16 @@ BOOST_FIXTURE_TEST_CASE( Test1, CrossoverTest )
     //Same genom
     neat::Genom a = createSampleGenom();
 
-    auto c = neat::crossover(a, a, 1.0, 1.0);
+    auto c = neat::Genom::crossover(a, a, 1.0, 1.0);
 
-    BOOST_CHECK_EQUAL(a.genes.size(), c.genes.size());
-    for(std::size_t i = 0; i < a.genes.size(); ++i)
+    BOOST_CHECK_EQUAL(a.length(), c.length());
+    for(std::size_t i = 0; i < a.length(); ++i)
     {
-        BOOST_CHECK_EQUAL(a.genes[i].dstNodeId, c.genes[i].dstNodeId);
-        BOOST_CHECK_EQUAL(a.genes[i].innovationNumber, c.genes[i].innovationNumber);
-        BOOST_CHECK_EQUAL(a.genes[i].srcNodeId, c.genes[i].srcNodeId);
-        BOOST_CHECK_EQUAL(a.genes[i].weight, c.genes[i].weight);
-        BOOST_CHECK_EQUAL(a.genes[i].enabled, c.genes[i].enabled);
+        BOOST_CHECK_EQUAL(a[i].dstNodeId, c[i].dstNodeId);
+        BOOST_CHECK_EQUAL(a[i].innovationNumber, c[i].innovationNumber);
+        BOOST_CHECK_EQUAL(a[i].srcNodeId, c[i].srcNodeId);
+        BOOST_CHECK_EQUAL(a[i].weight, c[i].weight);
+        BOOST_CHECK_EQUAL(a[i].enabled, c[i].enabled);
     }
 }
 
@@ -42,16 +42,16 @@ BOOST_FIXTURE_TEST_CASE( Test2, CrossoverTest )
     neat::Genom a = createSampleGenom();
     neat::Genom b = createSampleGenom();
 
-    auto c = neat::crossover(a, b, 1.0, 1.0);
+    auto c = neat::Genom::crossover(a, b, 1.0, 1.0);
 
-    BOOST_CHECK_EQUAL(a.genes.size(), c.genes.size());
-    for(std::size_t i = 0; i < a.genes.size(); ++i)
+    BOOST_CHECK_EQUAL(a.length(), c.length());
+    for(std::size_t i = 0; i < a.length(); ++i)
     {
-        BOOST_CHECK_EQUAL(a.genes[i].dstNodeId, c.genes[i].dstNodeId);
-        BOOST_CHECK_EQUAL(a.genes[i].innovationNumber, c.genes[i].innovationNumber);
-        BOOST_CHECK_EQUAL(a.genes[i].srcNodeId, c.genes[i].srcNodeId);
-        BOOST_CHECK(a.genes[i].weight == c.genes[i].weight || b.genes[i].weight == c.genes[i].weight);
-        BOOST_CHECK_EQUAL(a.genes[i].enabled, c.genes[i].enabled);
+        BOOST_CHECK_EQUAL(a[i].dstNodeId, c[i].dstNodeId);
+        BOOST_CHECK_EQUAL(a[i].innovationNumber, c[i].innovationNumber);
+        BOOST_CHECK_EQUAL(a[i].srcNodeId, c[i].srcNodeId);
+        BOOST_CHECK(a[i].weight == c[i].weight || b[i].weight == c[i].weight);
+        BOOST_CHECK_EQUAL(a[i].enabled, c[i].enabled);
     }
 }
 
@@ -59,51 +59,51 @@ BOOST_FIXTURE_TEST_CASE( Test3, CrossoverTest )
 {
     //Same innovation numbers, different weights, different tails
     neat::Genom a = createSampleGenom();
-    a.genes.push_back({0, 8, true, 16, 0.55});
+    a+= neat::Gene({0, 8, true, 16, 0.55});
 
     neat::Genom b = createSampleGenom();
-    b.genes.push_back({0, 9, true, 17, 0.44});
-    b.genes.push_back({0, 10, true, 18, 0.33});
+    b+= neat::Gene({0, 9, true, 17, 0.44});
+    b+= neat::Gene({0, 10, true, 18, 0.33});
 
     {
-        auto c = neat::crossover(a, b, 1.0, 0.0);
+        auto c = neat::Genom::crossover(a, b, 1.0, 0.0);
 
-        BOOST_CHECK_EQUAL(a.genes.size(), c.genes.size());
-        for(std::size_t i = 0; i < a.genes.size(); ++i)
+        BOOST_CHECK_EQUAL(a.length(), c.length());
+        for(std::size_t i = 0; i < a.length(); ++i)
         {
-            BOOST_CHECK_EQUAL(a.genes[i].dstNodeId, c.genes[i].dstNodeId);
-            BOOST_CHECK_EQUAL(a.genes[i].innovationNumber, c.genes[i].innovationNumber);
-            BOOST_CHECK_EQUAL(a.genes[i].srcNodeId, c.genes[i].srcNodeId);
-            if(a.genes[i].innovationNumber != 16)
+            BOOST_CHECK_EQUAL(a[i].dstNodeId, c[i].dstNodeId);
+            BOOST_CHECK_EQUAL(a[i].innovationNumber, c[i].innovationNumber);
+            BOOST_CHECK_EQUAL(a[i].srcNodeId, c[i].srcNodeId);
+            if(a[i].innovationNumber != 16)
             {
-                BOOST_CHECK(a.genes[i].weight == c.genes[i].weight || b.genes[i].weight == c.genes[i].weight);
+                BOOST_CHECK(a[i].weight == c[i].weight || b[i].weight == c[i].weight);
             }
             else
             {
-                BOOST_CHECK(a.genes[i].weight == c.genes[i].weight);
+                BOOST_CHECK(a[i].weight == c[i].weight);
             }
-            BOOST_CHECK_EQUAL(a.genes[i].enabled, c.genes[i].enabled);
+            BOOST_CHECK_EQUAL(a[i].enabled, c[i].enabled);
         }
     }
     {
-        auto c = neat::crossover(a, b, 0.0, 1.0);
+        auto c = neat::Genom::crossover(a, b, 0.0, 1.0);
 
-        BOOST_CHECK_EQUAL(b.genes.size(), c.genes.size());
-        for(std::size_t i = 0; i < b.genes.size(); ++i)
+        BOOST_CHECK_EQUAL(b.length(), c.length());
+        for(std::size_t i = 0; i < b.length(); ++i)
         {
-            BOOST_CHECK_EQUAL(b.genes[i].dstNodeId, c.genes[i].dstNodeId);
-            BOOST_CHECK_EQUAL(b.genes[i].innovationNumber, c.genes[i].innovationNumber);
-            BOOST_CHECK_EQUAL(b.genes[i].srcNodeId, c.genes[i].srcNodeId);
-            if(b.genes[i].innovationNumber != 17 &&
-                b.genes[i].innovationNumber != 18)
+            BOOST_CHECK_EQUAL(b[i].dstNodeId, c[i].dstNodeId);
+            BOOST_CHECK_EQUAL(b[i].innovationNumber, c[i].innovationNumber);
+            BOOST_CHECK_EQUAL(b[i].srcNodeId, c[i].srcNodeId);
+            if(b[i].innovationNumber != 17 &&
+                b[i].innovationNumber != 18)
             {
-                BOOST_CHECK(a.genes[i].weight == c.genes[i].weight || b.genes[i].weight == c.genes[i].weight);
+                BOOST_CHECK(a[i].weight == c[i].weight || b[i].weight == c[i].weight);
             }
             else
             {
-                BOOST_CHECK(b.genes[i].weight == c.genes[i].weight);
+                BOOST_CHECK(b[i].weight == c[i].weight);
             }
-            BOOST_CHECK_EQUAL(b.genes[i].enabled, c.genes[i].enabled);
+            BOOST_CHECK_EQUAL(b[i].enabled, c[i].enabled);
         }
     }
 }
