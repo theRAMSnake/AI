@@ -1,17 +1,44 @@
 #include "neat.hpp"
+#include "rng.hpp"
+#include <ctime>
 
 namespace neat
 {
 
-NeatResult Neat::evolve(const Config& cfg, IFitnessEvaluator& fitnessEvaluator, IObserver& observer)
+Neat::Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator)
+: mCfg(cfg)
+, mFitnessEvaluator(fitnessEvaluator)
 {
-    //Create and initial population
-    //While not reached
-    //  EvolutionStep
-    //  CheckFitness
-    //  Natural Selection
-    
+    Rng::seed(static_cast<unsigned int>(std::time(0)));
+}
+
+NeatResult Neat::step()
+{
+    if(!mPopulation)
+    {
+        mPopulation = createInitialPopulation(mCfg.numInputs, mCfg.numOutputs, mCfg.initialPopulation);
+    }
+    else
+    {
+        mPopulation = nextGeneration(*mPopulation);
+    }
+
+    evaluateFitness();
+
     return NeatResult();
+}
+
+void Neat::evaluateFitness()
+{
+    for(auto& p : (*mPopulation))
+    {
+        p.fitness = mFitnessEvaluator.evaluate(p.genotype);
+    }
+}
+
+Population Neat::nextGeneration(const Population& pops)
+{
+    throw -1;
 }
 
 }

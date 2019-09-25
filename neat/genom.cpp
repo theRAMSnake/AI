@@ -1,13 +1,9 @@
 #include "genom.hpp"
-#include <boost/random.hpp>
+#include "rng.hpp"
+#include <algorithm>
 
 namespace neat
 {
-
-boost::random::mt19937 rng;
-boost::uniform_real<> doubleGen(-1.0, 1.0);
-boost::uniform_real<> perturbationGen(-0.05, 0.05);
-boost::uniform_real<> realGen(0, 1.0);
 
 const double INHERIT_DISABLED_CHANCE = 0.75;
 const double PERTURBATION_CHANCE = 0.9;
@@ -22,7 +18,7 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
     //Gene MIGHT be disabled if it is disabled in one of the parents
     Genom g(a.mNumInputNodes, a.mNumOutputNodes);
 
-    const bool aIsFittier = fitA == fitB ? doubleGen(rng) > 0 : fitA > fitB;
+    const bool aIsFittier = fitA == fitB ? Rng::genProbability(0.5) : fitA > fitB;
     const Genom& fittest = aIsFittier ? a : b;
 
     g.mGenes.reserve(fittest.mGenes.size());
@@ -34,11 +30,11 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
         if(a.mGenes[i].innovationNumber == b.mGenes[i].innovationNumber)
         {
             g.mGenes.push_back(a.mGenes[i]);
-            g.mGenes.back().weight = doubleGen(rng) > 0 ? a.mGenes[i].weight : b.mGenes[i].weight;
+            g.mGenes.back().weight = Rng::genProbability(0.5) > 0 ? a.mGenes[i].weight : b.mGenes[i].weight;
 
             if(!a.mGenes[i].enabled || !b.mGenes[i].enabled)
             {
-                if(realGen(rng) < INHERIT_DISABLED_CHANCE)
+                if(Rng::genProbability(INHERIT_DISABLED_CHANCE))
                 {
                     g.mGenes.back().enabled = false;
                 }
@@ -62,9 +58,6 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
 
 Genom::Genom(const NodeId numInputs, const NodeId numOutputs)
 {
-    //TemporaryHere
-    rng.seed(static_cast<unsigned int>(std::time(0)));
-
     mGenes.reserve(numInputs * numOutputs);
     mNumInputNodes = numInputs;
     mNumOutputNodes = numOutputs;
@@ -81,7 +74,7 @@ Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs)
     {
         for(NodeId j = 0; j < numOutputs; ++j)
         {
-            g.mGenes.push_back({i, j + numInputs, true, innovationNumber++, doubleGen(rng)});
+            g.mGenes.push_back({i, j + numInputs, true, innovationNumber++, Rng::genWeight()});
         }
     }
     
@@ -112,13 +105,13 @@ void mutateWeights(Genom& a)
 {
     for(auto& x : a)
     {
-        if(realGen(rng) < PERTURBATION_CHANCE)
+        if(Rng::genProbability(PERTURBATION_CHANCE))
         {
-            x.weight += perturbationGen(rng);
+            x.weight += Rng::genPerturbation();
         }
         else
         {
-            x.weight = doubleGen(rng);
+            x.weight = Rng::genWeight();
         }
     }
 }
@@ -156,8 +149,8 @@ bool mutateAddConnection(Genom& a, InnovationNumber& innovationNumber)
     else
     {
         //choose one at random
-        auto& newConnection = possibleConnections[rng() % possibleConnections.size()];
-        a += Gene({newConnection.first, newConnection.second, true, ++innovationNumber, doubleGen(rng)});
+        auto& newConnection = possibleConnections[Rng::genChoise(possibleConnections.size())];
+        a += Gene({newConnection.first, newConnection.second, true, ++innovationNumber, Rng::genWeight()});
         return true;
     }
 }
@@ -190,7 +183,7 @@ NodeId Genom::addNode()
 
 void mutateAddNode(Genom& a, InnovationNumber& innovationNumber)
 {
-    auto& randomConnection = a[rng() % a.length()];
+    auto& randomConnection = a[Rng::genChoise(a.length())];
     randomConnection.enabled = false;
 
     auto srcId = randomConnection.srcNodeId;
@@ -204,15 +197,15 @@ void mutateAddNode(Genom& a, InnovationNumber& innovationNumber)
 
 void mutate(Genom& a, InnovationNumber& innovationNumber)
 {
-    if(realGen(rng) < ADD_NODE_MUTATION_CHANCE)
+    if(Rng::genProbability(ADD_NODE_MUTATION_CHANCE))
     {
         mutateAddNode(a, innovationNumber);
     }
-    else if(realGen(rng) < ADD_CONNECTION_MUTATION_CHANCE)
+    else if(Rng::genProbability(ADD_CONNECTION_MUTATION_CHANCE))
     {
         mutateAddConnection(a, innovationNumber);
     }
-    else if(realGen(rng) < WEIGHTS_MUTATION_CHANCE)
+    else if(Rng::genProbability(WEIGHTS_MUTATION_CHANCE))
     {
         mutateWeights(a);
     }

@@ -6,6 +6,8 @@ LIST(APPEND CMAKE_MODULE_PATH "..")
 add_library(neat 
 genom.cpp
 neat.cpp
+population.cpp
+rng.cpp
 )
 
 find_package(Boost COMPONENTS filesystem REQUIRED)

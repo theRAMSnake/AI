@@ -1,3 +1,8 @@
+#pragma once
+#include "population.hpp"
+#include "genom.hpp"
+#include <optional>
+
 namespace neat
 {
 
@@ -8,23 +13,31 @@ class NeatResult
 
 class IFitnessEvaluator
 {
-
-};
-
-class IObserver
-{
-
+public:
+    virtual Fitness evaluate(const Genom& g) = 0;
 };
 
 struct Config
 {
-    
+    NodeId numInputs;
+    NodeId numOutputs;
+    unsigned int initialPopulation;
 };
 
 class Neat
 {
 public:
-    static NeatResult evolve(const Config& cfg, IFitnessEvaluator& fitnessEvaluator, IObserver& observer);
+    Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator);
+    NeatResult step();
+
+private:
+    Population nextGeneration(const Population& pops);
+    void evaluateFitness();
+
+    Config mCfg;
+    IFitnessEvaluator& mFitnessEvaluator;
+
+    std::optional<Population> mPopulation;
 };
 
 }
