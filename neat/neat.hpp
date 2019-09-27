@@ -22,6 +22,7 @@ struct Config
     NodeId numInputs;
     NodeId numOutputs;
     unsigned int initialPopulation;
+    unsigned int optimalPopulation;
 };
 
 class Neat
@@ -31,13 +32,14 @@ public:
     NeatResult step();
 
 private:
-    Population nextGeneration(const Population& pops);
+    Population nextGeneration(Population& pops);
     void evaluateFitness();
 
     Config mCfg;
     IFitnessEvaluator& mFitnessEvaluator;
 
     std::optional<Population> mPopulation;
+    InnovationNumber mInnovationNumber;
 };
 
 }
