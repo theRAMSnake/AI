@@ -1,5 +1,7 @@
 #include "population.hpp"
+#include "rng.hpp"
 #include <algorithm>
+#include <numeric>
 
 namespace neat
 {
@@ -44,6 +46,58 @@ void Population::instantiatePop(const Genom& g, const unsigned int specieId)
    {
       mSpecies.push_back(Specie{specieId, {Pop{0, g}}});
    }
+}
+
+std::vector<Pop> Population::createSpeciesSamples() const
+{
+   std::vector<Pop> result;
+
+   result.reserve(mSpecies.size());
+
+   for(auto& s : mSpecies)
+   {
+      result.push_back(s.randomPop());
+   }
+
+   return result;
+}
+
+std::vector<Fitness> Population::getSpeciesSharedFitness() const
+{
+   std::vector<Fitness> result;
+
+   result.reserve(mSpecies.size());
+
+   for(auto& s : mSpecies)
+   {
+      auto totalFitness = std::accumulate(s.population.begin(), s.population.end(), 0, [](auto a, auto b){return a + b.fitness;}) ;
+      result.push_back(totalFitness / s.population.size());
+   }
+
+   return result;
+}
+
+Specie& Population::operator[] (const std::size_t index)
+{
+   return mSpecies[index];
+}
+
+unsigned int Population::instantiateSpecie()
+{
+   auto newId = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto a, auto b){return a.id < b.id;})->id + 1;
+   mSpecies.push_back({newId, {}});
+
+   return newId;
+}
+
+std::size_t Population::numSpecies() const
+{
+   return mSpecies.size();
+}
+
+const Pop& Specie::randomPop() const
+{
+    return population[Rng::genChoise(population.size())];
 }
 
 }

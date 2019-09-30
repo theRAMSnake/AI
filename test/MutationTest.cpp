@@ -67,7 +67,18 @@ BOOST_FIXTURE_TEST_CASE( AddConnectionMutation, MutationTest )
    auto newConnection = g[g.length() - 1];
    BOOST_CHECK(newConnection.enabled);
    BOOST_CHECK_EQUAL(INNITIAL_INNOVATION_NUMBER + 3, newConnection.innovationNumber);
-   printf("%d -> %d: %f", newConnection.srcNodeId, newConnection.dstNodeId, newConnection.weight);
    BOOST_CHECK(newConnection.srcNodeId == newNodeId || newConnection.dstNodeId == newNodeId);
    BOOST_CHECK_EQUAL(9, g.length());
+}
+
+BOOST_FIXTURE_TEST_CASE( AddConnectionMutation_EnableAgain, MutationTest ) 
+{
+   auto g = createSampleGenom();
+   g.begin()->enabled = false;
+
+   neat::InnovationNumber innovationNumber = INNITIAL_INNOVATION_NUMBER;
+   neat::mutateAddConnection(g, innovationNumber);
+
+   BOOST_CHECK_EQUAL(6, g.length());
+   BOOST_CHECK(g.begin()->enabled);
 }

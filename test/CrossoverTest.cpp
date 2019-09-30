@@ -16,6 +16,8 @@ protected:
    {
        return neat::Genom::createMinimal(3, 2);
    }
+
+   const neat::InnovationNumber INNITIAL_INNOVATION_NUMBER = 3 * 2;
 };
 
 BOOST_FIXTURE_TEST_CASE( Test1, CrossoverTest ) 

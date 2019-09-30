@@ -14,7 +14,8 @@ struct Specie
 {
    unsigned int id;
    std::vector<Pop> population;
-   Fitness sharedFitness;
+
+   const Pop& randomPop() const;
 };
 
 class Population
@@ -25,8 +26,13 @@ public:
    void operator += (const Specie& p);
    Iterator begin();
    Iterator end();
+   Specie& operator[] (const std::size_t index);
+   std::size_t numSpecies() const;
 
    void instantiatePop(const Genom& g, const unsigned int specieId);
+   unsigned int instantiateSpecie();
+   std::vector<Pop> createSpeciesSamples() const;
+   std::vector<Fitness> getSpeciesSharedFitness() const;
 
 private:
 

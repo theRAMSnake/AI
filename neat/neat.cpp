@@ -2,6 +2,7 @@
 #include "rng.hpp"
 #include <ctime>
 #include <algorithm>
+#include <numeric>
 
 namespace neat
 {
@@ -56,11 +57,9 @@ bool comparePopsByFitnessLess(const Pop& a, const Pop& b)
    return a.fitness < b.fitness;
 }
 
-bool isCompatible(const Genom& g1, const Genom& g2)
+bool isCompatible(const Genom& g1, const Genom& g2, const double compatibilityFactor)
 {
-    throw -1;
-
-    return true;
+    return Genom::calculateDivergence(g1, g2) < compatibilityFactor;
 }
 
 Population Neat::nextGeneration(Population& pops)
@@ -68,28 +67,17 @@ Population Neat::nextGeneration(Population& pops)
     Population next;
 
     //create list of same species and represent them with random pop of this specie
-    std::vector<Specie> specieSamples;
-    Fitness totalFitness = 0;
-    for(auto& s : pops)
-    {
-        specieSamples.push_back({s.id, {randomPop(s)}});
-        s.sharedFitness = 0;
-
-        for(auto& p : s.population)
-        {
-            s.sharedFitness += p.fitness;
-        }
-
-        s.sharedFitness /= s.population.size();
-        totalFitness += s.sharedFitness;
-    }
+    std::vector<Pop> specieSamples = pops.createSpeciesSamples();
+    std::vector<Fitness> specieFitness = pops.getSpeciesSharedFitness();
+    Fitness totalFitness = std::accumulate(specieFitness.begin(), specieFitness.end(), 0);
 
     //calculate num offsprings
+    //HERE!
     std::vector<unsigned int> numOffspringsPerSpecie;
 
-    for(auto& s : pops)
+    for(std::size_t i = 0; i < specieFitness.size(); ++i)
     {
-        numOffspringsPerSpecie.push_back(s.sharedFitness / double(totalFitness) * mCfg.optimalPopulation + 1);
+        numOffspringsPerSpecie.push_back(specieFitness[i] / double(totalFitness) * mCfg.optimalPopulation + 1);
     }
 
     //eliminate low fitness(remove worst 20%)
@@ -144,15 +132,14 @@ Population Neat::nextGeneration(Population& pops)
     }
 
     //speciate
-    auto newSpecieId = (*std::max_element(specieSamples.begin(), specieSamples.end(), [](auto a, auto b) {return a.id > b.id;})).id++;
     for(auto& g : newGenoms)
     {
         bool found = false;
-        for(auto& sample : specieSamples)
+        for(std::size_t i = 0; i < specieSamples.size(); ++i)
         {
-            if(isCompatible(g, sample.population[0].genotype))
+            if(isCompatible(g, specieSamples[i].genotype, mCfg.compatibilityFactor))
             {
-                next.instantiatePop(g, sample.id);
+                next.instantiatePop(g, pops[i].id);
                 found = true;
                 break;
             }
@@ -160,7 +147,8 @@ Population Neat::nextGeneration(Population& pops)
 
         if(!found)
         {
-            next.instantiatePop(g, newSpecieId++);
+            auto id = next.instantiateSpecie();
+            next.instantiatePop(g, id);
         }
     }
 

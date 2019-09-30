@@ -10,6 +10,8 @@ const double PERTURBATION_CHANCE = 0.9;
 const double ADD_NODE_MUTATION_CHANCE = 0.05;
 const double ADD_CONNECTION_MUTATION_CHANCE = 0.05;
 const double WEIGHTS_MUTATION_CHANCE = 0.8;
+const double C1_C2 = 1.0;
+const double C3 = 2.0;
 
 Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB)
 {
@@ -126,7 +128,7 @@ bool mutateAddConnection(Genom& a, InnovationNumber& innovationNumber)
         std::vector<Gene> genes;
         std::copy_if(a.begin(), a.end(), std::back_inserter(genes), [&](auto g){return g.srcNodeId == src && g.enabled;});
 
-        if(genes.size() == a.getTotalNodeCount() - a.getInputNodeCount() - 1)
+        if(genes.size() == a.getTotalNodeCount() - a.getInputNodeCount())
         {
             ///All possible connections are there
             continue;
@@ -150,7 +152,19 @@ bool mutateAddConnection(Genom& a, InnovationNumber& innovationNumber)
     {
         //choose one at random
         auto& newConnection = possibleConnections[Rng::genChoise(possibleConnections.size())];
-        a += Gene({newConnection.first, newConnection.second, true, ++innovationNumber, Rng::genWeight()});
+
+        auto pos = std::find_if(a.begin(), a.end(), [=](auto x){return x.srcNodeId == newConnection.first &&
+            newConnection.second == x.dstNodeId;});
+
+        if(pos == a.end())
+        {
+            a += Gene({newConnection.first, newConnection.second, true, ++innovationNumber, Rng::genWeight()});
+        }
+        else
+        {
+            pos->enabled = true;
+        }
+        
         return true;
     }
 }
@@ -170,7 +184,12 @@ Gene& Genom::operator[] (const std::size_t index)
     return mGenes[index];
 }
 
-std::size_t Genom::length()
+const Gene& Genom::operator[] (const std::size_t index) const
+{
+    return mGenes[index];
+}
+
+std::size_t Genom::length() const
 {
     return mGenes.size();
 }
@@ -209,6 +228,33 @@ void mutate(Genom& a, InnovationNumber& innovationNumber)
     {
         mutateWeights(a);
     }
+}
+
+double Genom::calculateDivergence(const Genom& a, const Genom& b)
+{
+    std::size_t lengthDiff = 0;
+    std::size_t N = 0;
+    if(a.length() >= b.length())
+    {
+        lengthDiff = a.length() - b.length();
+        N = a.length() > 20 ? a.length() : 1;
+    }
+    else
+    {
+        lengthDiff = b.length() - a.length();
+        N = b.length() > 20 ? b.length() : 1;
+    }
+
+    double weightDiff = 0.0;
+    std::size_t i = 0;
+    for(; i < a.length() && i < b.length(); ++i)
+    {
+        weightDiff += std::abs(a[i].weight - b[i].weight);
+    }
+
+    weightDiff /= i;
+
+    return  ((double)lengthDiff * C1_C2) / N + C3 * weightDiff;
 }
 
 }

@@ -26,10 +26,12 @@ public:
 
     static Genom createMinimal(const NodeId numInputs, const NodeId numOutputs);
     static Genom crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB);
+    static double calculateDivergence(const Genom& a, const Genom& b);
 
     void operator += (const Gene& g);
     Gene& operator[] (const std::size_t index);
-    std::size_t length();
+    const Gene& operator[] (const std::size_t index) const;
+    std::size_t length() const;
 
     NodeId addNode();
 

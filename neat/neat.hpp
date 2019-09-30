@@ -23,6 +23,7 @@ struct Config
     NodeId numOutputs;
     unsigned int initialPopulation;
     unsigned int optimalPopulation;
+    double compatibilityFactor;
 };
 
 class Neat
