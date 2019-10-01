@@ -8,6 +8,7 @@ genom.cpp
 neat.cpp
 population.cpp
 rng.cpp
+InnovationHistory.cpp
 )
 
 find_package(Boost COMPONENTS filesystem REQUIRED)

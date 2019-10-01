@@ -29,8 +29,10 @@ protected:
 
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(3, 2);
+       return neat::Genom::createMinimal(3, 2, mHistory);
    }
+
+   neat::InnovationHistory mHistory;
 };
 
 BOOST_FIXTURE_TEST_CASE(createSpecieSamplesTest , PopulationTest) 

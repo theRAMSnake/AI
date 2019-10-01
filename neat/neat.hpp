@@ -40,7 +40,7 @@ private:
     IFitnessEvaluator& mFitnessEvaluator;
 
     std::optional<Population> mPopulation;
-    InnovationNumber mInnovationNumber;
+    InnovationHistory mHistory;
 };
 
 }

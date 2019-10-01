@@ -66,17 +66,15 @@ Genom::Genom(const NodeId numInputs, const NodeId numOutputs)
     mNumHiddenNodes = 0;
 }
 
-Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs)
+Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history)
 {
     Genom g(numInputs, numOutputs);
-    g.mGenes.reserve(numInputs * numOutputs);
 
-    InnovationNumber innovationNumber = 0;
     for(NodeId i = 0; i < numInputs; ++i)
     {
         for(NodeId j = 0; j < numOutputs; ++j)
         {
-            g.mGenes.push_back({i, j + numInputs, true, innovationNumber++, Rng::genWeight()});
+            g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
         }
     }
     
@@ -93,9 +91,19 @@ Genom::Iterator Genom::end()
     return mGenes.end();
 }
 
+Genom::ConstIterator Genom::begin() const
+{
+    return mGenes.begin();
+}
+
+Genom::ConstIterator Genom::end() const
+{
+    return mGenes.end();
+}
+
 NodeId Genom::getTotalNodeCount() const
 {
-    return mNumHiddenNodes + mNumInputNodes + mNumOutputNodes;
+    return mNumHiddenNodes + mNumInputNodes + mNumOutputNodes + 1/* Bias node */;
 }
 
 NodeId Genom::getInputNodeCount() const
@@ -105,39 +113,36 @@ NodeId Genom::getInputNodeCount() const
 
 void mutateWeights(Genom& a)
 {
-    for(auto& x : a)
+    auto& g = a[Rng::genChoise(a.length())];
+
+    if(Rng::genProbability(PERTURBATION_CHANCE))
     {
-        if(Rng::genProbability(PERTURBATION_CHANCE))
-        {
-            x.weight += Rng::genPerturbation();
-        }
-        else
-        {
-            x.weight = Rng::genWeight();
-        }
+        g.weight += Rng::genPerturbation();
+    }
+    else
+    {
+        g.weight = Rng::genWeight();
     }
 }
 
-bool mutateAddConnection(Genom& a, InnovationNumber& innovationNumber)
+bool mutateAddConnection(Genom& a, InnovationHistory& history)
 {
     std::vector<std::pair<NodeId, NodeId>> possibleConnections;
 
     //find all possible connections
     for(NodeId src = 0; src < a.getTotalNodeCount(); ++src)
     {
-        std::vector<Gene> genes;
-        std::copy_if(a.begin(), a.end(), std::back_inserter(genes), [&](auto g){return g.srcNodeId == src && g.enabled;});
-
-        if(genes.size() == a.getTotalNodeCount() - a.getInputNodeCount())
+        if(a.isOutputNode(src))
         {
-            ///All possible connections are there
             continue;
         }
 
-        for(NodeId dst = a.getInputNodeCount(); dst < a.getTotalNodeCount(); ++dst)
+        std::vector<Gene> genes;
+        std::copy_if(a.begin(), a.end(), std::back_inserter(genes), [&](auto g){return g.srcNodeId == src && g.enabled;});
+
+        for(NodeId dst = a.getInputNodeCount() + 1; dst < a.getTotalNodeCount(); ++dst)
         {
-            if(dst != src && std::find_if(genes.begin(), genes.end(), [=](auto x){return x.dstNodeId == dst;}) == genes.end()
-                && !(a.isOutputNode(src) && a.isOutputNode(dst)))
+            if(std::find_if(genes.begin(), genes.end(), [=](auto x){return x.dstNodeId == dst;}) == genes.end())
             {
                 possibleConnections.push_back(std::make_pair(src, dst));
             }
@@ -158,7 +163,8 @@ bool mutateAddConnection(Genom& a, InnovationNumber& innovationNumber)
 
         if(pos == a.end())
         {
-            a += Gene({newConnection.first, newConnection.second, true, ++innovationNumber, Rng::genWeight()});
+            auto innovationNumber = history.get(newConnection.first, newConnection.second);
+            a += Gene({newConnection.first, newConnection.second, true, innovationNumber, Rng::genWeight()});
         }
         else
         {
@@ -171,7 +177,7 @@ bool mutateAddConnection(Genom& a, InnovationNumber& innovationNumber)
 
 bool Genom::isOutputNode(const NodeId n) const
 {
-    return n >= mNumInputNodes && n < mNumInputNodes + mNumOutputNodes;
+    return n >= mNumInputNodes + 1 && n < mNumInputNodes + 1 + mNumOutputNodes;
 }
 
 void Genom::operator += (const Gene& g)
@@ -200,7 +206,7 @@ NodeId Genom::addNode()
     return getTotalNodeCount() - 1;
 }
 
-void mutateAddNode(Genom& a, InnovationNumber& innovationNumber)
+void mutateAddNode(Genom& a, InnovationHistory& history)
 {
     auto& randomConnection = a[Rng::genChoise(a.length())];
     randomConnection.enabled = false;
@@ -210,19 +216,19 @@ void mutateAddNode(Genom& a, InnovationNumber& innovationNumber)
     auto oldWeight = randomConnection.weight;
     auto newNodeId = a.addNode();
 
-    a += Gene({srcId, newNodeId, true, ++innovationNumber, 1.0});
-    a += Gene({newNodeId, dstId, true, ++innovationNumber, oldWeight});
+    a += Gene({srcId, newNodeId, true, history.get(srcId, newNodeId), 1.0});
+    a += Gene({newNodeId, dstId, true, history.get(newNodeId, dstId), oldWeight});
 }
 
-void mutate(Genom& a, InnovationNumber& innovationNumber)
+void mutate(Genom& a, InnovationHistory& history)
 {
     if(Rng::genProbability(ADD_NODE_MUTATION_CHANCE))
     {
-        mutateAddNode(a, innovationNumber);
+        mutateAddNode(a, history);
     }
     else if(Rng::genProbability(ADD_CONNECTION_MUTATION_CHANCE))
     {
-        mutateAddConnection(a, innovationNumber);
+        mutateAddConnection(a, history);
     }
     else if(Rng::genProbability(WEIGHTS_MUTATION_CHANCE))
     {
@@ -232,29 +238,30 @@ void mutate(Genom& a, InnovationNumber& innovationNumber)
 
 double Genom::calculateDivergence(const Genom& a, const Genom& b)
 {
-    std::size_t lengthDiff = 0;
-    std::size_t N = 0;
-    if(a.length() >= b.length())
-    {
-        lengthDiff = a.length() - b.length();
-        N = a.length() > 20 ? a.length() : 1;
-    }
-    else
-    {
-        lengthDiff = b.length() - a.length();
-        N = b.length() > 20 ? b.length() : 1;
-    }
-
+    auto longest = std::max(a.length(), b.length());
+    std::size_t N = longest > 20 ? longest : 1;
+    
     double weightDiff = 0.0;
+    auto iterA = a.begin();
+    auto iterB = b.begin();
+
     std::size_t i = 0;
-    for(; i < a.length() && i < b.length(); ++i)
+    for(; iterA != a.end() && iterB != b.end(); ++iterA, ++iterB, i++)
     {
-        weightDiff += std::abs(a[i].weight - b[i].weight);
+        if(iterA->innovationNumber == iterB->innovationNumber)
+        {
+            weightDiff += std::abs(a[i].weight - b[i].weight);
+        }
+        else
+        {
+            break;
+        }
     }
 
+    auto numDisjointAndExscess = std::max(std::distance(iterA, a.end()), std::distance(iterB, b.end()));
     weightDiff /= i;
 
-    return  ((double)lengthDiff * C1_C2) / N + C3 * weightDiff;
+    return  ((double)numDisjointAndExscess * C1_C2) / N + C3 * weightDiff;
 }
 
 }

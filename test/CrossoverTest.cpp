@@ -14,10 +14,10 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(3, 2);
+       return neat::Genom::createMinimal(3, 2, mHistory);
    }
 
-   const neat::InnovationNumber INNITIAL_INNOVATION_NUMBER = 3 * 2;
+   neat::InnovationHistory mHistory;
 };
 
 BOOST_FIXTURE_TEST_CASE( Test1, CrossoverTest ) 

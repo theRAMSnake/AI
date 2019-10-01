@@ -39,6 +39,11 @@ private:
    std::vector<Specie> mSpecies;
 };
 
-Population createInitialPopulation(const NodeId numInputs, const NodeId numOutputs, const unsigned int size);
+Population createInitialPopulation(
+   const NodeId numInputs, 
+   const NodeId numOutputs, 
+   const unsigned int size,
+   InnovationHistory& history
+   );
 
 }

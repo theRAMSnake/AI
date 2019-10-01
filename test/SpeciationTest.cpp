@@ -9,28 +9,27 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(3, 2);
+       return neat::Genom::createMinimal(3, 2, mHistory);
    }
 
-   const neat::InnovationNumber INNITIAL_INNOVATION_NUMBER = 3 * 2;
+   neat::InnovationHistory mHistory;
 };
 
 BOOST_FIXTURE_TEST_CASE( CalculateDivergence, SpeciationTest ) 
 {  
     //Same genom
-    neat::InnovationNumber innovationNumber = INNITIAL_INNOVATION_NUMBER;
     neat::Genom a = createSampleGenom();
 
     BOOST_CHECK_EQUAL(0.0, neat::Genom::calculateDivergence(a, a));
 
     neat::Genom b = createSampleGenom();
-    neat::mutateAddNode(b, innovationNumber);
+    neat::mutateAddNode(b, mHistory);
 
     auto diff = neat::Genom::calculateDivergence(a, b);
     std::cout << diff << std::endl;
     BOOST_CHECK(diff > 2);
 
-    neat::mutateAddConnection(b, innovationNumber);
+    neat::mutateAddConnection(b, mHistory);
     diff = neat::Genom::calculateDivergence(a, b);
     std::cout << diff << std::endl;
     BOOST_CHECK(diff > 3);

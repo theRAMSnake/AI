@@ -6,7 +6,12 @@
 namespace neat
 {
 
-Population createInitialPopulation(const NodeId numInputs, const NodeId numOutputs, const unsigned int size)
+Population createInitialPopulation(
+   const NodeId numInputs, 
+   const NodeId numOutputs, 
+   const unsigned int size,
+   InnovationHistory& history
+   )
 {
    Population p;
 
@@ -14,7 +19,7 @@ Population createInitialPopulation(const NodeId numInputs, const NodeId numOutpu
 
    for(unsigned int i = 0; i < size; ++i)
    {
-      s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs)});
+      s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history)});
    }
 
    return p;

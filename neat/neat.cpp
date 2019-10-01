@@ -18,8 +18,7 @@ NeatResult Neat::step()
 {
     if(!mPopulation)
     {
-        mPopulation = createInitialPopulation(mCfg.numInputs, mCfg.numOutputs, mCfg.initialPopulation);
-        mInnovationNumber = mPopulation->begin()->population[0].genotype.length() + 1;
+        mPopulation = createInitialPopulation(mCfg.numInputs, mCfg.numOutputs, mCfg.initialPopulation, mHistory);
     }
     else
     {
@@ -110,7 +109,7 @@ Population Neat::nextGeneration(Population& pops)
             auto& pop2 = randomPop(s);
 
             auto genom = &pop1 == &pop2 ? pop1.genotype : Genom::crossover(pop1.genotype, pop2.genotype, pop1.fitness, pop2.fitness);
-            mutate(genom, mInnovationNumber);
+            mutate(genom, mHistory);
 
             newGenoms.push_back(genom);
         }
