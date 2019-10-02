@@ -5,14 +5,6 @@
 namespace neat
 {
 
-const double INHERIT_DISABLED_CHANCE = 0.75;
-const double PERTURBATION_CHANCE = 0.9;
-const double ADD_NODE_MUTATION_CHANCE = 0.05;
-const double ADD_CONNECTION_MUTATION_CHANCE = 0.05;
-const double WEIGHTS_MUTATION_CHANCE = 0.8;
-const double C1_C2 = 1.0;
-const double C3 = 2.0;
-
 Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB)
 {
     //Pick shared part till innovations match (pick random weight)
@@ -175,6 +167,19 @@ bool mutateAddConnection(Genom& a, InnovationHistory& history)
     }
 }
 
+void mutateRemoveConnection(Genom& a)
+{
+    std::vector<Gene> genes;
+    std::copy_if(a.begin(), a.end(), std::back_inserter(genes), [&](auto g){return g.enabled;});
+
+    if(!genes.empty())
+    {
+        auto& c = genes[Rng::genChoise(genes.size())];
+        auto pos = std::find_if(a.begin(), a.end(), [=](auto x){return x.innovationNumber == c.innovationNumber;});
+        pos->enabled = false;
+    }
+}
+
 bool Genom::isOutputNode(const NodeId n) const
 {
     return n >= mNumInputNodes + 1 && n < mNumInputNodes + 1 + mNumOutputNodes;
@@ -226,13 +231,17 @@ void mutate(Genom& a, InnovationHistory& history)
     {
         mutateAddNode(a, history);
     }
-    else if(Rng::genProbability(ADD_CONNECTION_MUTATION_CHANCE))
+    if(Rng::genProbability(ADD_CONNECTION_MUTATION_CHANCE))
     {
         mutateAddConnection(a, history);
     }
-    else if(Rng::genProbability(WEIGHTS_MUTATION_CHANCE))
+    if(Rng::genProbability(WEIGHTS_MUTATION_CHANCE))
     {
         mutateWeights(a);
+    }
+    if(Rng::genProbability(REMOVE_CONNECTION_MUTATION_CHANCE))
+    {
+        mutateRemoveConnection(a);
     }
 }
 

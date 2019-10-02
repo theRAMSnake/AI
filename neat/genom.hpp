@@ -56,6 +56,7 @@ private:
 
 void mutateWeights(Genom& a);
 bool mutateAddConnection(Genom& a, InnovationHistory& history);
+void mutateRemoveConnection(Genom& a);
 void mutateAddNode(Genom& a, InnovationHistory& history);
 
 void mutate(Genom& a, InnovationHistory& history);

@@ -69,6 +69,16 @@ BOOST_FIXTURE_TEST_CASE( AddConnectionMutation, MutationTest )
    BOOST_CHECK_EQUAL(9, g.length());
 }
 
+BOOST_FIXTURE_TEST_CASE( RemoveConnectionMutation, MutationTest ) 
+{
+   auto g = createSampleGenom();
+
+   neat::mutateRemoveConnection(g);
+
+   auto disabledCon = std::find_if(g.begin(), g.end(), [&](auto x){return !x.enabled;});
+   BOOST_CHECK(disabledCon != g.end());
+}
+
 BOOST_FIXTURE_TEST_CASE( AddConnectionMutation_EnableAgain, MutationTest ) 
 {
    auto g = createSampleGenom();

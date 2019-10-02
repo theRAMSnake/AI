@@ -14,7 +14,7 @@ Neat::Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator)
     Rng::seed(static_cast<unsigned int>(std::time(0)));
 }
 
-NeatResult Neat::step()
+void Neat::step()
 {
     if(!mPopulation)
     {
@@ -26,8 +26,6 @@ NeatResult Neat::step()
     }
 
     evaluateFitness();
-
-    return NeatResult();
 }
 
 void Neat::evaluateFitness()
@@ -61,17 +59,11 @@ bool isCompatible(const Genom& g1, const Genom& g2, const double compatibilityFa
     return Genom::calculateDivergence(g1, g2) < compatibilityFactor;
 }
 
-Population Neat::nextGeneration(Population& pops)
+std::vector<unsigned int> Neat::getSpeciesOffspringQuotas(const Population& p)
 {
-    Population next;
-
-    //create list of same species and represent them with random pop of this specie
-    std::vector<Pop> specieSamples = pops.createSpeciesSamples();
-    std::vector<Fitness> specieFitness = pops.getSpeciesSharedFitness();
+    std::vector<Fitness> specieFitness = p.getSpeciesSharedFitness();
     Fitness totalFitness = std::accumulate(specieFitness.begin(), specieFitness.end(), 0);
 
-    //calculate num offsprings
-    //HERE!
     std::vector<unsigned int> numOffspringsPerSpecie;
 
     for(std::size_t i = 0; i < specieFitness.size(); ++i)
@@ -79,31 +71,33 @@ Population Neat::nextGeneration(Population& pops)
         numOffspringsPerSpecie.push_back(specieFitness[i] / double(totalFitness) * mCfg.optimalPopulation + 1);
     }
 
-    //eliminate low fitness(remove worst 20%)
-    for(auto& s : pops)
-    {
-        if(s.population.size() < 5)
-        {
-            continue;
-        }
-        else
-        {
-            std::sort(s.population.begin(), s.population.end(), comparePopsByFitness);
-            for(unsigned int i = 0; i < s.population.size() / 5; ++i)
-            {
-                s.population.pop_back();
-            }
-        }
-    }
+    return numOffspringsPerSpecie;
+}
 
-    std::vector<Genom> newGenoms;
-    newGenoms.reserve(mCfg.optimalPopulation);
+void Neat::reproduceAndMutate(Population& pops, std::vector<Genom>& out)
+{
+    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas(pops);
+
+    out.reserve(mCfg.optimalPopulation);
 
     //reproduce & mutate
     int specieNum = 0;
     for(auto& s : pops)
     {
-        for(unsigned int i = 0; i < numOffspringsPerSpecie[specieNum]; ++i)
+        if(s.population.size() >= 5)
+        {
+            //Remove 20% of losers
+            std::sort(s.population.begin(), s.population.end(), comparePopsByFitness);
+            for(unsigned int i = 0; i < s.population.size() / 5; ++i)
+            {
+                s.population.pop_back();
+            }
+
+            //Keep champion
+            out.push_back(s.population[0].genotype);
+        }
+
+        for(unsigned int i = 0; i < quotas[specieNum]; ++i)
         {
             auto& pop1 = randomPop(s);
             auto& pop2 = randomPop(s);
@@ -111,26 +105,17 @@ Population Neat::nextGeneration(Population& pops)
             auto genom = &pop1 == &pop2 ? pop1.genotype : Genom::crossover(pop1.genotype, pop2.genotype, pop1.fitness, pop2.fitness);
             mutate(genom, mHistory);
 
-            newGenoms.push_back(genom);
+            out.push_back(genom);
         }
 
         specieNum++;
     }
+}
 
-    //keep champion of (5+ species)
-    for(auto& s : pops)
-    {
-        if(s.population.size() < 5)
-        {
-            continue;
-        }
-        else
-        {
-            newGenoms.push_back(std::max_element(s.population.begin(), s.population.end(), comparePopsByFitnessLess)->genotype);
-        }
-    }
+Population Neat::createPopulationFromGenoms(const std::vector<Pop>& specieSamples, const std::vector<Genom>& newGenoms, Population& pops)
+{
+    Population result;
 
-    //speciate
     for(auto& g : newGenoms)
     {
         bool found = false;
@@ -138,7 +123,7 @@ Population Neat::nextGeneration(Population& pops)
         {
             if(isCompatible(g, specieSamples[i].genotype, mCfg.compatibilityFactor))
             {
-                next.instantiatePop(g, pops[i].id);
+                result.instantiatePop(g, pops[i].id);
                 found = true;
                 break;
             }
@@ -146,12 +131,23 @@ Population Neat::nextGeneration(Population& pops)
 
         if(!found)
         {
-            auto id = next.instantiateSpecie();
-            next.instantiatePop(g, id);
+            auto id = result.instantiateSpecie();
+            result.instantiatePop(g, id);
         }
     }
 
-    return next;
+    return result;
+}
+
+Population Neat::nextGeneration(Population& pops)
+{
+    //create list of same species and represent them with random pop of this specie
+    std::vector<Pop> specieSamples = pops.createSpeciesSamples();
+    
+    std::vector<Genom> newGenoms;
+    reproduceAndMutate(pops, newGenoms);
+
+    return createPopulationFromGenoms(specieSamples, newGenoms, pops);
 }
 
 }
