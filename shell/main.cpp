@@ -1,4 +1,5 @@
 #include "neat/neat.hpp"
+#include "neat/neuro_net.hpp"
 
 #include <iostream>
 #include <memory>
@@ -17,7 +18,7 @@ public:
       mValues.reserve(2000);
       for(int i = 0; i < 2000; ++i)
       {
-         mValues.push_back(rng());
+         mValues.push_back(rng() % 100);
       }
    }
 
@@ -25,16 +26,14 @@ public:
    {
       neat::Fitness result = 0;
 
-      /*auto n = neat::createNn(g);
+      auto n = neat::NeuroNet(g);
 
       for(int i = 0; i < 2000; i += 2)
       {
-         auto a = n({mValues[i], mValues[i + 1]});
-         if(a[0] == mValues[i] + mValues[i + 1])
-         {
-            result++;
-         }
-      }*/
+         auto a = n.activateOneShot({static_cast<double>(mValues[i]), static_cast<double>(mValues[i + 1])});
+
+         //check;
+      }
 
       return result;
    }
@@ -51,7 +50,7 @@ int main()
    neat::Config c;
 
    c.numInputs = 2;
-   c.numOutputs = 1;
+   c.numOutputs = 3;  // >, <, =
    c.initialPopulation = 100;
    c.optimalPopulation = 100;
    c.compatibilityFactor = 3.0;

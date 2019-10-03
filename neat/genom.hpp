@@ -7,6 +7,23 @@ namespace neat
 
 using Fitness = int;
 
+struct Config
+{
+    NodeId numInputs;
+    NodeId numOutputs;
+    unsigned int initialPopulation;
+    unsigned int optimalPopulation;
+    double compatibilityFactor;
+    double inheritDisabledChance;
+    double perturbationChance;
+    double addNodeMutationChance;
+    double addConnectionMutationChance;
+    double removeConnectionMutationChance;
+    double weightsMutationChance;
+    double C1_C2;
+    double C3;
+};
+
 struct Gene
 {
     NodeId srcNodeId;
@@ -28,6 +45,9 @@ public:
     static Genom crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB);
     static double calculateDivergence(const Genom& a, const Genom& b);
 
+    static void setConfig(const Config& c);
+    static Config& getConfig();
+
     void operator += (const Gene& g);
     Gene& operator[] (const std::size_t index);
     const Gene& operator[] (const std::size_t index) const;
@@ -43,7 +63,12 @@ public:
 
     NodeId getTotalNodeCount() const;
     NodeId getInputNodeCount() const;
+    NodeId getOutputNodeCount() const;
+    NodeId getBiasNodeId() const;
+    std::vector<NodeId> getInputNodes() const;
+    std::vector<NodeId> getOutputNodes() const;
     bool isOutputNode(const NodeId n) const;
+    bool isInputNode(const NodeId n) const;
 
 private:
 
@@ -52,6 +77,7 @@ private:
     NodeId mNumOutputNodes = 0;
     NodeId mNumHiddenNodes = 0;
     std::vector<Gene> mGenes;
+    static Config mConfig;
 };
 
 void mutateWeights(Genom& a);

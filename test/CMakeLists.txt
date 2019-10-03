@@ -10,6 +10,7 @@ CrossoverTest.cpp
 MutationTest.cpp
 SpeciationTest.cpp
 PopulationTest.cpp
+NeuroNetTest.cpp
 )
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)

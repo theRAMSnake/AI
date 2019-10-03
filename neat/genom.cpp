@@ -5,6 +5,16 @@
 namespace neat
 {
 
+void Genom::setConfig(const Config& c)
+{
+    mConfig = c;
+}
+
+Config& Genom::getConfig()
+{
+    return mConfig;
+}
+
 Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB)
 {
     //Pick shared part till innovations match (pick random weight)
@@ -28,7 +38,7 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
 
             if(!a.mGenes[i].enabled || !b.mGenes[i].enabled)
             {
-                if(Rng::genProbability(INHERIT_DISABLED_CHANCE))
+                if(Rng::genProbability(mConfig.inheritDisabledChance))
                 {
                     g.mGenes.back().enabled = false;
                 }
@@ -107,7 +117,7 @@ void mutateWeights(Genom& a)
 {
     auto& g = a[Rng::genChoise(a.length())];
 
-    if(Rng::genProbability(PERTURBATION_CHANCE))
+    if(Rng::genProbability(Genom::getConfig().perturbationChance))
     {
         g.weight += Rng::genPerturbation();
     }
@@ -227,19 +237,19 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
 
 void mutate(Genom& a, InnovationHistory& history)
 {
-    if(Rng::genProbability(ADD_NODE_MUTATION_CHANCE))
+    if(Rng::genProbability(Genom::getConfig().addNodeMutationChance))
     {
         mutateAddNode(a, history);
     }
-    if(Rng::genProbability(ADD_CONNECTION_MUTATION_CHANCE))
+    if(Rng::genProbability(Genom::getConfig().addConnectionMutationChance))
     {
         mutateAddConnection(a, history);
     }
-    if(Rng::genProbability(WEIGHTS_MUTATION_CHANCE))
+    if(Rng::genProbability(Genom::getConfig().weightsMutationChance))
     {
         mutateWeights(a);
     }
-    if(Rng::genProbability(REMOVE_CONNECTION_MUTATION_CHANCE))
+    if(Rng::genProbability(Genom::getConfig().removeConnectionMutationChance))
     {
         mutateRemoveConnection(a);
     }
@@ -270,8 +280,49 @@ double Genom::calculateDivergence(const Genom& a, const Genom& b)
     auto numDisjointAndExscess = std::max(std::distance(iterA, a.end()), std::distance(iterB, b.end()));
     weightDiff /= i;
 
-    return  ((double)numDisjointAndExscess * C1_C2) / N + C3 * weightDiff;
+    return  ((double)numDisjointAndExscess * mConfig.C1_C2) / N + mConfig.C3 * weightDiff;
 }
+
+NodeId Genom::getOutputNodeCount() const
+{
+    return mNumOutputNodes;
+}
+
+NodeId Genom::getBiasNodeId() const
+{
+    return 0;
+}
+
+std::vector<NodeId> Genom::getInputNodes() const
+{
+    std::vector<NodeId> result;
+
+    for(NodeId i = 0; i < mNumInputNodes; ++i)
+    {
+        result.push_back(i + 1);
+    }
+
+    return result;
+}
+
+bool Genom::isInputNode(const NodeId n) const
+{
+    return n > 0 && n < mNumInputNodes + 1;
+}
+
+std::vector<NodeId> Genom::getOutputNodes() const
+{
+    std::vector<NodeId> result;
+
+    for(NodeId i = 0; i < mNumOutputNodes; ++i)
+    {
+        result.push_back(i + 1 + mNumInputNodes);
+    }
+
+    return result;
+}
+
+Config Genom::mConfig = {};
 
 }
 

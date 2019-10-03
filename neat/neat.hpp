@@ -19,23 +19,6 @@ public:
     virtual ~IFitnessEvaluator(){}
 };
 
-struct Config
-{
-    NodeId numInputs;
-    NodeId numOutputs;
-    unsigned int initialPopulation;
-    unsigned int optimalPopulation;
-    double compatibilityFactor;
-    double inheritDisabledChance;
-    double perturbationChance;
-    double addNodeMutationChance;
-    double addConnectionMutationChance;
-    double removeConnectionMutationChance;
-    double weightsMutationChance;
-    double C1_C2;
-    double C3;
-};
-
 class Neat
 {
 public:

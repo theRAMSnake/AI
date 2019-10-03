@@ -12,6 +12,7 @@ Neat::Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator)
 , mFitnessEvaluator(fitnessEvaluator)
 {
     Rng::seed(static_cast<unsigned int>(std::time(0)));
+    Genom::setConfig(cfg);
 }
 
 void Neat::step()
