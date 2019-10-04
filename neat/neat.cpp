@@ -3,6 +3,7 @@
 #include <ctime>
 #include <algorithm>
 #include <numeric>
+#include <cmath>
 
 namespace neat
 {
@@ -42,7 +43,15 @@ void Neat::evaluateFitness()
 
 Pop& randomPop(Specie& s)
 {
-    return s.population[Rng::genChoise(s.population.size())];
+    auto totalFitness = std::accumulate(s.population.begin(), s.population.end(), 0, [](auto a, auto b){return a + b.fitness;});
+
+    auto* p = &s.population[Rng::genChoise(s.population.size())];
+    while(!Rng::genProbability((double)p->fitness / totalFitness))
+    {
+        p = &s.population[Rng::genChoise(s.population.size())];
+    }
+
+    return *p;
 }
 
 bool comparePopsByFitness(const Pop& a, const Pop& b)
@@ -69,7 +78,10 @@ std::vector<unsigned int> Neat::getSpeciesOffspringQuotas(const Population& p)
 
     if(totalFitness == 0)
     {
-        numOffspringsPerSpecie.push_back(mCfg.optimalPopulation / p.numSpecies());
+        for(std::size_t i = 0; i < specieFitness.size(); ++i)
+        {
+            numOffspringsPerSpecie.push_back(mCfg.optimalPopulation / p.numSpecies());
+        }
     }
     else
     {
@@ -78,7 +90,6 @@ std::vector<unsigned int> Neat::getSpeciesOffspringQuotas(const Population& p)
             numOffspringsPerSpecie.push_back(specieFitness[i] / double(totalFitness) * mCfg.optimalPopulation);
         }
     }
-    
 
     return numOffspringsPerSpecie;
 }
@@ -93,28 +104,45 @@ void Neat::reproduceAndMutate(Population& pops, std::vector<Genom>& out)
     int specieNum = 0;
     for(auto& s : pops)
     {
+        if(s.population.empty())
+        {
+            continue;
+        }
+
+        std::sort(s.population.begin(), s.population.end(), comparePopsByFitness);
         if(s.population.size() >= 5)
         {
-            //Remove 20% of losers
-            std::sort(s.population.begin(), s.population.end(), comparePopsByFitness);
-            for(unsigned int i = 0; i < s.population.size() / 5; ++i)
-            {
-                s.population.pop_back();
-            }
-
             //Keep champion
             out.push_back(s.population[0].genotype);
+        }
+        
+        while(s.population.size() > quotas[specieNum])
+        {
+            s.population.pop_back();
         }
 
         for(unsigned int i = 0; i < quotas[specieNum]; ++i)
         {
             auto& pop1 = randomPop(s);
-            auto& pop2 = randomPop(s);
 
-            auto genom = &pop1 == &pop2 ? pop1.genotype : Genom::crossover(pop1.genotype, pop2.genotype, pop1.fitness, pop2.fitness);
-            mutate(genom, mHistory);
-
-            out.push_back(genom);
+            if(Rng::genProbability(0.5) || s.population.size() < 2)
+            {
+                auto genom = pop1.genotype;
+                mutate(genom, mHistory);
+                out.push_back(genom);
+            }
+            else
+            {
+                auto* pop2 = &pop1;
+                while(pop2 == &pop1)
+                {
+                    pop2 = &randomPop(s);
+                }
+                
+                auto genom = Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
+                //mutate(genom, mHistory);
+                out.push_back(genom);
+            }
         }
 
         specieNum++;
@@ -126,6 +154,8 @@ Population Neat::createPopulationFromGenoms(const std::vector<Pop>& specieSample
     Population result;
 
     auto maxSpecieId = std::max_element(pops.begin(), pops.end(), [] (auto x, auto y){return x.id < y.id;})->id;
+
+    std::vector<Specie> newSpeciesSamples;
 
     for(auto& g : newGenoms)
     {
@@ -140,10 +170,22 @@ Population Neat::createPopulationFromGenoms(const std::vector<Pop>& specieSample
             }
         }
 
+        for(std::size_t i = 0; i < newSpeciesSamples.size(); ++i)
+        {
+            if(isCompatible(g, newSpeciesSamples[i].population[0].genotype, mCfg.compatibilityFactor))
+            {
+                result.instantiatePop(g, newSpeciesSamples[i].id);
+                found = true;
+                break;
+            }
+        }
+
         if(!found)
         {
             auto id = result.instantiateSpecie(++maxSpecieId);
             result.instantiatePop(g, id);
+
+            newSpeciesSamples.push_back(*(result.end() - 1));
         }
     }
 

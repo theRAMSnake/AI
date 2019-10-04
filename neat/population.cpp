@@ -77,7 +77,7 @@ std::vector<Fitness> Population::getSpeciesSharedFitness() const
 
    for(auto& s : mSpecies)
    {
-      auto totalFitness = std::accumulate(s.population.begin(), s.population.end(), 0, [](auto a, auto b){return a + b.fitness;}) ;
+      auto totalFitness = std::accumulate(s.population.begin(), s.population.end(), 0, [](auto a, auto b){return a + b.fitness;});
       result.push_back(totalFitness / s.population.size());
    }
 

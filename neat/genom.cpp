@@ -59,7 +59,7 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
     {
         if(g.mGenes.size() != fittest.mGenes.size())
         {
-            g.mGenes.insert(g.mGenes.end(), fittest.mGenes.begin() + fittest.mGenes.size() - g.mGenes.size(), fittest.mGenes.end());
+            g.mGenes.insert(g.mGenes.end(), fittest.mGenes.begin() + g.mGenes.size(), fittest.mGenes.end());
         }
     }
 
@@ -265,8 +265,7 @@ void mutate(Genom& a, InnovationHistory& history)
 
 double Genom::calculateDivergence(const Genom& a, const Genom& b)
 {
-    auto longest = std::max(a.length(), b.length());
-    std::size_t N = longest > 20 ? longest : 1;
+    std::size_t N = 1;
     
     double weightDiff = 0.0;
     auto iterA = a.begin();

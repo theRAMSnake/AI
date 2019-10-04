@@ -85,7 +85,10 @@ void printGenom(const neat::Genom& g)
 
    for(auto& x : g)
    {
-      std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+      if(x.enabled)
+      {
+         std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+      }
    }
 
    std::cout << ")" << std::endl;
@@ -99,7 +102,7 @@ int main()
    neat::Config c;
 
    c.numInputs = 2;
-   c.numOutputs = 3;  // >, <, =
+   c.numOutputs = 3;  // >, =, <
    c.initialPopulation = 100;
    c.optimalPopulation = 100;
    c.compatibilityFactor = 3.0;
@@ -110,7 +113,7 @@ int main()
    c.removeConnectionMutationChance = 0.05;
    c.weightsMutationChance = 0.8;
    c.C1_C2 = 1.0;
-   c.C3 = 2.0;
+   c.C3 = 1.0;
 
    current.reset(new neat::Neat(c, ev));
 
@@ -125,28 +128,65 @@ int main()
          ev.step();
          current->step();
 
-         //add time measurements
-
-         auto& pops = current->getPopulation();
-         std::cout << "-----------------------------------------------------------" << std::endl;
-         std::cout << "Generation: " << generation << std::endl;
-         std::cout << "Total population: " << pops.size() << std::endl;
-         std::cout << "Num species: " << pops.numSpecies() << std::endl;
-         std::cout << "Average fitness: " << pops.getAverageFitness() << std::endl;
-         std::cout << "Best of each specie: " << std::endl;
-
-         for(auto& s : pops)
-         {
-            auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
-            std::cout << s.id << ": Fitness: " << best->fitness << std::endl;
-            printGenom(best->genotype);
-         }
-
          generation++;
       }
-      else
+      else if(s == "+")
       {
-         std::cout << "?" << std::endl;
+         for(int i = 0; i < 10; ++i)
+         {
+            ev.step();
+            current->step();
+
+            generation++;
+         }
+      }
+      else if(s == ">")
+      {
+         std::cout << "value: ";
+         neat::Fitness f = 0;
+         std::cin >> f;
+         
+         bool stop = false;
+         while(!stop)
+         {
+            ev.step();
+            current->step();
+
+            generation++;
+
+            auto& pops = current->getPopulation();
+            for(auto& s : pops)
+            {
+               auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
+               if(best->fitness >= f)
+               {
+                  stop = true;
+                  break;
+               }
+            }
+
+            std::cout << ".";
+            std::cout.flush();
+         }
+
+         std::cin.get();
+      }
+
+      //add time measurements
+
+      auto& pops = current->getPopulation();
+      std::cout << "-----------------------------------------------------------" << std::endl;
+      std::cout << "Generation: " << generation << std::endl;
+      std::cout << "Total population: " << pops.size() << std::endl;
+      std::cout << "Num species: " << pops.numSpecies() << std::endl;
+      std::cout << "Average fitness: " << pops.getAverageFitness() << std::endl;
+      std::cout << "Best of each specie: " << std::endl;
+
+      for(auto& s : pops)
+      {
+         auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
+         std::cout << s.id << ": Fitness: " << best->fitness << std::endl;
+         printGenom(best->genotype);
       }
    }
 }

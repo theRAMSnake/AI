@@ -1,6 +1,7 @@
 #include "neuro_net.hpp"
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 namespace neat
 {
@@ -24,7 +25,47 @@ double activationFunction(const double val)
 NeuroNet::NeuroNet(const Genom& genotype)
 : mGenotype(genotype)
 {
+   for(auto& c : genotype)
+   {
+      if(c.enabled)
+      {
+         auto src = getOrCreateNode(c.srcNodeId);
+         auto dst = getOrCreateNode(c.dstNodeId);
 
+         dst->inputs.push_back({src->id, c.weight});
+
+         if(src != dst)
+         {
+            orderNodes(src, dst);
+         }
+      }
+   }
+
+   /*for(auto n : mOrderedNodes)
+   {
+      std::cout << n.id << " ";
+   }*/
+}
+
+void NeuroNet::orderNodes(std::list<Node>::iterator first, std::list<Node>::iterator second)
+{
+   if(std::distance(mOrderedNodes.begin(), first) > std::distance(mOrderedNodes.begin(), second))
+   {
+      mOrderedNodes.splice(second, mOrderedNodes, first);
+   }
+}
+
+std::list<NeuroNet::Node>::iterator NeuroNet::getOrCreateNode(const NodeId id)
+{
+   auto pos = std::find_if(mOrderedNodes.begin(), mOrderedNodes.end(), [=](auto x){return x.id == id;});
+   if(pos == mOrderedNodes.end())
+   {
+      return mOrderedNodes.insert(mOrderedNodes.end(), {id, 0.0});
+   }
+   else
+   {
+      return pos;
+   }
 }
 
 std::vector<double> NeuroNet::activateOneShot(const std::vector<double>& input)
@@ -49,11 +90,6 @@ std::vector<double> NeuroNet::activateOneShot(const std::vector<double>& input)
       valuePerNode[inputNodes[i]] = static_cast<double>(input[i]);
    }
 
-   /*for(NodeId i = 0; i < valuePerNode.size(); ++i)
-   {
-      std::cout << "Value per node: n = " << i << ", v = " << valuePerNode[i] << std::endl;
-   }*/
-
    while(step < MAX_STEPS && numOutputsReached != mGenotype.getOutputNodeCount())
    {
       std::vector<double> inputPerNode(mGenotype.getTotalNodeCount(), 0.0);
@@ -66,11 +102,6 @@ std::vector<double> NeuroNet::activateOneShot(const std::vector<double>& input)
             inputPerNode[c.dstNodeId] += valuePerNode[c.srcNodeId] * c.weight;
          }
       }
-
-      /*for(NodeId i = 0; i < inputPerNode.size(); ++i)
-      {
-         std::cout << "Input per node: n = " << i << ", i = " << inputPerNode[i] << std::endl;
-      }*/
 
       numOutputsReached = 0;
 
@@ -107,5 +138,63 @@ std::vector<double> NeuroNet::activateOneShot(const std::vector<double>& input)
 
    return output;
 }
+
+std::vector<double> NeuroNet::activateLongTerm(const std::vector<double>& input)
+{
+   //All nodes should be activate at least once -> this is step
+   std::vector<double> output(mGenotype.getOutputNodeCount(), 0.0);
+
+   if(input.size() != mGenotype.getInputNodeCount())
+   {
+      throw std::invalid_argument("Num inputs does not correspont to genotype");
+   }
+
+   //Assign inputs
+   int i = 0;
+   for(auto& n : mGenotype.getInputNodes())
+   {
+      auto node = getOrCreateNode(n);
+      node->value = input[i++];
+
+      std::cout << " val: " << node->value;
+   }
+
+   getOrCreateNode(mGenotype.getBiasNodeId())->value = 1.0;
+
+   //Walk over ordered nodes
+   for(auto& n : mOrderedNodes)
+   {      
+      std::cout << " Node: " << n.id;
+      double totalInput = 0;
+      for(auto& c: n.inputs)
+      {
+         auto node = getOrCreateNode(c.first);
+         
+         std::cout << " Input: " << c.first << " = " << node->value;
+         
+         totalInput += c.second * node->value;
+      }
+
+      bool isOutput = mGenotype.isOutputNode(n.id);
+      if(isOutput)
+      {
+         n.value = totalInput;
+      }
+      else
+      {
+         n.value = activationFunction(totalInput);
+      }
+   }
+
+   //Collect outputs
+   i = 0;
+   for(auto& n : mGenotype.getOutputNodes())
+   {
+      auto node = getOrCreateNode(n);
+      output[i++] = node->value;
+   }
+
+   return output;
+}  
 
 }
