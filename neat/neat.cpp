@@ -67,10 +67,18 @@ std::vector<unsigned int> Neat::getSpeciesOffspringQuotas(const Population& p)
 
     std::vector<unsigned int> numOffspringsPerSpecie;
 
-    for(std::size_t i = 0; i < specieFitness.size(); ++i)
+    if(totalFitness == 0)
     {
-        numOffspringsPerSpecie.push_back(specieFitness[i] / double(totalFitness) * mCfg.optimalPopulation + 1);
+        numOffspringsPerSpecie.push_back(mCfg.optimalPopulation / p.numSpecies());
     }
+    else
+    {
+        for(std::size_t i = 0; i < specieFitness.size(); ++i)
+        {
+            numOffspringsPerSpecie.push_back(specieFitness[i] / double(totalFitness) * mCfg.optimalPopulation);
+        }
+    }
+    
 
     return numOffspringsPerSpecie;
 }
@@ -117,6 +125,8 @@ Population Neat::createPopulationFromGenoms(const std::vector<Pop>& specieSample
 {
     Population result;
 
+    auto maxSpecieId = std::max_element(pops.begin(), pops.end(), [] (auto x, auto y){return x.id < y.id;})->id;
+
     for(auto& g : newGenoms)
     {
         bool found = false;
@@ -132,7 +142,7 @@ Population Neat::createPopulationFromGenoms(const std::vector<Pop>& specieSample
 
         if(!found)
         {
-            auto id = result.instantiateSpecie();
+            auto id = result.instantiateSpecie(++maxSpecieId);
             result.instantiatePop(g, id);
         }
     }
@@ -149,6 +159,11 @@ Population Neat::nextGeneration(Population& pops)
     reproduceAndMutate(pops, newGenoms);
 
     return createPopulationFromGenoms(specieSamples, newGenoms, pops);
+}
+
+const Population& Neat::getPopulation() const
+{
+    return *mPopulation;
 }
 
 }

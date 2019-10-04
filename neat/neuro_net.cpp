@@ -29,7 +29,7 @@ NeuroNet::NeuroNet(const Genom& genotype)
 
 std::vector<double> NeuroNet::activateOneShot(const std::vector<double>& input)
 {
-   std::vector<double> output(mGenotype.getOutputNodeCount());
+   std::vector<double> output(mGenotype.getOutputNodeCount(), 0.0);
 
    if(input.size() != mGenotype.getInputNodeCount())
    {

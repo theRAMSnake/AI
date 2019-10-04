@@ -15,24 +15,61 @@ public:
    {
       rng.seed(time(nullptr));
 
-      mValues.reserve(2000);
+      step();
+   }
+
+   void step()
+   {
+      mValues.clear();
+
+      mValues.reserve(2300);
       for(int i = 0; i < 2000; ++i)
       {
          mValues.push_back(rng() % 100);
       }
+      for(int i = 0; i < 300; ++i)
+      {
+         auto val = rng() % 100;
+         mValues.push_back(val);
+         mValues.push_back(val);
+      }
+   }
+
+   bool test(const neat::Genom& g, double val1, double val2)
+   {
+      auto n = neat::NeuroNet(g);
+      auto a = n.activateOneShot({static_cast<double>(val1), static_cast<double>(val2)});
+
+      auto pos = std::max_element(a.begin(), a.end());
+      if(pos == a.begin()) // >
+      {
+         return val1 > val2;
+      }
+      else if(pos == a.begin() + 1) // =
+      {
+         return val1 == val2;
+      }
+      else // <
+      {
+         return val1 < val2;
+      }
+
+      return false;
    }
 
    neat::Fitness evaluate(const neat::Genom& g) override
    {
       neat::Fitness result = 0;
 
-      auto n = neat::NeuroNet(g);
-
-      for(int i = 0; i < 2000; i += 2)
+      for(int i = 0; i < 2600; i += 2)
       {
-         auto a = n.activateOneShot({static_cast<double>(mValues[i]), static_cast<double>(mValues[i + 1])});
+         auto val1 = mValues[i];
+         auto val2 = mValues[i + 1];
 
-         //check;
+         if(test(g, val1, val2) && test(g, val2, val1))
+         {
+            result++;
+         }
       }
 
       return result;
@@ -41,6 +78,18 @@ public:
 private:
    std::vector<int> mValues;
 };
+
+void printGenom(const neat::Genom& g)
+{
+   std::cout << "         (";
+
+   for(auto& x : g)
+   {
+      std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+   }
+
+   std::cout << ")" << std::endl;
+}
 
 int main()
 {
@@ -64,4 +113,40 @@ int main()
    c.C3 = 2.0;
 
    current.reset(new neat::Neat(c, ev));
+
+   int generation = 0;
+   char buf[300];
+   while(std::cin.getline(buf, 300))
+   {
+      std::string s = buf;
+
+      if(s == "")
+      {
+         ev.step();
+         current->step();
+
+         //add time measurements
+
+         auto& pops = current->getPopulation();
+         std::cout << "-----------------------------------------------------------" << std::endl;
+         std::cout << "Generation: " << generation << std::endl;
+         std::cout << "Total population: " << pops.size() << std::endl;
+         std::cout << "Num species: " << pops.numSpecies() << std::endl;
+         std::cout << "Average fitness: " << pops.getAverageFitness() << std::endl;
+         std::cout << "Best of each specie: " << std::endl;
+
+         for(auto& s : pops)
+         {
+            auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
+            std::cout << s.id << ": Fitness: " << best->fitness << std::endl;
+            printGenom(best->genotype);
+         }
+
+         generation++;
+      }
+      else
+      {
+         std::cout << "?" << std::endl;
+      }
+   }
 }

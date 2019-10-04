@@ -25,6 +25,8 @@ public:
     Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator);
     void step();
 
+    const Population& getPopulation() const;
+
 private:
     Population nextGeneration(Population& pops);
     void evaluateFitness();

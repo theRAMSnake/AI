@@ -54,8 +54,16 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
     if(divergencePoint != 0)
     {
         g.mGenes.insert(g.mGenes.end(), fittest.mGenes.begin() + divergencePoint, fittest.mGenes.end());
-        g.mNumHiddenNodes = fittest.mNumHiddenNodes;
     }
+    else
+    {
+        if(g.mGenes.size() != fittest.mGenes.size())
+        {
+            g.mGenes.insert(g.mGenes.end(), fittest.mGenes.begin() + fittest.mGenes.size() - g.mGenes.size(), fittest.mGenes.end());
+        }
+    }
+
+    g.mNumHiddenNodes = fittest.mNumHiddenNodes;
 
     return g;
 }

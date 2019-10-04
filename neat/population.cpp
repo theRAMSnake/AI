@@ -22,6 +22,8 @@ Population createInitialPopulation(
       s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history)});
    }
 
+   p += s;
+
    return p;
 }
 
@@ -87,12 +89,11 @@ Specie& Population::operator[] (const std::size_t index)
    return mSpecies[index];
 }
 
-unsigned int Population::instantiateSpecie()
+unsigned int Population::instantiateSpecie(const unsigned int specieId)
 {
-   auto newId = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto a, auto b){return a.id < b.id;})->id + 1;
-   mSpecies.push_back({newId, {}});
+   mSpecies.push_back({specieId, {}});
 
-   return newId;
+   return specieId;
 }
 
 std::size_t Population::numSpecies() const
@@ -102,7 +103,37 @@ std::size_t Population::numSpecies() const
 
 const Pop& Specie::randomPop() const
 {
-    return population[Rng::genChoise(population.size())];
+   return population[Rng::genChoise(population.size())];
+}
+
+std::size_t Population::size() const
+{
+   std::size_t result;
+
+   for(auto& x : mSpecies)
+   {
+      result += x.population.size();
+   }
+
+   return result;
+}
+
+Fitness Population::getAverageFitness() const
+{
+   auto specieFitness = getSpeciesSharedFitness();
+   Fitness totalFitness = std::accumulate(specieFitness.begin(), specieFitness.end(), 0);
+
+   return totalFitness / mSpecies.size();
+}
+
+Population::ConstIterator Population::begin() const
+{
+   return mSpecies.begin();
+}
+
+Population::ConstIterator Population::end() const
+{
+   return mSpecies.end();
 }
 
 }

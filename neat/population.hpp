@@ -22,17 +22,23 @@ class Population
 {
 public:
    using Iterator = std::vector<Specie>::iterator;
+   using ConstIterator = std::vector<Specie>::const_iterator;
 
    void operator += (const Specie& p);
    Iterator begin();
    Iterator end();
+   ConstIterator begin() const;
+   ConstIterator end() const;
    Specie& operator[] (const std::size_t index);
    std::size_t numSpecies() const;
+   std::size_t size() const;
 
    void instantiatePop(const Genom& g, const unsigned int specieId);
-   unsigned int instantiateSpecie();
+   unsigned int instantiateSpecie(const unsigned int specieId);
    std::vector<Pop> createSpeciesSamples() const;
    std::vector<Fitness> getSpeciesSharedFitness() const;
+
+   Fitness getAverageFitness() const;
 
 private:
 
