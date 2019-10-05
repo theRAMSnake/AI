@@ -20,13 +20,14 @@ private:
    {
       NodeId id;
       double value;
+      int depth;
       std::vector<std::pair<NodeId, double>> inputs;
    };
 
-   std::list<Node>::iterator getOrCreateNode(const NodeId id);
-   void orderNodes(std::list<Node>::iterator first, std::list<Node>::iterator second);
+   std::vector<Node>::iterator getOrCreateNode(const NodeId id);
+   //void orderNodes(std::list<Node>::iterator first, std::list<Node>::iterator second);
 
-   std::list<Node> mOrderedNodes;
+   std::vector<Node> mOrderedNodes;
    const Genom& mGenotype;
 };
 

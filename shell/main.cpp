@@ -38,7 +38,7 @@ public:
    bool test(const neat::Genom& g, double val1, double val2)
    {
       auto n = neat::NeuroNet(g);
-      auto a = n.activateOneShot({static_cast<double>(val1), static_cast<double>(val2)});
+      auto a = n.activateLongTerm({static_cast<double>(val1), static_cast<double>(val2)});
 
       auto pos = std::max_element(a.begin(), a.end());
       if(pos == a.begin()) // >

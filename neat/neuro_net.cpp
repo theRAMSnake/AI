@@ -25,6 +25,14 @@ double activationFunction(const double val)
 NeuroNet::NeuroNet(const Genom& genotype)
 : mGenotype(genotype)
 {
+   //Refactor to depth based, use minimum possible depth per node
+   for(auto& n : mGenotype.getInputNodes())
+   {
+      getOrCreateNode(n);
+   }
+
+   getOrCreateNode(mGenotype.getBiasNodeId())->value = 1.0;
+
    for(auto& c : genotype)
    {
       if(c.enabled)
@@ -32,35 +40,41 @@ NeuroNet::NeuroNet(const Genom& genotype)
          auto src = getOrCreateNode(c.srcNodeId);
          auto dst = getOrCreateNode(c.dstNodeId);
 
+         //if dst is create we need to refresh src
+         src = getOrCreateNode(c.srcNodeId);
+
          dst->inputs.push_back({src->id, c.weight});
 
-         if(src != dst)
+         if(src != dst  && src->depth <= dst->depth)//Otherwise recursive - lets not adapt
          {
-            orderNodes(src, dst);
+            int newDepth = src->depth + 1;
+            dst->depth = std::max(newDepth, dst->depth);
          }
       }
    }
 
-   /*for(auto n : mOrderedNodes)
+   std::sort(mOrderedNodes.begin(), mOrderedNodes.end(), [](auto x, auto y){return x.depth < y.depth;});
+
+   /* for(auto n : mOrderedNodes)
    {
       std::cout << n.id << " ";
    }*/
 }
 
-void NeuroNet::orderNodes(std::list<Node>::iterator first, std::list<Node>::iterator second)
+/* void NeuroNet::orderNodes(std::list<Node>::iterator first, std::list<Node>::iterator second)
 {
    if(std::distance(mOrderedNodes.begin(), first) > std::distance(mOrderedNodes.begin(), second))
    {
       mOrderedNodes.splice(second, mOrderedNodes, first);
    }
-}
+}*/
 
-std::list<NeuroNet::Node>::iterator NeuroNet::getOrCreateNode(const NodeId id)
+std::vector<NeuroNet::Node>::iterator NeuroNet::getOrCreateNode(const NodeId id)
 {
    auto pos = std::find_if(mOrderedNodes.begin(), mOrderedNodes.end(), [=](auto x){return x.id == id;});
    if(pos == mOrderedNodes.end())
    {
-      return mOrderedNodes.insert(mOrderedNodes.end(), {id, 0.0});
+      return mOrderedNodes.insert(mOrderedNodes.end(), {id, 0.0, 0});
    }
    else
    {
@@ -156,27 +170,29 @@ std::vector<double> NeuroNet::activateLongTerm(const std::vector<double>& input)
       auto node = getOrCreateNode(n);
       node->value = input[i++];
 
-      std::cout << " val: " << node->value;
+      //std::cout << " val: " << node->value;
    }
-
-   getOrCreateNode(mGenotype.getBiasNodeId())->value = 1.0;
 
    //Walk over ordered nodes
    for(auto& n : mOrderedNodes)
    {      
-      std::cout << " Node: " << n.id;
+      if(mGenotype.isInputNode(n.id) || n.id == mGenotype.getBiasNodeId())
+      {
+         continue;
+      }
+
+      //std::cout << " Node: " << n.id;
       double totalInput = 0;
       for(auto& c: n.inputs)
       {
          auto node = getOrCreateNode(c.first);
          
-         std::cout << " Input: " << c.first << " = " << node->value;
+         //std::cout << " Input: " << c.first << " = " << c.second * node->value;
          
          totalInput += c.second * node->value;
       }
 
-      bool isOutput = mGenotype.isOutputNode(n.id);
-      if(isOutput)
+      if(!mGenotype.isHiddenNode(n.id))
       {
          n.value = totalInput;
       }

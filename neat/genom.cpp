@@ -329,6 +329,11 @@ std::vector<NodeId> Genom::getOutputNodes() const
     return result;
 }
 
+bool Genom::isHiddenNode(const NodeId n) const
+{
+    return n >= mNumOutputNodes + 1 + mNumInputNodes;
+}
+
 Config Genom::mConfig = {};
 
 }

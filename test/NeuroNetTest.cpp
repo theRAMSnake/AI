@@ -39,41 +39,89 @@ BOOST_FIXTURE_TEST_CASE( TestSimpliest, NeuroNetTest )
 {  
    neat::Genom a = createSampleGenom();
 
-   neat::NeuroNet n(a);
+   {
+      neat::NeuroNet n(a);
 
-   BOOST_CHECK_EQUAL(0, n.activateLongTerm({0, 0})[0]);
-
-   /*a[0].weight = 0.5;
+      BOOST_CHECK_EQUAL(0, n.activateLongTerm({0, 0})[0]);
+   }
+   
+   a[0].weight = 0.5;
    a[1].weight = 0.5;
 
-   BOOST_CHECK_EQUAL(10, n.activateLongTerm({10, 10})[0]);
+   {
+      neat::NeuroNet n(a);
+
+      BOOST_CHECK_EQUAL(10, n.activateLongTerm({10, 10})[0]);
+   }
 
    a[0].weight = 0.5;
    a[1].weight = 0.25;
 
-   BOOST_CHECK_EQUAL(7.5, n.activateLongTerm({10, 10})[0]);*/
+   {
+      neat::NeuroNet n(a);
+
+      BOOST_CHECK_EQUAL(7.5, n.activateLongTerm({10, 10})[0]);
+   }
 }
 
-/*BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest ) 
+void printGenom(const neat::Genom& g)
+{
+   std::cout << "         (";
+
+   for(auto& x : g)
+   {
+      if(x.enabled)
+      {
+         std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+      }
+   }
+
+   std::cout << ")" << std::endl;
+}
+
+BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest ) 
 {  
    neat::Genom a = createSampleGenom();
    neat::mutateAddNode(a, mHistory);
 
-   neat::NeuroNet n(a);
+   {
+      a[0].weight = 0;
+      a[1].weight = 0;
+      a[2].weight = 0;
+      a[3].weight = 0;
 
-   a[0].weight = 0;
-   a[1].weight = 0;
-   a[2].weight = 0;
-   a[3].weight = 0;
+      neat::NeuroNet n(a);
 
-   BOOST_CHECK_EQUAL(0, n.activateLongTerm({0, 0})[0]);
+      BOOST_CHECK_EQUAL(0, n.activateLongTerm({0, 0})[0]);
+   }
+   {
+      a[0].weight = 0.5;
+      a[1].weight = 0.5;
+      a[2].weight = 0.5;
+      a[3].weight = 0.5;
 
-   a[0].weight = 0.5;
-   a[1].weight = 0.5;
-   a[2].weight = 0.5;
-   a[3].weight = 0.5;
+      std::cout << std::endl;
+      printGenom(a);
 
-   BOOST_CHECK_EQUAL(5, n.activateLongTerm({10, 10})[0]);
+      neat::NeuroNet n(a);
+
+      BOOST_CHECK_EQUAL(5.5, n.activateLongTerm({10, 10})[0]);
+   }
+   {
+      a[0].weight = 0.5;
+      a[1].weight = 0.5;
+      a[2].weight = 0.5;
+      a[3].weight = 0.5;
+
+      a += neat::Gene({3, 4, true, 0, 1.0});
+
+      std::cout << std::endl;
+      printGenom(a);
+
+      neat::NeuroNet n(a);
+
+      BOOST_CHECK_EQUAL(5.5, n.activateLongTerm({10, 10})[0]);
+   }
 }
 
 BOOST_FIXTURE_TEST_CASE( TestTriangleNode, NeuroNetTest ) 
@@ -99,4 +147,4 @@ BOOST_FIXTURE_TEST_CASE( TestTriangleNode, NeuroNetTest )
 
    neat::NeuroNet n(a);
    BOOST_CHECK_EQUAL(0.5, n.activateLongTerm({10, 10})[0]);
-}*/
+}

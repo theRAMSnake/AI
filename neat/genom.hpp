@@ -69,6 +69,7 @@ public:
     std::vector<NodeId> getOutputNodes() const;
     bool isOutputNode(const NodeId n) const;
     bool isInputNode(const NodeId n) const;
+    bool isHiddenNode(const NodeId n) const;
 
 private:
 
