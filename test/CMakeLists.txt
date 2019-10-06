@@ -9,7 +9,6 @@ add_executable(test
 CrossoverTest.cpp
 MutationTest.cpp
 SpeciationTest.cpp
-PopulationTest.cpp
 NeuroNetTest.cpp
 )
 

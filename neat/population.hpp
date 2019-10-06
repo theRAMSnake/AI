@@ -4,6 +4,14 @@
 namespace neat
 {
 
+class IFitnessEvaluator
+{
+public:
+    virtual Fitness evaluate(const Genom& g) = 0;
+
+    virtual ~IFitnessEvaluator(){}
+};
+
 struct Pop
 {
    Fitness fitness;
@@ -12,44 +20,50 @@ struct Pop
 
 struct Specie
 {
+   const Pop& randomPop() const;
+   void selectRepresentor();
+   Fitness getSharedFitness() const;
+   bool isStagnant() const;
+   void produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out);
+
+   std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
-
-   const Pop& randomPop() const;
 };
 
 class Population
 {
 public:
+   Population(const unsigned int optimalSize, const double compatibilityFactor);
+
    using Iterator = std::vector<Specie>::iterator;
    using ConstIterator = std::vector<Specie>::const_iterator;
 
-   void operator += (const Specie& p);
-   Iterator begin();
-   Iterator end();
    ConstIterator begin() const;
    ConstIterator end() const;
-   Specie& operator[] (const std::size_t index);
+   const Specie& operator[] (const std::size_t index) const;
    std::size_t numSpecies() const;
    std::size_t size() const;
 
-   void instantiatePop(const Genom& g, const unsigned int specieId);
-   unsigned int instantiateSpecie(const unsigned int specieId);
-   std::vector<Pop> createSpeciesSamples() const;
-   std::vector<Fitness> getSpeciesSharedFitness() const;
-
    Fitness getAverageFitness() const;
 
-private:
+   void updateFitness(IFitnessEvaluator& eval);
+   void nextGeneration(InnovationHistory& history);
 
+   static Population createInitialPopulation(
+      const NodeId numInputs, 
+      const NodeId numOutputs, 
+      const unsigned int size,
+      const double compatibilityFactor,
+      InnovationHistory& history
+      );
+
+private:
+   std::vector<unsigned int> getSpeciesOffspringQuotas();
+   unsigned int genNewSpecieId() const;
+
+   const unsigned int mOptimalSize;
+   const double mCompatibilityFactor;
    std::vector<Specie> mSpecies;
 };
-
-Population createInitialPopulation(
-   const NodeId numInputs, 
-   const NodeId numOutputs, 
-   const unsigned int size,
-   InnovationHistory& history
-   );
-
 }

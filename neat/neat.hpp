@@ -11,14 +11,6 @@ class NeatResult
 
 };
 
-class IFitnessEvaluator
-{
-public:
-    virtual Fitness evaluate(const Genom& g) = 0;
-
-    virtual ~IFitnessEvaluator(){}
-};
-
 class Neat
 {
 public:
@@ -28,15 +20,6 @@ public:
     const Population& getPopulation() const;
 
 private:
-    Population nextGeneration(Population& pops);
-    void evaluateFitness();
-    std::vector<unsigned int> getSpeciesOffspringQuotas(const Population& p);
-    void reproduceAndMutate(Population& pops, std::vector<Genom>& out);
-    Population createPopulationFromGenoms(
-        const std::vector<Pop>& specieSamples, 
-        const std::vector<Genom>& newGenoms, 
-        Population& pops
-        );
 
     Config mCfg;
     IFitnessEvaluator& mFitnessEvaluator;

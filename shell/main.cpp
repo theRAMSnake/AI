@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <memory>
+#include <chrono>
 #include <boost/random.hpp>
 
 std::unique_ptr<neat::Neat> current;
@@ -121,6 +122,7 @@ int main()
    char buf[300];
    while(std::cin.getline(buf, 300))
    {
+      auto t1 = std::chrono::high_resolution_clock::now();
       std::string s = buf;
 
       if(s == "")
@@ -132,13 +134,22 @@ int main()
       }
       else if(s == "+")
       {
-         for(int i = 0; i < 10; ++i)
+         std::cout << "generations: ";
+         int g = 0;
+         std::cin >> g;
+
+         for(int i = 0; i < g; ++i)
          {
             ev.step();
             current->step();
 
             generation++;
+
+            std::cout << ".";
+            std::cout.flush();
          }
+
+         std::cin.get();
       }
       else if(s == ">")
       {
@@ -171,11 +182,20 @@ int main()
 
          std::cin.get();
       }
-
-      //add time measurements
+      else if(s == "q")
+      {
+         return 0;
+      }
 
       auto& pops = current->getPopulation();
       std::cout << "-----------------------------------------------------------" << std::endl;
+
+      auto t2 = std::chrono::high_resolution_clock::now();
+
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
+
+      std::cout << "Executed: " << duration << "ms" << std::endl;
+
       std::cout << "Generation: " << generation << std::endl;
       std::cout << "Total population: " << pops.size() << std::endl;
       std::cout << "Num species: " << pops.numSpecies() << std::endl;

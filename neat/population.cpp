@@ -6,94 +6,201 @@
 namespace neat
 {
 
-Population createInitialPopulation(
+Population Population::createInitialPopulation(
    const NodeId numInputs, 
    const NodeId numOutputs, 
-   const unsigned int size,
+   const unsigned int size, 
+   const double compatibilityFactor,
    InnovationHistory& history
    )
 {
-   Population p;
+   Population p(size, compatibilityFactor);
 
-   Specie s{0};
+   Specie s;
+   s.id = 0;
 
    for(unsigned int i = 0; i < size; ++i)
    {
       s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history)});
    }
 
-   p += s;
+   p.mSpecies.push_back(s);
 
    return p;
 }
 
-void Population::operator += (const Specie& s)
+Fitness Specie::getSharedFitness() const
 {
-   mSpecies.push_back(s);
+   auto totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
+   return totalFitness / population.size();
 }
 
-Population::Iterator Population::begin()
+void Population::updateFitness(IFitnessEvaluator& eval)
 {
-   return Population::Iterator(mSpecies.begin());
+    for(auto& s : mSpecies)
+    {
+        for(auto &p : s.population)
+        {
+            p.fitness = eval.evaluate(p.genotype);
+        }
+    }
 }
 
-Population::Iterator Population::end()
+void Specie::selectRepresentor()
 {
-   return Population::Iterator(mSpecies.end());
+   representor = randomPop();
 }
 
-void Population::instantiatePop(const Genom& g, const unsigned int specieId)
+Population::Population(const unsigned int optimalSize, const double compatibilityFactor)
+: mOptimalSize(optimalSize)
+, mCompatibilityFactor(compatibilityFactor)
 {
-   auto speciePos = std::find_if(mSpecies.begin(), mSpecies.end(), [=](auto x){return x.id == specieId;});
-   if(speciePos != mSpecies.end())
+
+}
+
+std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
+{
+   Fitness totalFitness = std::accumulate(mSpecies.begin(), mSpecies.end(), 0, [](auto a, auto& s)
    {
-      speciePos->population.push_back({0, g});
+      return s.getSharedFitness() + a;
+   });
+
+   std::vector<unsigned int> numOffspringsPerSpecie;
+
+   if(totalFitness == 0)
+   {
+      for(std::size_t i = 0; i < mSpecies.size(); ++i)
+      {
+         numOffspringsPerSpecie.push_back(mOptimalSize / mSpecies.size());
+      }
    }
    else
    {
-      mSpecies.push_back(Specie{specieId, {Pop{0, g}}});
+      for(std::size_t i = 0; i < mSpecies.size(); ++i)
+      {
+         if(mSpecies[i].isStagnant())
+         {
+            numOffspringsPerSpecie.push_back(0);
+         }
+         numOffspringsPerSpecie.push_back(mSpecies[i].getSharedFitness() / double(totalFitness) * mOptimalSize);
+      }
+   }
+
+   return numOffspringsPerSpecie;
+}
+
+bool comparePopsByFitness(const Pop& a, const Pop& b)
+{
+   return a.fitness > b.fitness;
+}
+
+void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out)
+{
+   if(population.empty())
+   {
+      return;
+   }
+
+   std::sort(population.begin(), population.end(), comparePopsByFitness);
+   if(population.size() >= 5)
+   {
+      //Keep champion
+      out.push_back(population[0].genotype);
+   }
+   
+   while(population.size() > amount)
+   {
+      population.pop_back();
+   }
+
+   for(unsigned int i = 0; i < amount; ++i)
+   {
+      auto& pop1 = randomPop();
+
+      if(Rng::genProbability(0.5) || population.size() == 1)
+      {
+            auto genom = pop1.genotype;
+            mutate(genom, history);
+            out.push_back(genom);
+      }
+      else
+      {
+            auto* pop2 = &pop1;
+            while(pop2 == &pop1)
+            {
+               pop2 = &randomPop();
+            }
+            
+            auto genom = Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
+            //mutate(genom, mHistory);
+            out.push_back(genom);
+      }
    }
 }
 
-std::vector<Pop> Population::createSpeciesSamples() const
+bool isCompatible(const Genom& g1, const Genom& g2, const double compatibilityFactor)
 {
-   std::vector<Pop> result;
+    return Genom::calculateDivergence(g1, g2) < compatibilityFactor;
+}
 
-   result.reserve(mSpecies.size());
+unsigned int Population::genNewSpecieId() const
+{
+   return std::max_element(mSpecies.begin(), mSpecies.end(), [] (auto x, auto y){return x.id < y.id;})->id + 1;
+}
+
+void Population::nextGeneration(InnovationHistory& history)
+{
+   std::vector<Genom> newGenoms;
 
    for(auto& s : mSpecies)
    {
-      result.push_back(s.randomPop());
+      s.selectRepresentor();
    }
+   
+   std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
 
-   return result;
-}
+   newGenoms.reserve(mOptimalSize);
 
-std::vector<Fitness> Population::getSpeciesSharedFitness() const
-{
-   std::vector<Fitness> result;
-
-   result.reserve(mSpecies.size());
-
+   int specieNum = 0;
    for(auto& s : mSpecies)
    {
-      auto totalFitness = std::accumulate(s.population.begin(), s.population.end(), 0, [](auto a, auto b){return a + b.fitness;});
-      result.push_back(totalFitness / s.population.size());
+      s.produceOffsprings(quotas[specieNum], history, newGenoms);
+      s.population.clear();
+      specieNum++;
    }
 
-   return result;
+   for(auto& g : newGenoms)
+   {
+      bool found = false;
+
+      for(auto& s : mSpecies)
+      {
+         if(isCompatible(g, s.representor->genotype, mCompatibilityFactor))
+         {
+            s.population.push_back({0, g});
+            found = true;
+            break;
+         }
+      }
+
+      if(!found)
+      {
+         Pop p {0, g};
+         Specie s;
+         s.id = genNewSpecieId();
+         s.representor = p;
+         s.population.push_back(p);
+         mSpecies.push_back(s);
+      }
+   }
+
+   //remove extinct
+   mSpecies.erase(std::remove_if(mSpecies.begin(), mSpecies.end(), [](auto x){return x.population.empty();}), mSpecies.end());
 }
 
-Specie& Population::operator[] (const std::size_t index)
+const Specie& Population::operator[] (const std::size_t index) const
 {
    return mSpecies[index];
-}
-
-unsigned int Population::instantiateSpecie(const unsigned int specieId)
-{
-   mSpecies.push_back({specieId, {}});
-
-   return specieId;
 }
 
 std::size_t Population::numSpecies() const
@@ -103,12 +210,20 @@ std::size_t Population::numSpecies() const
 
 const Pop& Specie::randomPop() const
 {
-   return population[Rng::genChoise(population.size())];
+   auto totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
+
+   auto* p = &population[Rng::genChoise(population.size())];
+   while(!Rng::genProbability(((double)p->fitness + 0.1) / totalFitness))
+   {
+      p = &population[Rng::genChoise(population.size())];
+   }
+
+   return *p;
 }
 
 std::size_t Population::size() const
 {
-   std::size_t result;
+   std::size_t result = 0;
 
    for(auto& x : mSpecies)
    {
@@ -120,8 +235,10 @@ std::size_t Population::size() const
 
 Fitness Population::getAverageFitness() const
 {
-   auto specieFitness = getSpeciesSharedFitness();
-   Fitness totalFitness = std::accumulate(specieFitness.begin(), specieFitness.end(), 0);
+   Fitness totalFitness = std::accumulate(mSpecies.begin(), mSpecies.end(), 0, [](auto t, auto& s)
+   {
+      return t + s.getSharedFitness();
+   });
 
    return totalFitness / mSpecies.size();
 }
@@ -134,6 +251,11 @@ Population::ConstIterator Population::begin() const
 Population::ConstIterator Population::end() const
 {
    return mSpecies.end();
+}
+
+bool Specie::isStagnant() const
+{
+   return false;
 }
 
 }
