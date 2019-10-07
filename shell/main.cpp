@@ -118,6 +118,10 @@ int main()
 
    current.reset(new neat::Neat(c, ev));
 
+   NeatController neatController(*current, ev);
+
+   std::map<std::string, std::shared_ptr<IShellCommand>> commands;
+
    int generation = 0;
    char buf[300];
    while(std::cin.getline(buf, 300))
@@ -125,7 +129,7 @@ int main()
       auto t1 = std::chrono::high_resolution_clock::now();
       std::string s = buf;
 
-      if(s == "")
+      /*if(s == "")
       {
          ev.step();
          current->step();
@@ -207,6 +211,6 @@ int main()
          auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
          std::cout << s.id << ": Fitness: " << best->fitness << std::endl;
          printGenom(best->genotype);
-      }
+      }*/
    }
 }

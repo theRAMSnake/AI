@@ -18,6 +18,8 @@ Population Population::createInitialPopulation(
 
    Specie s;
    s.id = 0;
+   s.maxFitness = 0;
+   s.numStagnantGenerations = 0;
 
    for(unsigned int i = 0; i < size; ++i)
    {
@@ -35,15 +37,31 @@ Fitness Specie::getSharedFitness() const
    return totalFitness / population.size();
 }
 
+void Specie::evaluate(IFitnessEvaluator& eval)
+{
+   for(auto &p : population)
+   {
+      p.fitness = eval.evaluate(p.genotype);
+   }
+
+   auto f = getSharedFitness();
+   if(f > maxFitness)
+   {
+      numStagnantGenerations = 0;
+      maxFitness = f;
+   }
+   else
+   {
+      numStagnantGenerations++;
+   }
+}
+
 void Population::updateFitness(IFitnessEvaluator& eval)
 {
-    for(auto& s : mSpecies)
-    {
-        for(auto &p : s.population)
-        {
-            p.fitness = eval.evaluate(p.genotype);
-        }
-    }
+   for(auto& s : mSpecies)
+   {
+      s.evaluate(eval);
+   }
 }
 
 void Specie::selectRepresentor()
@@ -188,7 +206,9 @@ void Population::nextGeneration(InnovationHistory& history)
          Pop p {0, g};
          Specie s;
          s.id = genNewSpecieId();
+         s.maxFitness = 0;
          s.representor = p;
+         s.numStagnantGenerations = 0;
          s.population.push_back(p);
          mSpecies.push_back(s);
       }
@@ -255,7 +275,7 @@ Population::ConstIterator Population::end() const
 
 bool Specie::isStagnant() const
 {
-   return false;
+   return numStagnantGenerations >= 10;
 }
 
 }

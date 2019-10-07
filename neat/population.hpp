@@ -25,10 +25,13 @@ struct Specie
    Fitness getSharedFitness() const;
    bool isStagnant() const;
    void produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out);
+   void evaluate(IFitnessEvaluator& eval);
 
    std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
+   Fitness maxFitness;
+   unsigned int numStagnantGenerations;
 };
 
 class Population
