@@ -65,8 +65,8 @@ public:
     NodeId getInputNodeCount() const;
     NodeId getOutputNodeCount() const;
     NodeId getBiasNodeId() const;
-    std::vector<NodeId> getInputNodes() const;
-    std::vector<NodeId> getOutputNodes() const;
+    const std::vector<NodeId>& getInputNodes() const;
+    const std::vector<NodeId>& getOutputNodes() const;
     bool isOutputNode(const NodeId n) const;
     bool isInputNode(const NodeId n) const;
     bool isHiddenNode(const NodeId n) const;
@@ -74,9 +74,12 @@ public:
 private:
 
     //NodeId convention is [bias][input][output][hidden]
-    NodeId mNumInputNodes = 0;
-    NodeId mNumOutputNodes = 0;
+    //NodeId mNumInputNodes = 0;
+    //NodeId mNumOutputNodes = 0;
+    std::vector<NodeId> mInputNodes;
+    std::vector<NodeId> mOutputNodes;
     NodeId mNumHiddenNodes = 0;
+    NodeId mNumTotalNodes = 0;
     std::vector<Gene> mGenes;
     static Config mConfig;
 };

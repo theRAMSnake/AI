@@ -20,7 +20,7 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
     //Pick shared part till innovations match (pick random weight)
     //Pick excess part from most fit (or random in case of same fitness)
     //Gene MIGHT be disabled if it is disabled in one of the parents
-    Genom g(a.mNumInputNodes, a.mNumOutputNodes);
+    Genom g(a.mInputNodes.size(), a.mOutputNodes.size());
 
     const bool aIsFittier = fitA == fitB ? Rng::genProbability(0.5) : fitA > fitB;
     const Genom& fittest = aIsFittier ? a : b;
@@ -64,6 +64,7 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
     }
 
     g.mNumHiddenNodes = fittest.mNumHiddenNodes;
+    g.mNumTotalNodes = fittest.mNumTotalNodes;
 
     return g;
 }
@@ -71,9 +72,18 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
 Genom::Genom(const NodeId numInputs, const NodeId numOutputs)
 {
     mGenes.reserve(numInputs * numOutputs);
-    mNumInputNodes = numInputs;
-    mNumOutputNodes = numOutputs;
+
+    for(NodeId i = 0; i < numInputs; ++i)
+    {
+        mInputNodes.push_back(i + 1);
+    }
+    for(NodeId i = 0; i < numOutputs; ++i)
+    {
+        mOutputNodes.push_back(i + 1 + numInputs);
+    }
+
     mNumHiddenNodes = 0;
+    mNumTotalNodes = 1 + numInputs + numOutputs;
 }
 
 Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history)
@@ -113,12 +123,12 @@ Genom::ConstIterator Genom::end() const
 
 NodeId Genom::getTotalNodeCount() const
 {
-    return mNumHiddenNodes + mNumInputNodes + mNumOutputNodes + 1/* Bias node */;
+    return mNumTotalNodes;
 }
 
 NodeId Genom::getInputNodeCount() const
 {
-    return mNumInputNodes;
+    return mInputNodes.size();
 }
 
 void mutateWeights(Genom& a)
@@ -200,7 +210,7 @@ void mutateRemoveConnection(Genom& a)
 
 bool Genom::isOutputNode(const NodeId n) const
 {
-    return n >= mNumInputNodes + 1 && n < mNumInputNodes + 1 + mNumOutputNodes;
+    return n >= mInputNodes.size() + 1 && n < mInputNodes.size() + 1 + mOutputNodes.size();
 }
 
 void Genom::operator += (const Gene& g)
@@ -226,7 +236,7 @@ std::size_t Genom::length() const
 NodeId Genom::addNode()
 {
     mNumHiddenNodes++;
-    return getTotalNodeCount() - 1;
+    return mNumTotalNodes++;
 }
 
 void mutateAddNode(Genom& a, InnovationHistory& history)
@@ -292,7 +302,7 @@ double Genom::calculateDivergence(const Genom& a, const Genom& b)
 
 NodeId Genom::getOutputNodeCount() const
 {
-    return mNumOutputNodes;
+    return mOutputNodes.size();
 }
 
 NodeId Genom::getBiasNodeId() const
@@ -300,38 +310,24 @@ NodeId Genom::getBiasNodeId() const
     return 0;
 }
 
-std::vector<NodeId> Genom::getInputNodes() const
+const std::vector<NodeId>& Genom::getInputNodes() const
 {
-    std::vector<NodeId> result;
-
-    for(NodeId i = 0; i < mNumInputNodes; ++i)
-    {
-        result.push_back(i + 1);
-    }
-
-    return result;
+    return mInputNodes;
 }
 
 bool Genom::isInputNode(const NodeId n) const
 {
-    return n > 0 && n < mNumInputNodes + 1;
+    return n > 0 && n < mInputNodes.size() + 1;
 }
 
-std::vector<NodeId> Genom::getOutputNodes() const
+const std::vector<NodeId>& Genom::getOutputNodes() const
 {
-    std::vector<NodeId> result;
-
-    for(NodeId i = 0; i < mNumOutputNodes; ++i)
-    {
-        result.push_back(i + 1 + mNumInputNodes);
-    }
-
-    return result;
+    return mOutputNodes;
 }
 
 bool Genom::isHiddenNode(const NodeId n) const
 {
-    return n >= mNumOutputNodes + 1 + mNumInputNodes;
+    return n >= mOutputNodes.size() + 1 + mInputNodes.size();
 }
 
 Config Genom::mConfig = {};
