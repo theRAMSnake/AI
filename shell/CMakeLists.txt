@@ -7,6 +7,8 @@ include_directories("..")
 
 add_executable(shell 
 main.cpp
+NeatController.cpp
+NumberCmpPG.cpp
 )
 
 target_link_libraries(shell neat)
