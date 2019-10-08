@@ -13,6 +13,7 @@ public:
    virtual neat::IFitnessEvaluator& getFitnessEvaluator() = 0;
 
    virtual void step() = 0;
+   virtual void play(const neat::Genom& g) = 0;
 
    ~IPlayground(){}
 };

@@ -74,6 +74,42 @@ void exportToFile(const neat::Genom& g, const std::string& filename)
    f.close();
 }
 
+neat::Genom importFromFile(const std::string& filename, const neat::NodeId numInputs, const neat::NodeId numOutputs)
+{
+   neat::Genom result(numInputs, numOutputs);
+
+   std::ifstream f;
+   f.open(filename, std::ios_base::in);
+   if (f.is_open())
+   {
+      std::string str;
+      while ( std::getline (f, str) )
+      {
+         std::istringstream s(str);
+         char spare;
+         neat::Gene g;
+
+         s >> g.innovationNumber;
+         s >> spare;
+         s >> spare;
+
+         g.enabled = spare == '+';
+
+         s >> g.srcNodeId;
+         s >> spare;
+         s >> spare;
+         s >> g.dstNodeId;
+         s >> g.weight;
+
+         result += g;
+      }
+
+      f.close();
+   }
+   
+   return result;
+}
+
 //-----------------------------------------------------------------------------
 using CommandFunction = std::function<void(IPlayground&, NeatController&)>;
 
@@ -174,6 +210,23 @@ void exportCommand(IPlayground& p, NeatController& c)
    }
 }
 
+void playCommand(IPlayground& p, NeatController& c)
+{
+   try
+   {
+      auto fname = requestParam<std::string>("filename");
+      auto genom = importFromFile(fname, p.getConfig().numInputs, p.getConfig().numOutputs);
+
+      printGenom(genom, true);
+      
+      p.play(genom);
+   }
+   catch(...)
+   {
+      std::cout << "File is invalid" << std::endl;
+   }
+}
+
 //--------------------------------------------------------------
 
 int main()
@@ -191,6 +244,7 @@ int main()
    commands["reach"] = reachCommand;
    commands["view"] = viewCommand;
    commands["export"] = exportCommand;
+   commands["play"] = playCommand;
 
    char buf[300];
    while(std::cin.getline(buf, 300))
