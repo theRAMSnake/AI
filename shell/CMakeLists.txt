@@ -9,6 +9,7 @@ add_executable(shell
 main.cpp
 NeatController.cpp
 NumberCmpPG.cpp
+MaxPG.cpp
 )
 
 target_link_libraries(shell neat)

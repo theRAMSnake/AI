@@ -22,7 +22,7 @@ private:
    {
       NodeId id;
       double value;
-      int depth;
+      int depth = -1;
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
       //std::vector<std::pair<NodeId, double>> inputs;
    };

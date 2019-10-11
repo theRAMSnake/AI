@@ -64,21 +64,6 @@ BOOST_FIXTURE_TEST_CASE( TestSimpliest, NeuroNetTest )
    }
 }
 
-void printGenom(const neat::Genom& g)
-{
-   std::cout << "         (";
-
-   for(auto& x : g)
-   {
-      if(x.enabled)
-      {
-         std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
-      }
-   }
-
-   std::cout << ")" << std::endl;
-}
-
 BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest ) 
 {  
    neat::Genom a = createSampleGenom();
@@ -100,9 +85,6 @@ BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest )
       a[2].weight = 0.5;
       a[3].weight = 0.5;
 
-      std::cout << std::endl;
-      printGenom(a);
-
       neat::NeuroNet n(a);
 
       BOOST_CHECK_EQUAL(5.5, n.activateLongTerm({10, 10})[0]);
@@ -114,9 +96,6 @@ BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest )
       a[3].weight = 0.5;
 
       a += neat::Gene({3, 4, true, 0, 1.0});
-
-      std::cout << std::endl;
-      printGenom(a);
 
       neat::NeuroNet n(a);
 

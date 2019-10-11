@@ -31,8 +31,13 @@ NeuroNet::NeuroNet(const Genom& genotype)
 
    for(NodeId i = 0; i < totalNodes; ++i)
    {
-      mNodes.push_back(Node{i, 0.0, 0});
+      mNodes.push_back(Node{i, 0.0, -1});
       mOrderedNodes.push_back(i);
+   }
+
+   for(NodeId i : mGenotype.getInputNodes())
+   {
+      mNodes[i].depth = 0;
    }
 
    mNodes[mGenotype.getBiasNodeId()].value = 1.0;
@@ -46,7 +51,9 @@ NeuroNet::NeuroNet(const Genom& genotype)
 
          dst.inputs.push_back({src.id, c.weight});
 
-         if(src.id != dst.id  && src.depth <= dst.depth)//Otherwise recursive - lets not adapt
+         std::cout << "\n process: " << c.srcNodeId << "->" << c.dstNodeId << " depth: " << src.depth << " " << dst.depth;
+
+         if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
          {
             int newDepth = src.depth + 1;
             dst.depth = std::max(newDepth, dst.depth);
@@ -60,10 +67,10 @@ NeuroNet::NeuroNet(const Genom& genotype)
       return mNodes[x].depth < mNodes[y].depth;
    });
 
-   /* for(auto n : mOrderedNodes)
+   for(auto n : mOrderedNodes)
    {
-      std::cout << n.id << " ";
-   }*/
+      std::cout << n << " " << mNodes[n].depth << ",";
+   }
 }
 
 std::vector<double> NeuroNet::activateLongTerm(const std::vector<double>& input)
@@ -73,7 +80,7 @@ std::vector<double> NeuroNet::activateLongTerm(const std::vector<double>& input)
 
    if(input.size() != mGenotype.getInputNodeCount())
    {
-      throw std::invalid_argument("Num inputs does not correspont to genotype");
+      throw std::invalid_argument("Num inputs does not correspont to genotype: " + std::to_string(input.size()));
    }
 
    //Assign inputs

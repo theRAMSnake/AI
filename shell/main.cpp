@@ -1,5 +1,6 @@
 #include "neat/neuro_net.hpp"
 #include "NumberCmpPG.hpp"
+#include "MaxPG.hpp"
 #include "NeatController.hpp"
 
 #include <iostream>
@@ -218,7 +219,7 @@ void playCommand(IPlayground& p, NeatController& c)
       auto genom = importFromFile(fname, p.getConfig().numInputs, p.getConfig().numOutputs);
 
       printGenom(genom, true);
-      
+
       p.play(genom);
    }
    catch(...)
@@ -233,7 +234,8 @@ int main()
 {
    std::cout << "Neat shell" << std::endl;
 
-   NumberCmpPG playground;
+   //NumberCmpPG playground;
+   MaxPG playground;
    NeatController neatController(playground);
 
    std::map<std::string, CommandFunction> commands;
