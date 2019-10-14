@@ -3,16 +3,17 @@ project(shell)
 
 LIST(APPEND CMAKE_MODULE_PATH "..")
 
-include_directories("..")
+include_directories("/usr/include/SDL/" "..")
 
 add_executable(shell 
 main.cpp
 NeatController.cpp
 NumberCmpPG.cpp
 MaxPG.cpp
+TetrisPG.cpp
 )
 
-target_link_libraries(shell neat)
+target_link_libraries(shell neat tetris)
 
 add_custom_command(
         TARGET shell POST_BUILD

@@ -2,6 +2,7 @@
 #include "NumberCmpPG.hpp"
 #include "MaxPG.hpp"
 #include "NeatController.hpp"
+#include "TetrisPG.hpp"
 
 #include <iostream>
 #include <memory>
@@ -14,19 +15,26 @@ void printGenom(const neat::Genom& g, const bool includeWeights = false)
 {
    std::cout << "         (";
 
-   for(auto& x : g)
+   if(g.length() < 20)
    {
-      if(x.enabled)
+      for(auto& x : g)
       {
-         if(includeWeights)
+         if(x.enabled)
          {
-            std::cout << x.srcNodeId << "->" << x.dstNodeId << ":" << std::setprecision(2) << x.weight << " ";
-         }
-         else
-         {
-            std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+            if(includeWeights)
+            {
+               std::cout << x.srcNodeId << "->" << x.dstNodeId << ":" << std::setprecision(2) << x.weight << " ";
+            }
+            else
+            {
+               std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+            }
          }
       }
+   }
+   else
+   {
+      std::cout << "...";
    }
 
    std::cout << ")" << std::endl;
@@ -235,7 +243,8 @@ int main()
    std::cout << "Neat shell" << std::endl;
 
    //NumberCmpPG playground;
-   MaxPG playground;
+   //MaxPG playground;
+   TetrisPG playground;
    NeatController neatController(playground);
 
    std::map<std::string, CommandFunction> commands;

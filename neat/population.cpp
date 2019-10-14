@@ -2,6 +2,7 @@
 #include "rng.hpp"
 #include <algorithm>
 #include <numeric>
+#include <iostream>
 
 namespace neat
 {
@@ -126,7 +127,7 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
       out.push_back(population[0].genotype);
    }
    
-   while(population.size() > amount)
+   while(population.size() > std::max(amount, 2u))//Keep at least two organisms
    {
       population.pop_back();
    }
@@ -183,8 +184,26 @@ void Population::nextGeneration(InnovationHistory& history)
    for(auto& s : mSpecies)
    {
       s.produceOffsprings(quotas[specieNum], history, newGenoms);
-      s.population.clear();
       specieNum++;
+   }
+
+   if(newGenoms.size() == 0)
+   {
+      std::cout << "+";
+      std::cout.flush();
+   }
+
+   while(newGenoms.size() < mOptimalSize)
+   {
+      auto& s = mSpecies[Rng::genChoise(mSpecies.size())];
+      auto genom = s.randomPop().genotype;
+      mutate(genom, history);
+      newGenoms.push_back(genom);
+   }
+
+   for(auto& s : mSpecies)
+   {
+      s.population.clear();
    }
 
    for(auto& g : newGenoms)

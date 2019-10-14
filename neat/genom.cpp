@@ -90,11 +90,14 @@ Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs, Inno
 {
     Genom g(numInputs, numOutputs);
 
-    for(NodeId i = 0; i < numInputs; ++i)
+    if(mConfig.startConnected)
     {
-        for(NodeId j = 0; j < numOutputs; ++j)
+        for(NodeId i = 0; i < numInputs; ++i)
         {
-            g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
+            for(NodeId j = 0; j < numOutputs; ++j)
+            {
+                g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
+            }
         }
     }
     
@@ -255,6 +258,10 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
 
 void mutate(Genom& a, InnovationHistory& history)
 {
+    if(a.length() == 0)
+    {
+        mutateAddConnection(a, history);
+    }
     if(Rng::genProbability(Genom::getConfig().addNodeMutationChance))
     {
         mutateAddNode(a, history);

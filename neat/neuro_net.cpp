@@ -51,7 +51,7 @@ NeuroNet::NeuroNet(const Genom& genotype)
 
          dst.inputs.push_back({src.id, c.weight});
 
-         std::cout << "\n process: " << c.srcNodeId << "->" << c.dstNodeId << " depth: " << src.depth << " " << dst.depth;
+         //std::cout << "\n process: " << c.srcNodeId << "->" << c.dstNodeId << " depth: " << src.depth << " " << dst.depth;
 
          if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
          {
@@ -67,10 +67,10 @@ NeuroNet::NeuroNet(const Genom& genotype)
       return mNodes[x].depth < mNodes[y].depth;
    });
 
-   for(auto n : mOrderedNodes)
+   /*for(auto n : mOrderedNodes)
    {
       std::cout << n << " " << mNodes[n].depth << ",";
-   }
+   }*/
 }
 
 std::vector<double> NeuroNet::activateLongTerm(const std::vector<double>& input)

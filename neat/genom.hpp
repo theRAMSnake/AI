@@ -22,6 +22,7 @@ struct Config
     double weightsMutationChance;
     double C1_C2;
     double C3;
+    bool startConnected = true;
 };
 
 struct Gene
