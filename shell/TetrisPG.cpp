@@ -32,20 +32,25 @@ public:
       auto result = mNet.activateLongTerm(input);
 
       auto pos = std::max_element(result.begin(), result.end());
-      switch(std::distance(result.begin(), pos))
+      if(*pos > 1.0)
       {
-         case 0:
-            return IPlayer::Action::MoveLeft;
+         switch(std::distance(result.begin(), pos))
+         {
+            case 0:
+               return IPlayer::Action::MoveLeft;
 
-         case 1:
-            return IPlayer::Action::MoveRight;
+            case 1:
+               return IPlayer::Action::MoveRight;
 
-         case 2:
-            return IPlayer::Action::Rotate;
+            case 2:
+               return IPlayer::Action::Rotate;
 
-         default:
-            return IPlayer::Action::DoNothing;
+            default:
+               return IPlayer::Action::DoNothing;
+         }
       }
+
+      return IPlayer::Action::DoNothing;
    }
 
 private:
@@ -87,8 +92,8 @@ neat::Config TetrisPG::getConfig()
 
    c.numInputs = BOARD_WIDTH * BOARD_HEIGHT + 3; //PieceType, X, Y
    c.numOutputs = 4;  // Left, Right, Rotate, DoNothing
-   c.initialPopulation = 100;
-   c.optimalPopulation = 100;
+   c.initialPopulation = 2500;
+   c.optimalPopulation = 2500;
    c.compatibilityFactor = 3.0;
    c.inheritDisabledChance = 0.75;
    c.perturbationChance = 0.9;
@@ -97,7 +102,7 @@ neat::Config TetrisPG::getConfig()
    c.removeConnectionMutationChance = 0.05;
    c.weightsMutationChance = 0.8;
    c.C1_C2 = 1.0;
-   c.C3 = 1.0;
+   c.C3 = 0.3;
    c.startConnected = true;
 
    return c;

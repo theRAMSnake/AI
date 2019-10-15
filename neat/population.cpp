@@ -101,7 +101,7 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          {
             numOffspringsPerSpecie.push_back(0);
          }
-         numOffspringsPerSpecie.push_back(mSpecies[i].getSharedFitness() / double(totalFitness) * mOptimalSize);
+         numOffspringsPerSpecie.push_back(mSpecies[i].getSharedFitness() / double(getAverageFitness() + 0.001) * mSpecies[i].population.size());
       }
    }
 
@@ -127,7 +127,8 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
       out.push_back(population[0].genotype);
    }
    
-   while(population.size() > std::max(amount, 2u))//Keep at least two organisms
+   auto halfSize = population.size() / 2;
+   while(population.size() > 1 && population.size() > halfSize)//Keep at least two organisms
    {
       population.pop_back();
    }
@@ -151,7 +152,7 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
             }
             
             auto genom = Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
-            //mutate(genom, mHistory);
+            //mutate(genom, history);
             out.push_back(genom);
       }
    }
@@ -185,12 +186,6 @@ void Population::nextGeneration(InnovationHistory& history)
    {
       s.produceOffsprings(quotas[specieNum], history, newGenoms);
       specieNum++;
-   }
-
-   if(newGenoms.size() == 0)
-   {
-      std::cout << "+";
-      std::cout.flush();
    }
 
    while(newGenoms.size() < mOptimalSize)

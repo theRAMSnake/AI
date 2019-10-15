@@ -244,6 +244,7 @@ NodeId Genom::addNode()
 
 void mutateAddNode(Genom& a, InnovationHistory& history)
 {
+    
     auto& randomConnection = a[Rng::genChoise(a.length())];
     randomConnection.enabled = false;
 
@@ -258,11 +259,7 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
 
 void mutate(Genom& a, InnovationHistory& history)
 {
-    if(a.length() == 0)
-    {
-        mutateAddConnection(a, history);
-    }
-    if(Rng::genProbability(Genom::getConfig().addNodeMutationChance))
+    if(Rng::genProbability(Genom::getConfig().addNodeMutationChance) && a.length() != 0)
     {
         mutateAddNode(a, history);
     }
@@ -270,11 +267,11 @@ void mutate(Genom& a, InnovationHistory& history)
     {
         mutateAddConnection(a, history);
     }
-    if(Rng::genProbability(Genom::getConfig().weightsMutationChance))
+    if(Rng::genProbability(Genom::getConfig().weightsMutationChance) && a.length() != 0)
     {
         mutateWeights(a);
     }
-    if(Rng::genProbability(Genom::getConfig().removeConnectionMutationChance))
+    if(Rng::genProbability(Genom::getConfig().removeConnectionMutationChance) && a.length() != 0)
     {
         mutateRemoveConnection(a);
     }
@@ -302,7 +299,11 @@ double Genom::calculateDivergence(const Genom& a, const Genom& b)
     }
 
     auto numDisjointAndExscess = std::max(std::distance(iterA, a.end()), std::distance(iterB, b.end()));
-    weightDiff /= i;
+
+    if(i != 0)
+    {
+        weightDiff /= i;
+    }
 
     return  ((double)numDisjointAndExscess * mConfig.C1_C2) / N + mConfig.C3 * weightDiff;
 }

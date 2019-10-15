@@ -26,37 +26,52 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 		for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
 			view[i][j] = board.IsFreeBlock(i, j);
 
-      auto action = p.getNextAction(view, game.mPiece, game.mPosX, game.mPosY);
-
-      switch(action)
+      for (int i = 0; i < PIECE_BLOCKS; i++)
+		for (int j = 0; j < PIECE_BLOCKS; j++)
       {
-         case IPlayer::Action::MoveLeft:
+         auto y = game.mPosY + j;
+         auto x = game.mPosX + i;
+         if(x >= 0 && y >= 0 && pieces.GetBlockType (game.mPiece, game.mRotation, x, y) != 0)
          {
-            if (board.IsPossibleMovement (game.mPosX - 1, game.mPosY, game.mPiece, game.mRotation))
-               game.mPosX--;	
-            break;
-         }
-         case IPlayer::Action::MoveRight:
-         {
-            if (board.IsPossibleMovement (game.mPosX + 1, game.mPosY, game.mPiece, game.mRotation))
-            {
-               game.mPosX++;
-            }
-            break;
-         }
-         case IPlayer::Action::Rotate:
-         {
-            if (board.IsPossibleMovement (game.mPosX, game.mPosY, game.mPiece, (game.mRotation + 1) % 4))
-               game.mRotation = (game.mRotation + 1) % 4;
-
-            break;
-         }
-
-         default:
-         {
-
+            view[x][y] = true;
          }
       }
+
+      for(int i = 0; i < 5; ++i)
+      {
+         auto action = p.getNextAction(view, game.mPiece, game.mPosX, game.mPosY);
+
+         switch(action)
+         {
+            case IPlayer::Action::MoveLeft:
+            {
+               if (board.IsPossibleMovement (game.mPosX - 1, game.mPosY, game.mPiece, game.mRotation))
+                  game.mPosX--;	
+               break;
+            }
+            case IPlayer::Action::MoveRight:
+            {
+               if (board.IsPossibleMovement (game.mPosX + 1, game.mPosY, game.mPiece, game.mRotation))
+               {
+                  game.mPosX++;
+               }
+               break;
+            }
+            case IPlayer::Action::Rotate:
+            {
+               if (board.IsPossibleMovement (game.mPosX, game.mPosY, game.mPiece, (game.mRotation + 1) % 4))
+                  game.mRotation = (game.mRotation + 1) % 4;
+
+               break;
+            }
+
+            default:
+            {
+               i = 5;
+            }
+         }
+      }
+      
 
       if (board.IsPossibleMovement (game.mPosX, game.mPosY + 1, game.mPiece, game.mRotation))
       {
