@@ -21,6 +21,8 @@ public:
 
 private:
 
+    void updateFitness();
+
     Config mCfg;
     IFitnessEvaluator& mFitnessEvaluator;
 

@@ -34,34 +34,30 @@ Population Population::createInitialPopulation(
 
 Fitness Specie::getSharedFitness() const
 {
-   auto totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
-   return totalFitness / population.size();
+   return sharedFitness;
 }
 
-void Specie::evaluate(IFitnessEvaluator& eval)
+void Population::onEvaluationFinished()
 {
-   for(auto &p : population)
+   for(auto& s : mSpecies)
    {
-      p.fitness = eval.evaluate(p.genotype);
+      s.updateFitness();
    }
+}
 
-   auto f = getSharedFitness();
-   if(f > maxFitness)
+void Specie::updateFitness()
+{
+   totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
+   sharedFitness = totalFitness / population.size();
+
+   if(sharedFitness > maxFitness)
    {
       numStagnantGenerations = 0;
-      maxFitness = f;
+      maxFitness = sharedFitness;
    }
    else
    {
       numStagnantGenerations++;
-   }
-}
-
-void Population::updateFitness(IFitnessEvaluator& eval)
-{
-   for(auto& s : mSpecies)
-   {
-      s.evaluate(eval);
    }
 }
 
@@ -101,7 +97,7 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          {
             numOffspringsPerSpecie.push_back(0);
          }
-         numOffspringsPerSpecie.push_back(mSpecies[i].getSharedFitness() / double(getAverageFitness() + 0.001) * mSpecies[i].population.size());
+         numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
       }
    }
 
@@ -111,6 +107,11 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
 bool comparePopsByFitness(const Pop& a, const Pop& b)
 {
    return a.fitness > b.fitness;
+}
+
+Fitness Specie::getTotalFitness() const
+{
+   return totalFitness;
 }
 
 void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out)
@@ -128,7 +129,7 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
    }
    
    auto halfSize = population.size() / 2;
-   while(population.size() > 1 && population.size() > halfSize)//Keep at least two organisms
+   while(population.size() > 1 && population.size() > halfSize)//Keep at least one organisms
    {
       population.pop_back();
    }
@@ -290,6 +291,16 @@ Population::ConstIterator Population::end() const
 bool Specie::isStagnant() const
 {
    return numStagnantGenerations >= 10;
+}
+
+Population::Iterator Population::begin()
+{
+   return mSpecies.begin();
+}
+
+Population::Iterator Population::end()
+{
+   return mSpecies.end();
 }
 
 }

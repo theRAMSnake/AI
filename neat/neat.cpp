@@ -2,6 +2,7 @@
 #include "rng.hpp"
 #include <ctime>
 #include <algorithm>
+#include <future>
 #include <numeric>
 #include <cmath>
 
@@ -32,7 +33,75 @@ void Neat::step()
         mPopulation->nextGeneration(mHistory);
     }
 
-    mPopulation->updateFitness(mFitnessEvaluator);
+    updateFitness();
+}
+
+int evaluate(IFitnessEvaluator& eval, std::vector<std::vector<Pop>::iterator>::iterator begin, std::vector<std::vector<Pop>::iterator>::iterator end)
+{
+    for(auto iter = begin; iter != end; ++iter)
+    {
+        (*iter)->fitness = eval.evaluate((*iter)->genotype);
+    }
+
+    return 0;
+}
+
+void evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, IFitnessEvaluator& eval, int numThreads)
+{
+    std::vector<std::future<int>> fs;
+    std::size_t numElementsByThread = popPtrs.size() / numThreads;
+
+    auto first = popPtrs.begin();
+    auto last = first + numElementsByThread;
+    for(int i = 0; i < numThreads; ++i)
+    {
+        auto f = std::async(std::launch::async, evaluate, eval, first, last);
+        fs.push_back(f);
+
+        first += numElementsByThread;
+        last += numElementsByThread;
+
+        if(last > popPtrs.end())
+        {
+            last = popPtrs.end();
+        }
+    }
+    
+    for(auto& f : fs)
+    {
+        f.get();
+    }
+}
+
+void Neat::updateFitness()
+{
+    if(mCfg.numThreads != 1)
+    {
+        std::vector<std::vector<Pop>::iterator> popPtrs;
+        popPtrs.reserve(mCfg.optimalPopulation * 2); //x2 is not to reallocate overpopulation
+
+        for(auto& s: (*mPopulation))
+        {
+            for(auto iter = s.population.begin(); iter != s.population.end(); ++iter)
+            {
+                popPtrs.push_back(iter);
+            }
+        }
+
+        evaluateParallel(popPtrs, mFitnessEvaluator, mCfg.numThreads);
+    }
+    else
+    {
+        for(auto& s: (*mPopulation))
+        {
+            for(auto iter = s.population.begin(); iter != s.population.end(); ++iter)
+            {
+                iter->fitness = mFitnessEvaluator.evaluate(iter->genotype);
+            }
+        }
+    }
+
+    mPopulation->onEvaluationFinished();
 }
 
 Pop& randomPop(Specie& s)

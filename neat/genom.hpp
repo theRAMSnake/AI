@@ -23,6 +23,7 @@ struct Config
     double C1_C2;
     double C3;
     bool startConnected = true;
+    int numThreads = 1;
 };
 
 struct Gene

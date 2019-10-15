@@ -23,15 +23,18 @@ struct Specie
    const Pop& randomPop() const;
    void selectRepresentor();
    Fitness getSharedFitness() const;
+   Fitness getTotalFitness() const;
+   void updateFitness();
    bool isStagnant() const;
    void produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out);
-   void evaluate(IFitnessEvaluator& eval);
 
    std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
    Fitness maxFitness;
    unsigned int numStagnantGenerations;
+   Fitness totalFitness = 0;
+   Fitness sharedFitness = 0;
 };
 
 class Population
@@ -44,14 +47,16 @@ public:
 
    ConstIterator begin() const;
    ConstIterator end() const;
+   Iterator begin();
+   Iterator end();
    const Specie& operator[] (const std::size_t index) const;
    std::size_t numSpecies() const;
    std::size_t size() const;
 
    Fitness getAverageFitness() const;
 
-   void updateFitness(IFitnessEvaluator& eval);
    void nextGeneration(InnovationHistory& history);
+   void onEvaluationFinished();
 
    static Population createInitialPopulation(
       const NodeId numInputs, 

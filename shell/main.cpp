@@ -48,13 +48,30 @@ void printState(NeatController& c)
    std::cout << "Total population: " << pops.size() << std::endl;
    std::cout << "Num species: " << pops.numSpecies() << std::endl;
    std::cout << "Average fitness: " << pops.getAverageFitness() << std::endl;
-   std::cout << "Best of each specie: " << std::endl;
+   std::cout << "Top 5: " << std::endl;
 
+   std::vector<std::pair<int, std::vector<neat::Pop>::const_iterator>> bestPops;
    for(auto& s : pops)
    {
       auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
-      std::cout << s.id << ": Fitness: " << best->fitness << std::endl;
-      printGenom(best->genotype);
+      if(bestPops.size() == 5)
+      {
+         auto worstOf5 = std::min_element(bestPops.begin(), bestPops.end(), [](auto x, auto y){return x.second->fitness < y.second->fitness;});
+         if(worstOf5->second->fitness < best->fitness)
+         {
+            (*worstOf5) = std::make_pair(s.id, best);
+         }
+      }
+      else
+      {
+         bestPops.push_back(std::make_pair(s.id, best));
+      }
+   }
+
+   for(auto &b : bestPops)
+   {
+      std::cout << b.first << ": Fitness: " << b.second->fitness << std::endl;
+      printGenom(b.second->genotype);
    }
 }
 
