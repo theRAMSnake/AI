@@ -14,4 +14,4 @@ neuro_net.cpp
 
 find_package(Boost COMPONENTS filesystem REQUIRED)
 
-target_link_libraries(neat ${Boost_LIBRARIES})
+target_link_libraries(neat ${Boost_LIBRARIES} pthread)

@@ -24,15 +24,26 @@ double activationFunction(const double val)
 
 NeuroNet::NeuroNet(const Genom& genotype)
 : mGenotype(genotype)
+, mOutput(mGenotype.getOutputNodeCount(), 0.0)
 {
    auto totalNodes = mGenotype.getTotalNodeCount();
-   mOrderedNodes.reserve(totalNodes);
+   
    mNodes.reserve(totalNodes);
+   mInputNodes.reserve(genotype.getInputNodeCount());
+   mHiddenAndOutputNodes.reserve(totalNodes);
 
    for(NodeId i = 0; i < totalNodes; ++i)
    {
       mNodes.push_back(Node{i, 0.0, -1});
-      mOrderedNodes.push_back(i);
+
+      if(mGenotype.isHiddenNode(i) || mGenotype.isOutputNode(i))
+      {
+         mHiddenAndOutputNodes.push_back(&mNodes.back());
+      }
+      else if(mGenotype.isInputNode(i))
+      {
+         mInputNodes.push_back(&mNodes.back());
+      }
    }
 
    for(NodeId i : mGenotype.getInputNodes())
@@ -51,8 +62,6 @@ NeuroNet::NeuroNet(const Genom& genotype)
 
          dst.inputs.push_back({src.id, c.weight});
 
-         //std::cout << "\n process: " << c.srcNodeId << "->" << c.dstNodeId << " depth: " << src.depth << " " << dst.depth;
-
          if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
          {
             int newDepth = src.depth + 1;
@@ -60,79 +69,63 @@ NeuroNet::NeuroNet(const Genom& genotype)
          }
       }
    }
-
    
-   std::sort(mOrderedNodes.begin(), mOrderedNodes.end(), [&](auto x, auto y)
+   std::sort(mHiddenAndOutputNodes.begin(), mHiddenAndOutputNodes.end(), [&](auto x, auto y)
    {
-      return mNodes[x].depth < mNodes[y].depth;
+      return x->depth < y->depth;
    });
-
-   /*for(auto n : mOrderedNodes)
-   {
-      std::cout << n << " " << mNodes[n].depth << ",";
-   }*/
 }
 
-std::vector<double> NeuroNet::activateLongTerm(const std::vector<double>& input)
+const std::vector<double>& NeuroNet::getOutput() const
 {
-   //All nodes should be activate at least once -> this is step
-   std::vector<double> output(mGenotype.getOutputNodeCount(), 0.0);
+   return mOutput;
+}
 
-   if(input.size() != mGenotype.getInputNodeCount())
+std::vector<double>& NeuroNet::activateLongTerm(const std::vector<double>& input)
+{
+   if(input.size() != mInputNodes.size())
    {
       throw std::invalid_argument("Num inputs does not correspont to genotype: " + std::to_string(input.size()));
    }
 
    //Assign inputs
-   int i = 0;
-   for(auto& n : mGenotype.getInputNodes())
-   {
-      auto& node = mNodes[n];
-      node.value = input[i++];
+   auto inputIter = input.begin();
+   auto inputNodeIter = mInputNodes.begin();
 
-      //std::cout << " val: " << node->value;
+   for(; inputIter != input.end(); ++inputIter, ++inputNodeIter)
+   {
+      (*inputNodeIter)->value = *inputIter;
    }
 
-   //Walk over ordered nodes
-   for(auto& id : mOrderedNodes)
+   //Walk over ordered hidden and output nodes
+   for(auto node : mHiddenAndOutputNodes)
    {      
-      if(mGenotype.isInputNode(id) || id == mGenotype.getBiasNodeId())
-      {
-         continue;
-      }
-
-      auto& node = mNodes[id];
-
-      //std::cout << " Node: " << n.id;
       double totalInput = 0;
-      for(auto& c: node.inputs)
+      for(auto& c: node->inputs)
       {
          auto& input = mNodes[c.first];
-         
-         //std::cout << " Input: " << c.first << " = " << c.second * node->value;
-         
          totalInput += c.second * input.value;
       }
 
-      if(!mGenotype.isHiddenNode(id))
+      if(!mGenotype.isHiddenNode(node->id))
       {
-         node.value = totalInput;
+         node->value = totalInput;
       }
       else
       {
-         node.value = activationFunction(totalInput);
+         node->value = activationFunction(totalInput);
       }
    }
 
    //Collect outputs
-   i = 0;
+   std::size_t i = 0;
    for(auto& n : mGenotype.getOutputNodes())
    {
       auto& node = mNodes[n];
-      output[i++] = node.value;
+      mOutput[i++] = node.value;
    }
 
-   return output;
+   return mOutput;
 }  
 
 }

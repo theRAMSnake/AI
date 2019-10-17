@@ -70,7 +70,8 @@ public:
          }
       }
 
-      return result;
+      //return result;
+      return 1;
    }
 
 private:
@@ -94,6 +95,7 @@ neat::Config NumberCmpPG::getConfig()
    c.weightsMutationChance = 0.8;
    c.C1_C2 = 1.0;
    c.C3 = 1.0;
+   c.numThreads = 3;
 
    return c;
 }

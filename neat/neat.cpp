@@ -36,11 +36,11 @@ void Neat::step()
     updateFitness();
 }
 
-int evaluate(IFitnessEvaluator& eval, std::vector<std::vector<Pop>::iterator>::iterator begin, std::vector<std::vector<Pop>::iterator>::iterator end)
+int evaluate(IFitnessEvaluator* eval, std::vector<std::vector<Pop>::iterator>::iterator begin, std::vector<std::vector<Pop>::iterator>::iterator end)
 {
     for(auto iter = begin; iter != end; ++iter)
     {
-        (*iter)->fitness = eval.evaluate((*iter)->genotype);
+        (*iter)->fitness = eval->evaluate((*iter)->genotype);
     }
 
     return 0;
@@ -49,14 +49,14 @@ int evaluate(IFitnessEvaluator& eval, std::vector<std::vector<Pop>::iterator>::i
 void evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, IFitnessEvaluator& eval, int numThreads)
 {
     std::vector<std::future<int>> fs;
-    std::size_t numElementsByThread = popPtrs.size() / numThreads;
+    std::size_t numElementsByThread = popPtrs.size() / numThreads + 1;
 
     auto first = popPtrs.begin();
     auto last = first + numElementsByThread;
     for(int i = 0; i < numThreads; ++i)
     {
-        auto f = std::async(std::launch::async, evaluate, eval, first, last);
-        fs.push_back(f);
+        auto f = std::async(std::launch::async, evaluate, &eval, first, last);
+        fs.push_back(std::move(f));
 
         first += numElementsByThread;
         last += numElementsByThread;

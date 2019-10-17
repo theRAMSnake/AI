@@ -14,7 +14,8 @@ class NeuroNet
 public:
    NeuroNet(const Genom& genotype);
 
-   std::vector<double> activateLongTerm(const std::vector<double>& input);
+   std::vector<double>& activateLongTerm(const std::vector<double>& input);
+   const std::vector<double>& getOutput() const;
 
 private:
 
@@ -24,12 +25,14 @@ private:
       double value;
       int depth = -1;
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
-      //std::vector<std::pair<NodeId, double>> inputs;
    };
 
-   std::vector<Node> mNodes;
-   std::vector<NodeId> mOrderedNodes;
    const Genom& mGenotype;
+   std::vector<Node> mNodes;
+   std::vector<double> mOutput;
+
+   std::vector<Node*> mHiddenAndOutputNodes;
+   std::vector<Node*> mInputNodes;
 };
 
 }
