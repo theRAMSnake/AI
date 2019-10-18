@@ -29,4 +29,7 @@ public:
    Tetris(Mode m);
 
    int run(IPlayer& p, const unsigned int scoreLimit);
+
+private:
+   Mode mMode;
 };

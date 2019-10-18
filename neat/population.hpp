@@ -53,7 +53,7 @@ public:
    std::size_t numSpecies() const;
    std::size_t size() const;
 
-   Fitness getAverageFitness() const;
+   double getAverageFitness() const;
 
    void nextGeneration(InnovationHistory& history);
    void onEvaluationFinished();

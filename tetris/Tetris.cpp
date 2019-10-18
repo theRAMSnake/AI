@@ -4,17 +4,23 @@
 #include "Game.h"
 
 #include <iostream>
+#include <thread>
 
 Tetris::Tetris(Mode m)
+: mMode(m)
 {
    
 }
 
 int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 {
+   IO* io = mMode == Mode::AI ? new IO() : nullptr;
+
+   int screenHeight = io ? io->GetScreenHeight() : 100;
+
    Pieces pieces;
-	Board board (&pieces, 100);
-	Game game (&board, &pieces, 100);
+	Board board (&pieces, screenHeight);
+	Game game (&board, &pieces, screenHeight);
 
    unsigned int score = 0;
 
@@ -22,23 +28,35 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
    while(true)
    {
-      for (unsigned int i = 0; i < BOARD_WIDTH; i++)
-		for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
-			view[i][j] = board.IsFreeBlock(i, j);
-
-      for (int i = 0; i < PIECE_BLOCKS; i++)
-		for (int j = 0; j < PIECE_BLOCKS; j++)
+      if(mMode == Mode::AI)
       {
-         auto y = game.mPosY + j;
-         auto x = game.mPosX + i;
-         if(x >= 0 && y >= 0 && pieces.GetBlockType (game.mPiece, game.mRotation, x, y) != 0)
-         {
-            view[x][y] = true;
-         }
+         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
 
-      for(int i = 0; i < 5; ++i)
+      for(int k = 0; k < 5; ++k)
       {
+         if(mMode == Mode::AI)
+         {
+            io->ClearScreen (); 		
+            game.DrawScene (*io);	
+            io->UpdateScreen ();
+         }
+
+         for (unsigned int i = 0; i < BOARD_WIDTH; i++)
+         for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
+            view[i][j] = board.IsFreeBlock(i, j);
+
+         for (int i = 0; i < PIECE_BLOCKS; i++)
+         for (int j = 0; j < PIECE_BLOCKS; j++)
+         {
+            auto y = game.mPosY + j;
+            auto x = game.mPosX + i;
+            if(x >= 0 && y >= 0 && pieces.GetBlockType (game.mPiece, game.mRotation, x, y) != 0)
+            {
+               view[x][y] = true;
+            }
+         }
+
          auto action = p.getNextAction(view, game.mPiece, game.mPosX, game.mPosY);
 
          switch(action)
@@ -67,7 +85,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
             default:
             {
-               i = 5;
+               k = 5;
             }
          }
       }
@@ -79,7 +97,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
       }
       else
       {
-         score++;
+         //score++;
          board.StorePiece (game.mPosX, game.mPosY, game.mPiece, game.mRotation);
 
          auto linesDeleted = board.DeletePossibleLines ();

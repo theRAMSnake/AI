@@ -77,7 +77,7 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
 {
    Fitness totalFitness = std::accumulate(mSpecies.begin(), mSpecies.end(), 0, [](auto a, auto& s)
    {
-      return s.getSharedFitness() + a;
+      return s.getTotalFitness() + a;
    });
 
    std::vector<unsigned int> numOffspringsPerSpecie;
@@ -97,7 +97,11 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          {
             numOffspringsPerSpecie.push_back(0);
          }
-         numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
+         else
+         {
+            numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
+            //std::cout << "off for " << mSpecies[i].id << ": " << mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001) << std::endl;
+         }
       }
    }
 
@@ -268,14 +272,19 @@ std::size_t Population::size() const
    return result;
 }
 
-Fitness Population::getAverageFitness() const
+double Population::getAverageFitness() const
 {
    Fitness totalFitness = std::accumulate(mSpecies.begin(), mSpecies.end(), 0, [](auto t, auto& s)
    {
-      return t + s.getSharedFitness();
+      return t + s.getTotalFitness();
    });
 
-   return totalFitness / mSpecies.size();
+   int totalPopulation = std::accumulate(mSpecies.begin(), mSpecies.end(), 0, [](auto t, auto& s)
+   {
+      return t + s.population.size();
+   });
+
+   return (double)totalFitness / totalPopulation;
 }
 
 Population::ConstIterator Population::begin() const
@@ -290,7 +299,7 @@ Population::ConstIterator Population::end() const
 
 bool Specie::isStagnant() const
 {
-   return numStagnantGenerations >= 10;
+   return numStagnantGenerations >= 30;
 }
 
 Population::Iterator Population::begin()

@@ -219,6 +219,18 @@ bool Genom::isOutputNode(const NodeId n) const
 void Genom::operator += (const Gene& g)
 {
     mGenes.push_back(g);
+
+    if(g.srcNodeId >= getTotalNodeCount())
+    {
+        mNumHiddenNodes += g.srcNodeId - getTotalNodeCount() + 1;
+        mNumTotalNodes += g.srcNodeId - getTotalNodeCount() + 1;
+    }
+
+    if(g.dstNodeId >= getTotalNodeCount())
+    {
+        mNumHiddenNodes += g.dstNodeId - getTotalNodeCount() + 1;
+        mNumTotalNodes += g.dstNodeId - getTotalNodeCount() + 1;
+    }
 }
 
 Gene& Genom::operator[] (const std::size_t index)
@@ -244,7 +256,6 @@ NodeId Genom::addNode()
 
 void mutateAddNode(Genom& a, InnovationHistory& history)
 {
-    
     auto& randomConnection = a[Rng::genChoise(a.length())];
     randomConnection.enabled = false;
 
