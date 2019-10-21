@@ -22,7 +22,7 @@ class Game
 {
 public:
 
-	Game			(Board *pBoard, Pieces *pPieces, int pScreenHeight);
+	Game			(Board *pBoard, Pieces *pPieces, int pScreenHeight, bool trainingMode);
 
 	void DrawScene (IO& io);
 	void CreateNewPiece ();
@@ -35,6 +35,8 @@ private:
 	int mScreenHeight;				// Screen height in pixels
 	int mNextPosX, mNextPosY;		// Position of the next piece
 	int mNextPiece, mNextRotation;	// Kind and rotation of the next piece
+	bool mTrainingMode = false;
+	int mNumPiecesCreated = 0;
 
 	Board *mBoard;
 	Pieces *mPieces;

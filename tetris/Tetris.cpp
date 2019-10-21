@@ -20,7 +20,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
    Pieces pieces;
 	Board board (&pieces, screenHeight);
-	Game game (&board, &pieces, screenHeight);
+	Game game (&board, &pieces, screenHeight, true);
 
    unsigned int score = 0;
 
@@ -51,13 +51,13 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
          {
             auto y = game.mPosY + j;
             auto x = game.mPosX + i;
-            if(x >= 0 && y >= 0 && pieces.GetBlockType (game.mPiece, game.mRotation, x, y) != 0)
+            if(x >= 0 && y >= 0 && x < BOARD_WIDTH - 1 && y < BOARD_HEIGHT - 1)
             {
-               view[x][y] = true;
+               view[x][y] = pieces.GetBlockType (game.mPiece, game.mRotation, x, y) != 0;
             }
          }
 
-         auto action = p.getNextAction(view, game.mPiece, game.mPosX, game.mPosY);
+         auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);
 
          switch(action)
          {
