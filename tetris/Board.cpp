@@ -125,23 +125,6 @@ int Board::DeletePossibleLines ()
 	return result;
 }
 
-
-/* 
-======================================									
-Returns 1 (true) if the this block of the board is empty, 0 if it is filled
-
-Parameters:
-
->> pX:		Horizontal position in blocks
->> pY:		Vertical position in blocks
-====================================== 
-*/
-bool Board::IsFreeBlock (int pX, int pY)
-{
-	if (mBoard [pX][pY] == POS_FREE) return true; else return false;
-}
-
-
 /* 
 ======================================									
 Returns the horizontal position (isn pixels) of the block given like parameter

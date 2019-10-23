@@ -70,7 +70,7 @@ BOOST_FIXTURE_TEST_CASE( TestRNN, RNNTest )
    printGenom(a);
 
    neat::NeuroNet n(a);
-   BOOST_CHECK_EQUAL(0.92414181997875655, n.activateLongTerm({0, 0})[0]);
-   BOOST_CHECK_EQUAL(1.8482836399575131, n.activateLongTerm({0, 0})[0]);
-   BOOST_CHECK_EQUAL(2.7724254599362697, n.activateLongTerm({0, 0})[0]);
+   BOOST_CHECK_EQUAL(0.92414181997875655, neat::activate(n, {0, 0})[0]);
+   BOOST_CHECK_EQUAL(1.8482836399575131, neat::activate(n, {0, 0})[0]);
+   BOOST_CHECK_EQUAL(2.7724254599362697, neat::activate(n, {0, 0})[0]);
 }

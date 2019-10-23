@@ -42,7 +42,7 @@ BOOST_FIXTURE_TEST_CASE( TestSimpliest, NeuroNetTest )
    {
       neat::NeuroNet n(a);
 
-      BOOST_CHECK_EQUAL(0, n.activateLongTerm({0, 0})[0]);
+      BOOST_CHECK_EQUAL(0, neat::activate(n, {0, 0})[0]);
    }
    
    a[0].weight = 0.5;
@@ -51,7 +51,7 @@ BOOST_FIXTURE_TEST_CASE( TestSimpliest, NeuroNetTest )
    {
       neat::NeuroNet n(a);
 
-      BOOST_CHECK_EQUAL(10, n.activateLongTerm({10, 10})[0]);
+      BOOST_CHECK_EQUAL(10, neat::activate(n, {10, 10})[0]);
    }
 
    a[0].weight = 0.5;
@@ -60,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE( TestSimpliest, NeuroNetTest )
    {
       neat::NeuroNet n(a);
 
-      BOOST_CHECK_EQUAL(7.5, n.activateLongTerm({10, 10})[0]);
+      BOOST_CHECK_EQUAL(7.5, neat::activate(n, {10, 10})[0]);
    }
 }
 
@@ -77,7 +77,7 @@ BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest )
 
       neat::NeuroNet n(a);
 
-      BOOST_CHECK_EQUAL(0, n.activateLongTerm({0, 0})[0]);
+      BOOST_CHECK_EQUAL(0, neat::activate(n, {0, 0})[0]);
    }
    {
       a[0].weight = 0.5;
@@ -87,7 +87,7 @@ BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest )
 
       neat::NeuroNet n(a);
 
-      BOOST_CHECK_EQUAL(5.5, n.activateLongTerm({10, 10})[0]);
+      BOOST_CHECK_EQUAL(5.5, neat::activate(n, {10, 10})[0]);
    }
    {
       a[0].weight = 0.5;
@@ -99,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest )
 
       neat::NeuroNet n(a);
 
-      BOOST_CHECK_EQUAL(5.5, n.activateLongTerm({10, 10})[0]);
+      BOOST_CHECK_EQUAL(5.5, neat::activate(n, {10, 10})[0]);
    }
 }
 
@@ -125,5 +125,5 @@ BOOST_FIXTURE_TEST_CASE( TestTriangleNode, NeuroNetTest )
    a += neat::Gene({newNodeId1, a.getOutputNodes()[0], true, 0, 1.0});
 
    neat::NeuroNet n(a);
-   BOOST_CHECK_EQUAL(0.5, n.activateLongTerm({10, 10})[0]);
+   BOOST_CHECK_EQUAL(0.5, neat::activate(n, {10, 10})[0]);
 }

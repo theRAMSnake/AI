@@ -39,7 +39,7 @@ public:
          inputs.push_back((double)x);
       }
 
-      auto result = n.activateLongTerm(inputs);
+      auto result = neat::activate(n, inputs);
 
       auto max = *std::max_element(input.begin(), input.end());
       return static_cast<int>(max) == static_cast<int>(result[0]);

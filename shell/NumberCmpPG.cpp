@@ -36,7 +36,7 @@ public:
    bool test(const neat::Genom& g, double val1, double val2)
    {
       auto n = neat::NeuroNet(g);
-      auto a = n.activateLongTerm({static_cast<double>(val1), static_cast<double>(val2)});
+      auto a = neat::activate(n, {static_cast<double>(val1), static_cast<double>(val2)});
 
       auto pos = std::max_element(a.begin(), a.end());
       if(pos == a.begin()) // >
@@ -130,7 +130,7 @@ void NumberCmpPG::play(const neat::Genom& g)
       std::cin >> num1;
       std::cin >> num2;
 
-      auto a = n.activateLongTerm({static_cast<double>(num1), static_cast<double>(num2)});
+      auto a = neat::activate(n, {static_cast<double>(num1), static_cast<double>(num2)});
 
       auto pos = std::max_element(a.begin(), a.end());
       if(pos == a.begin()) // >

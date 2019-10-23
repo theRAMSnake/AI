@@ -324,6 +324,11 @@ NodeId Genom::getOutputNodeCount() const
     return mOutputNodes.size();
 }
 
+NodeId Genom::getHiddenNodeCount() const
+{
+    return mNumHiddenNodes;
+}
+
 NodeId Genom::getBiasNodeId() const
 {
     return 0;

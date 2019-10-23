@@ -11,16 +11,54 @@ namespace neat
 
 class NeuroNet
 {
+private:
+   class Node;
+   
 public:
+   class NodeIterator
+   {
+   public:
+      using difference_type = std::ptrdiff_t;
+      using value_type = double;
+      using pointer = double*;
+      using reference = double&;
+      using iterator_category = std::random_access_iterator_tag;
+
+      NodeIterator(Node** nodePtr);
+
+      inline reference operator* ()
+      {
+         return (*mNodePtr)->value;
+      }
+
+      inline const reference operator* () const
+      {
+         return (*mNodePtr)->value;
+      }
+
+      inline NodeIterator& operator++ ()
+      {
+         mNodePtr++;
+         return *this;
+      }
+      
+      bool operator== (const NodeIterator& other) const;
+      bool operator!= (const NodeIterator& other) const;
+      difference_type operator- (const NodeIterator& other) const;
+
+   private:
+      Node** mNodePtr;
+   };
+
    NeuroNet(const Genom& genotype);
 
    void activate();
    
-   InputIterator begin_input();
-   InputIterator end_input();
+   NodeIterator begin_input();
+   NodeIterator end_input();
 
-   OutputIterator begin_output();
-   OutputIterator end_output();
+   const NodeIterator begin_output() const;
+   const NodeIterator end_output() const;
 
 private:
 
@@ -34,11 +72,12 @@ private:
 
    const Genom& mGenotype;
    std::vector<Node> mNodes;
-   std::vector<double> mOutput;
 
    std::vector<Node*> mHiddenNodes;
    std::vector<Node*> mInputNodes;
    std::vector<Node*> mOutputNodes;
 };
+
+std::vector<double> activate(NeuroNet& n, const std::vector<double>& input);
 
 }

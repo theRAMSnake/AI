@@ -6,7 +6,7 @@
 namespace neat
 {
 
-double activationFunction(const double val)
+double activationFunction (const double val)
 {
    if(val > 1.5)
    {
@@ -32,19 +32,21 @@ NeuroNet::NeuroNet(const Genom& genotype)
    mOutputNodes.reserve(genotype.getOutputNodeCount());
    mHiddenNodes.reserve(genotype.getHiddenNodeCount());
 
-   //here
-
    for(NodeId i = 0; i < totalNodes; ++i)
    {
       mNodes.push_back(Node{i, 0.0, -1});
 
-      if(mGenotype.isHiddenNode(i) || mGenotype.isOutputNode(i))
+      if(mGenotype.isHiddenNode(i))
       {
-         mHiddenAndOutputNodes.push_back(&mNodes.back());
+         mHiddenNodes.push_back(&mNodes.back());
       }
       else if(mGenotype.isInputNode(i))
       {
          mInputNodes.push_back(&mNodes.back());
+      }
+      else if(mGenotype.isOutputNode(i))
+      {
+         mOutputNodes.push_back(&mNodes.back());
       }
    }
 
@@ -72,35 +74,31 @@ NeuroNet::NeuroNet(const Genom& genotype)
       }
    }
    
-   std::sort(mHiddenAndOutputNodes.begin(), mHiddenAndOutputNodes.end(), [&](auto x, auto y)
+   std::sort(mHiddenNodes.begin(), mHiddenNodes.end(), [&](auto x, auto y)
+   {
+      return x->depth < y->depth;
+   });
+
+   std::sort(mOutputNodes.begin(), mOutputNodes.end(), [&](auto x, auto y)
    {
       return x->depth < y->depth;
    });
 }
 
-const std::vector<double>& NeuroNet::getOutput() const
+void NeuroNet::activate()
 {
-   return mOutput;
-}
-
-std::vector<double>& NeuroNet::activateLongTerm(const std::vector<double>& input)
-{
-   if(input.size() != mInputNodes.size())
+   /*
+   struct Node
    {
-      throw std::invalid_argument("Num inputs does not correspont to genotype: " + std::to_string(input.size()));
-   }
+      NodeId id;
+      double value;
+      int depth = -1;
+      boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
+   };
+   */
 
-   //Assign inputs
-   auto inputIter = input.begin();
-   auto inputNodeIter = mInputNodes.begin();
-
-   for(; inputIter != input.end(); ++inputIter, ++inputNodeIter)
-   {
-      (*inputNodeIter)->value = *inputIter;
-   }
-
-   //Walk over ordered hidden and output nodes
-   for(auto node : mHiddenAndOutputNodes)
+   //Walk over ordered hidden nodes
+   for(auto node : mHiddenNodes)
    {      
       double totalInput = 0;
       for(auto& c: node->inputs)
@@ -109,25 +107,75 @@ std::vector<double>& NeuroNet::activateLongTerm(const std::vector<double>& input
          totalInput += c.second * input.value;
       }
 
-      if(!mGenotype.isHiddenNode(node->id))
-      {
-         node->value = totalInput;
-      }
-      else
-      {
-         node->value = activationFunction(totalInput);
-      }
+      node->value = activationFunction(totalInput);
    }
 
-   //Collect outputs
-   std::size_t i = 0;
-   for(auto& n : mGenotype.getOutputNodes())
-   {
-      auto& node = mNodes[n];
-      mOutput[i++] = node.value;
-   }
+   //Walk over ordered output nodes
+   for(auto node : mOutputNodes)
+   {      
+      double totalInput = 0;
+      for(auto& c: node->inputs)
+      {
+         auto& input = mNodes[c.first];
+         totalInput += c.second * input.value;
+      }
 
-   return mOutput;
+      node->value = totalInput;
+   }
 }  
+
+NeuroNet::NodeIterator NeuroNet::begin_input()
+{
+   return NodeIterator(&mInputNodes.front());
+}
+
+NeuroNet::NodeIterator NeuroNet::end_input()
+{
+   return NodeIterator(&*mInputNodes.end());
+}
+
+const NeuroNet::NodeIterator NeuroNet::begin_output() const
+{
+   return NodeIterator(const_cast<Node**>(&mOutputNodes.front()));
+}
+
+const NeuroNet::NodeIterator NeuroNet::end_output() const
+{
+   return NodeIterator(const_cast<Node**>(&*mOutputNodes.end()));
+}
+
+std::vector<double> activate(NeuroNet& n, const std::vector<double>& input)
+{
+   std::vector<double> result;
+
+   std::copy(input.begin(), input.end(), n.begin_input());
+
+   n.activate();
+
+   std::copy(n.begin_output(), n.end_output(), std::back_inserter(result));
+
+   return result;
+}
+
+NeuroNet::NodeIterator::NodeIterator(Node** nodePtr)
+: mNodePtr(nodePtr)
+{
+
+}
+
+bool NeuroNet::NodeIterator::operator== (const NeuroNet::NodeIterator& other) const
+{
+   return mNodePtr == other.mNodePtr;
+}
+
+bool NeuroNet::NodeIterator::operator!= (const NeuroNet::NodeIterator& other) const
+{
+   return mNodePtr != other.mNodePtr;
+}
+
+NeuroNet::NodeIterator::difference_type NeuroNet::NodeIterator::operator- (const NeuroNet::NodeIterator& other) const
+{
+   return mNodePtr - other.mNodePtr;
+}
 
 }

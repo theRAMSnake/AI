@@ -29,7 +29,10 @@ public:
 
 	int GetXPosInPixels			(int pPos);
 	int GetYPosInPixels			(int pPos);
-	bool IsFreeBlock			(int pX, int pY);
+	inline bool IsFreeBlock			(int pX, int pY)
+	{
+		return mBoard [pX][pY] == POS_FREE;
+	}
 	bool IsPossibleMovement		(int pX, int pY, int pPiece, int pRotation);
 	void StorePiece				(int pX, int pY, int pPiece, int pRotation);
 	int DeletePossibleLines	();

@@ -14,27 +14,22 @@ public:
 
    IPlayer::Action getNextAction(bool view[BOARD_WIDTH][BOARD_HEIGHT], int piece, int xpos, int ypos) override
    {
-      std::vector<double> input;
-      input.reserve(BOARD_WIDTH * BOARD_HEIGHT + 3);
+      auto inputIter = mNet.begin_input();
 
-      for(unsigned int i = 0; i < BOARD_WIDTH; ++i)
-      {
-         for(unsigned int j = 0; j < BOARD_HEIGHT; ++j)
-         {
-            input.push_back(view[i][j] ? 1.0 : 0.0);
-         }
-      }
+      std::copy(&view[0][0], &view[0][0] + BOARD_WIDTH*BOARD_HEIGHT, inputIter);
 
-      input.push_back(piece);
-      input.push_back(xpos);
-      input.push_back(ypos);
+      *inputIter = piece;
+      ++inputIter;
+      *inputIter = xpos;
+      ++inputIter;
+      *inputIter = ypos;
 
-      auto result = mNet.activateLongTerm(input);
+      mNet.activate();
 
-      auto pos = std::max_element(result.begin(), result.end());
+      auto pos = std::max_element(mNet.begin_output(), mNet.end_output());
       if(*pos > 1.0)
       {
-         switch(std::distance(result.begin(), pos))
+         switch(std::distance(mNet.begin_output(), pos))
          {
             case 0:
                return IPlayer::Action::MoveLeft;
