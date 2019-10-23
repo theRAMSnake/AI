@@ -72,7 +72,7 @@ public:
 
    neat::Fitness evaluate(const neat::Genom& g) override
    {
-      const unsigned int scoreLimit = 1000000;
+      const unsigned int scoreLimit = 10000000;
 
       auto n = neat::NeuroNet(g);
 
@@ -127,7 +127,7 @@ void TetrisPG::step()
 
 void TetrisPG::play(const neat::Genom& g)
 {
-   const unsigned int scoreLimit = 1000000;
+   const unsigned int scoreLimit = 10000000;
 
    auto n = neat::NeuroNet(g);
 

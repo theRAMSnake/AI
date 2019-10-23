@@ -20,8 +20,8 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
    Pieces pieces;
 	Board board (&pieces, screenHeight);
-	Game game (&board, &pieces, screenHeight, true);
-
+	Game game (&board, &pieces, screenHeight,  mMode == Mode::AI_Background);
+ 
    unsigned int score = 0;
 
    bool view[BOARD_WIDTH][BOARD_HEIGHT];

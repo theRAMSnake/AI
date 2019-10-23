@@ -31,10 +31,10 @@ struct Specie
    std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
-   Fitness maxFitness;
+   double maxFitness;
    unsigned int numStagnantGenerations;
    Fitness totalFitness = 0;
-   Fitness sharedFitness = 0;
+   double sharedFitness = 0;
 };
 
 class Population

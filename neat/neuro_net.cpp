@@ -24,13 +24,15 @@ double activationFunction(const double val)
 
 NeuroNet::NeuroNet(const Genom& genotype)
 : mGenotype(genotype)
-, mOutput(mGenotype.getOutputNodeCount(), 0.0)
 {
    auto totalNodes = mGenotype.getTotalNodeCount();
    
    mNodes.reserve(totalNodes);
    mInputNodes.reserve(genotype.getInputNodeCount());
-   mHiddenAndOutputNodes.reserve(totalNodes);
+   mOutputNodes.reserve(genotype.getOutputNodeCount());
+   mHiddenNodes.reserve(genotype.getHiddenNodeCount());
+
+   //here
 
    for(NodeId i = 0; i < totalNodes; ++i)
    {

@@ -14,8 +14,13 @@ class NeuroNet
 public:
    NeuroNet(const Genom& genotype);
 
-   std::vector<double>& activateLongTerm(const std::vector<double>& input);
-   const std::vector<double>& getOutput() const;
+   void activate();
+   
+   InputIterator begin_input();
+   InputIterator end_input();
+
+   OutputIterator begin_output();
+   OutputIterator end_output();
 
 private:
 
@@ -31,8 +36,9 @@ private:
    std::vector<Node> mNodes;
    std::vector<double> mOutput;
 
-   std::vector<Node*> mHiddenAndOutputNodes;
+   std::vector<Node*> mHiddenNodes;
    std::vector<Node*> mInputNodes;
+   std::vector<Node*> mOutputNodes;
 };
 
 }

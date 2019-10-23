@@ -48,7 +48,7 @@ void Population::onEvaluationFinished()
 void Specie::updateFitness()
 {
    totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
-   sharedFitness = totalFitness / population.size();
+   sharedFitness = (double)totalFitness / population.size();
 
    if(sharedFitness > maxFitness)
    {
