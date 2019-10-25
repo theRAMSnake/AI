@@ -163,6 +163,24 @@ void Game::DrawBoard (IO& io)
 	}	
 }
 
+void Game::DrawView(IO& io, bool view[BOARD_WIDTH][BOARD_HEIGHT])
+{
+	constexpr int smallBlockSize = 10;
+	int mY = mScreenHeight / 2;
+
+	for (int i = 0; i < BOARD_WIDTH; i++)
+	{
+		for (int j = 0; j < BOARD_HEIGHT; j++)
+		{	
+			io.DrawRectangle (	5 + i * smallBlockSize, 
+										mY + 5 + j * smallBlockSize, 
+										(5 + i * smallBlockSize) + smallBlockSize - 1, 
+										mY + (5 + j * smallBlockSize) + smallBlockSize - 1, 
+										view[i][j] ? RED : WHITE);
+		}
+	}
+}
+
 
 /* 
 ======================================									

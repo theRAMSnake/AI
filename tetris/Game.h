@@ -25,6 +25,7 @@ public:
 	Game			(Board *pBoard, Pieces *pPieces, int pScreenHeight, bool trainingMode);
 
 	void DrawScene (IO& io);
+	void DrawView(IO& io, bool view[BOARD_WIDTH][BOARD_HEIGHT]);
 	void CreateNewPiece ();
 
 	int mPosX, mPosY;				// Position of the piece that is falling down

@@ -35,26 +35,27 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
       for(int k = 0; k < 5; ++k)
       {
-         if(mMode == Mode::AI)
-         {
-            io->ClearScreen (); 		
-            game.DrawScene (*io);	
-            io->UpdateScreen ();
-         }
-
          for (unsigned int i = 0; i < BOARD_WIDTH; i++)
          for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
-            view[i][j] = board.IsFreeBlock(i, j);
+            view[i][j] = !board.IsFreeBlock(i, j);
 
          for (int i = 0; i < PIECE_BLOCKS; i++)
          for (int j = 0; j < PIECE_BLOCKS; j++)
          {
             auto y = game.mPosY + j;
             auto x = game.mPosX + i;
-            if(x >= 0 && y >= 0 && x < BOARD_WIDTH - 1 && y < BOARD_HEIGHT - 1)
+            if(x >= 0 && y >= 0 && x < BOARD_WIDTH && y < BOARD_HEIGHT)
             {
-               view[x][y] = pieces.GetBlockType (game.mPiece, game.mRotation, x, y) != 0;
+               view[x][y] = view[x][y] || (pieces.GetBlockType (game.mPiece, game.mRotation, i, j) != 0);
             }
+         }
+
+         if(mMode == Mode::AI)
+         {
+            io->ClearScreen (); 		
+            game.DrawScene (*io);	
+            game.DrawView (*io, view);	
+            io->UpdateScreen ();
          }
 
          auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);
