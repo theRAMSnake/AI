@@ -11,6 +11,7 @@ MutationTest.cpp
 SpeciationTest.cpp
 NeuroNetTest.cpp
 RNNTest.cpp
+SpecieTest.cpp
 )
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
