@@ -5,6 +5,7 @@
 #include <future>
 #include <numeric>
 #include <cmath>
+#include <fstream>
 
 namespace neat
 {
@@ -125,6 +126,26 @@ bool comparePopsByFitnessLess(const Pop& a, const Pop& b)
 const Population& Neat::getPopulation() const
 {
     return *mPopulation;
+}
+
+void Neat::saveState(const std::string& fileName)
+{
+    std::ofstream ofile(fileName, std::ios::binary | std::ios::trunc);
+
+    mHistory.saveState(ofile);
+    if(mPopulation)
+    {
+        mPopulation->saveState(ofile);
+    }
+}
+
+void Neat::loadState(const std::string& fileName)
+{
+    std::ifstream ifile(fileName, std::ios::binary);
+
+    mHistory.loadState(ifile);
+    mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor);
+    mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
 }
 
 }

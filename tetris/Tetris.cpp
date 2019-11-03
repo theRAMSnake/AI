@@ -20,7 +20,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
    Pieces pieces;
 	Board board (&pieces, screenHeight);
-	Game game (&board, &pieces, screenHeight,  mMode == Mode::AI_Background);
+	Game game (&board, &pieces, screenHeight, false);
  
    unsigned int score = 0;
 
@@ -90,7 +90,6 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
             }
          }
       }
-      
 
       if (board.IsPossibleMovement (game.mPosX, game.mPosY + 1, game.mPiece, game.mRotation))
       {
@@ -101,9 +100,9 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
          //score++;
          board.StorePiece (game.mPosX, game.mPosY, game.mPiece, game.mRotation);
 
-         auto linesDeleted = board.DeletePossibleLines ();
+         score += board.DeletePossibleLines ();
 
-         switch(linesDeleted)
+         /*switch(linesDeleted)
          {
             case 0: 
             {
@@ -134,7 +133,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
                score += 200;
                break;
             }
-         }
+         }*/
 
          game.CreateNewPiece();
       }

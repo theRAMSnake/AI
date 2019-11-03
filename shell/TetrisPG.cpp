@@ -69,12 +69,19 @@ public:
    {
       const unsigned int scoreLimit = 10000000;
 
-      auto n = neat::NeuroNet(g);
+      neat::Fitness result = 0;
 
-      Tetris t(Mode::AI_Background);
-      TetrisPlayer p(n);
+      for(int i = 0; i < 5; ++i)
+      {
+         auto n = neat::NeuroNet(g);
 
-      return t.run(p, scoreLimit);
+         Tetris t(Mode::AI_Background);
+         TetrisPlayer p(n);
+
+         result += t.run(p, scoreLimit);
+      }
+
+      return result;
    }
 
 private:

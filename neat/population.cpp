@@ -193,10 +193,21 @@ void Population::nextGeneration(InnovationHistory& history)
       specieNum++;
    }
 
-   while(newGenoms.size() < mOptimalSize)
+   if(newGenoms.empty())
    {
-      auto& s = mSpecies[Rng::genChoise(mSpecies.size())];
-      auto genom = s.randomPop().genotype;
+      //All species are stagnant, repopulate at random
+      while(newGenoms.size() < mOptimalSize)
+      {
+         auto& s = mSpecies[Rng::genChoise(mSpecies.size())];
+         auto genom = s.randomPop().genotype;
+         mutate(genom, history);
+         newGenoms.push_back(genom);
+      }
+   }
+   else if(newGenoms.size() < mOptimalSize)
+   {
+      //We have less population than optimal - reproduce from offsprings
+      auto genom = newGenoms[Rng::genChoise(newGenoms.size())];
       mutate(genom, history);
       newGenoms.push_back(genom);
    }
@@ -310,6 +321,100 @@ Population::Iterator Population::begin()
 Population::Iterator Population::end()
 {
    return mSpecies.end();
+}
+
+void Population::saveState(std::ofstream& s)
+{
+   auto size = mSpecies.size();
+   s.write((char*)&size, sizeof(std::size_t));
+   std::cout << "S_size" << size;
+   for(auto& x : mSpecies)
+   {
+      s.write((char*)&x.id, sizeof(unsigned int));
+      s.write((char*)&x.maxFitness, sizeof(double));
+      s.write((char*)&x.numStagnantGenerations, sizeof(unsigned int));
+      s.write((char*)&x.sharedFitness, sizeof(double));
+      s.write((char*)&x.totalFitness, sizeof(Fitness));
+
+      auto popSize = x.population.size();
+      s.write((char*)&popSize, sizeof(std::size_t));
+
+      for(auto& y : x.population)
+      {
+         s.write((char*)&y.fitness, sizeof(Fitness));
+         
+         auto genSize = y.genotype.length();
+         s.write((char*)&genSize, sizeof(std::size_t));
+
+         for(auto& z : y.genotype)
+         {
+            s.write((char*)&z.innovationNumber, sizeof(InnovationNumber));
+            s.write((char*)&z.weight, sizeof(double));
+            s.write((char*)&z.enabled, sizeof(bool));
+         }
+      }
+   }
+}
+
+void Population::loadState(
+   std::ifstream& s, 
+   InnovationHistory& history, 
+   const NodeId numInputs, 
+   const NodeId numOutputs
+   )
+{
+   mSpecies.clear();
+
+   std::size_t numSpecies = 0;
+   s.read((char*)&numSpecies, sizeof(std::size_t));
+   std::cout << "L_size" << numSpecies;
+
+   mSpecies.reserve(numSpecies);
+   for(std::size_t i = 0; i < numSpecies; ++i)
+   {
+      Specie x;
+
+      s.read((char*)&x.id, sizeof(unsigned int));
+      s.read((char*)&x.maxFitness, sizeof(double));
+      s.read((char*)&x.numStagnantGenerations, sizeof(unsigned int));
+      s.read((char*)&x.sharedFitness, sizeof(double));
+      s.read((char*)&x.totalFitness, sizeof(Fitness));
+
+      std::size_t popSize = 0;
+      s.read((char*)&popSize, sizeof(std::size_t));
+
+      x.population.reserve(popSize);
+
+      for(std::size_t j = 0; j < popSize; ++j)
+      {
+         Pop y{0, Genom(numInputs, numOutputs)};
+
+         s.read((char*)&y.fitness, sizeof(Fitness));
+
+         std::size_t genomSize = 0;
+         s.read((char*)&genomSize, sizeof(std::size_t));
+
+         for(std::size_t k = 0; k < genomSize; ++k)
+         {
+            Gene z;
+
+            s.read((char*)&z.innovationNumber, sizeof(InnovationNumber));
+            s.read((char*)&z.weight, sizeof(double));
+            s.read((char*)&z.enabled, sizeof(bool));
+
+            auto innovation = history.get(z.innovationNumber);
+
+            z.srcNodeId = innovation.first;
+            z.dstNodeId = innovation.second;
+
+            y.genotype += z;
+         }
+
+         x.population.push_back(y);
+      }
+
+      mSpecies.push_back(x);
+   }
 }
 
 }
