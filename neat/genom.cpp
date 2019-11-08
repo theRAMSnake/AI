@@ -36,7 +36,9 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
             g.mGenes.push_back(a.mGenes[i]);
             g.mGenes.back().weight = Rng::genProbability(0.5) > 0 ? a.mGenes[i].weight : b.mGenes[i].weight;
 
-            if(!a.mGenes[i].enabled || !b.mGenes[i].enabled)
+            g.mGenes.back().enabled = a.mGenes[i].enabled || b.mGenes[i].enabled;
+
+            if(g.mGenes.back().enabled && (!a.mGenes[i].enabled || !b.mGenes[i].enabled))
             {
                 if(Rng::genProbability(mConfig.inheritDisabledChance))
                 {
