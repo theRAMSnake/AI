@@ -34,7 +34,7 @@ void printGenom(const neat::Genom& g, const bool includeWeights = false)
    }
    else
    {
-      std::cout << "...";
+      std::cout << g.length() << "...";
    }
 
    std::cout << ")" << std::endl;
@@ -296,9 +296,13 @@ int main()
       }
 
       auto t2 = std::chrono::high_resolution_clock::now();
-      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
+      auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 );
 
-      std::cout << "Executed: " << duration << "ms" << std::endl;
+      std::cout << "Executed: " 
+         << std::chrono::duration_cast<std::chrono::hours>(duration).count() << ":"
+         << std::chrono::duration_cast<std::chrono::minutes>(duration).count() % 60 << ":"
+         << std::chrono::duration_cast<std::chrono::seconds>(duration).count() % 60 << "."
+         << duration.count() << std::endl;
       std::cout << "-----------------------------------------------------------" << std::endl;
    }
 }

@@ -58,6 +58,14 @@ public:
    void nextGeneration(InnovationHistory& history);
    void onEvaluationFinished();
 
+   void saveState(std::ofstream& s);
+   void loadState(
+      std::ifstream& s, 
+      InnovationHistory& history, 
+      const NodeId numInputs, 
+      const NodeId numOutputs
+      );
+
    static Population createInitialPopulation(
       const NodeId numInputs, 
       const NodeId numOutputs, 

@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <fstream>
 
 namespace neat
 {
@@ -11,6 +12,10 @@ class InnovationHistory
 {
 public:
     InnovationNumber get(const NodeId from, const NodeId to);
+    std::pair<NodeId, NodeId> get(const InnovationNumber n) const;
+
+    void saveState(std::ofstream& s);
+    void loadState(std::ifstream& s);
 
 private:
     InnovationNumber mInnovationNumber = 0;

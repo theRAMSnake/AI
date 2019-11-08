@@ -19,6 +19,9 @@ public:
 
     const Population& getPopulation() const;
 
+    void saveState(const std::string& fileName);
+    void loadState(const std::string& fileName);
+
 private:
 
     void updateFitness();
