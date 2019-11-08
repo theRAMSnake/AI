@@ -249,8 +249,6 @@ std::size_t Population::numSpecies() const
 
 const Pop& Specie::randomPop() const
 {
-   auto totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
-
    auto* p = &population[Rng::genChoise(population.size())];
    while(!Rng::genProbability(((double)p->fitness + 0.1) / totalFitness))
    {
