@@ -1,5 +1,6 @@
 #pragma once
 #include "genom.hpp"
+#include <optional>
 
 namespace neat
 {

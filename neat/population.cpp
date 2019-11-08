@@ -206,10 +206,13 @@ void Population::nextGeneration(InnovationHistory& history)
    }
    else if(newGenoms.size() < mOptimalSize)
    {
-      //We have less population than optimal - reproduce from offsprings
-      auto genom = newGenoms[Rng::genChoise(newGenoms.size())];
-      mutate(genom, history);
-      newGenoms.push_back(genom);
+       while (newGenoms.size() < mOptimalSize)
+       {
+           //We have less population than optimal - reproduce from offsprings
+           auto genom = newGenoms[Rng::genChoise(newGenoms.size())];
+           mutate(genom, history);
+           newGenoms.push_back(genom);
+       }
    }
 
    for(auto& s : mSpecies)
@@ -374,6 +377,7 @@ void Population::loadState(
    {
       Specie x;
 
+      std::cout << ".";
       s.read((char*)&x.id, sizeof(unsigned int));
       s.read((char*)&x.maxFitness, sizeof(double));
       s.read((char*)&x.numStagnantGenerations, sizeof(unsigned int));
@@ -382,11 +386,16 @@ void Population::loadState(
 
       std::size_t popSize = 0;
       s.read((char*)&popSize, sizeof(std::size_t));
+      std::cout << "pop_size" << popSize;
 
       x.population.reserve(popSize);
 
       for(std::size_t j = 0; j < popSize; ++j)
       {
+          if (!(j % 100))
+          {
+              std::cout << ".";
+          }
          Pop y{0, Genom(numInputs, numOutputs)};
 
          s.read((char*)&y.fitness, sizeof(Fitness));
