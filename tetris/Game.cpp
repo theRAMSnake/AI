@@ -43,7 +43,7 @@ Initial parameters of the game
 void Game::InitGame()
 {
 	// Init random numbers
-	srand ((unsigned int) time(NULL));
+	// srand ((unsigned int) time(NULL));
 
 	// First piece
 	mPiece			= mTrainingMode ? 0 : GetRand (0, 6);
