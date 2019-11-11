@@ -144,8 +144,10 @@ void Neat::loadState(const std::string& fileName)
     std::ifstream ifile(fileName, std::ios::binary);
 
     mHistory.loadState(ifile);
+    mHistory.buildCache();
     mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor);
     mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
+    mHistory.clearCache();
 }
 
 }

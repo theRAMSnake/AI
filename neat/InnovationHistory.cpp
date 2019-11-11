@@ -44,6 +44,11 @@ void InnovationHistory::saveState(std::ofstream& s)
 
 std::pair<NodeId, NodeId> InnovationHistory::get(const InnovationNumber n) const
 {
+    if(mCache.size() != 0)
+    {
+        return mCache.find(n)->second;
+    }
+
     for(auto x : mAllConnections)
     {
         for(auto y : x.second)
@@ -76,6 +81,22 @@ void InnovationHistory::loadState(std::ifstream& s)
 
         mAllConnections[a][b] = numb;
     }
+}
+
+void InnovationHistory::buildCache()
+{
+    for(auto x : mAllConnections)
+    {
+        for(auto y : x.second)
+        {
+            mCache.insert(std::make_pair(y.second, std::make_pair(x.first, y.first)));
+        }
+    }
+}
+
+void InnovationHistory::clearCache()
+{
+    mCache.clear();
 }
 
 }
