@@ -16,7 +16,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 {
    IO* io = mMode == Mode::AI ? new IO() : nullptr;
 
-   int screenHeight = io ? io->GetScreenHeight() : 100;
+   int screenHeight = 100;// io ? io->GetScreenHeight() : 100;
 
    Pieces pieces;
 	Board board (&pieces, screenHeight);
@@ -52,10 +52,10 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
          if(mMode == Mode::AI)
          {
-            io->ClearScreen (); 		
+            /*io->ClearScreen (); 		
             game.DrawScene (*io);	
             game.DrawView (*io, view);	
-            io->UpdateScreen ();
+            io->UpdateScreen ();*/
          }
 
          auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);

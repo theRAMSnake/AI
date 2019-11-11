@@ -6,8 +6,13 @@
 
 #include "Board.h"
 #include "Pieces.h"
-#include "IO.h"
+//#include "IO.h"
 #include <time.h>
+
+class IO
+{
+public:
+};
 
 // ------ Defines -----
 

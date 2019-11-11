@@ -1,4 +1,6 @@
 #include "Game.h"
+#include <stdlib.h>
+#include <algorithm>
 
 
 /* 
@@ -93,7 +95,7 @@ Parameters:
 */
 void Game::DrawPiece (int pX, int pY, int pPiece, int pRotation, IO& io)
 {
-	color mColor = BLACK;				// Color of the block 
+	/*color mColor = BLACK;				// Color of the block 
 
 	// Obtain the position in pixel in the screen of the block we want to draw
 	int mPixelsX = mBoard->GetXPosInPixels (pX);
@@ -118,7 +120,7 @@ void Game::DrawPiece (int pX, int pY, int pPiece, int pRotation, IO& io)
 									(mPixelsY + j * BLOCK_SIZE) + BLOCK_SIZE - 1, 
 									mColor);
 		}
-	}
+	}*/
 }
 
 
@@ -132,7 +134,7 @@ Draw the two lines that delimit the board
 void Game::DrawBoard (IO& io)
 {
 	// Calculate the limits of the board in pixels	
-	int mX1 = BOARD_POSITION - (BLOCK_SIZE * (BOARD_WIDTH / 2)) - 1;
+	/*int mX1 = BOARD_POSITION - (BLOCK_SIZE * (BOARD_WIDTH / 2)) - 1;
 	int mX2 = BOARD_POSITION + (BLOCK_SIZE * (BOARD_WIDTH / 2));
 	int mY = mScreenHeight - (BLOCK_SIZE * BOARD_HEIGHT);
 	
@@ -160,12 +162,12 @@ void Game::DrawBoard (IO& io)
 										(mY + j * BLOCK_SIZE) + BLOCK_SIZE - 1, 
 										RED);
 		}
-	}	
+	}	*/
 }
 
 void Game::DrawView(IO& io, bool view[BOARD_WIDTH][BOARD_HEIGHT])
 {
-	constexpr int smallBlockSize = 10;
+	/*constexpr int smallBlockSize = 10;
 	int mY = mScreenHeight / 2;
 
 	for (int i = 0; i < BOARD_WIDTH; i++)
@@ -178,7 +180,7 @@ void Game::DrawView(IO& io, bool view[BOARD_WIDTH][BOARD_HEIGHT])
 										mY + (5 + j * smallBlockSize) + smallBlockSize - 1, 
 										view[i][j] ? RED : WHITE);
 		}
-	}
+	}*/
 }
 
 
