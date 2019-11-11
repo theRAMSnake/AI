@@ -21,3 +21,13 @@ const unsigned int NeatController::getGeneration() const
 {
    return mGeneration;
 }
+
+void NeatController::saveState(const std::string& filename)
+{
+    mNeat.saveState(filename);
+}
+
+void NeatController::loadState(const std::string& filename)
+{
+    mNeat.loadState(filename);
+}

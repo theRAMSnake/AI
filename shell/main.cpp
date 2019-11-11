@@ -34,7 +34,7 @@ void printGenom(const neat::Genom& g, const bool includeWeights = false)
    }
    else
    {
-      std::cout << g.length() << "...";
+      std::cout << "H:" << g.getHiddenNodeCount() << " C:" << g.length() - g.getInputNodeCount() * g.getOutputNodeCount();
    }
 
    std::cout << ")" << std::endl;
@@ -236,6 +236,19 @@ void exportCommand(IPlayground& p, NeatController& c)
    }
 }
 
+void saveCommand(IPlayground& p, NeatController& c)
+{
+    auto fname = requestParam<std::string>("filename");
+    c.saveState(fname);
+}
+
+void loadCommand(IPlayground& p, NeatController& c)
+{
+    auto fname = requestParam<std::string>("filename");
+    c.loadState(fname);
+    printState(c);
+}
+
 void playCommand(IPlayground& p, NeatController& c)
 {
    try
@@ -273,6 +286,8 @@ int main()
    commands["view"] = viewCommand;
    commands["export"] = exportCommand;
    commands["play"] = playCommand;
+   commands["save"] = saveCommand;
+   commands["load"] = loadCommand;
 
    char buf[300];
    while(std::cin.getline(buf, 300))
