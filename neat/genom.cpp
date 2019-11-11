@@ -1,6 +1,7 @@
 #include "genom.hpp"
 #include "rng.hpp"
 #include <algorithm>
+#include <numeric>
 
 namespace neat
 {
@@ -35,10 +36,9 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
         {
             g.mGenes.push_back(a.mGenes[i]);
             g.mGenes.back().weight = Rng::genProbability(0.5) > 0 ? a.mGenes[i].weight : b.mGenes[i].weight;
+            g.mGenes.back().enabled = true;
 
-            g.mGenes.back().enabled = a.mGenes[i].enabled || b.mGenes[i].enabled;
-
-            if(g.mGenes.back().enabled && (!a.mGenes[i].enabled || !b.mGenes[i].enabled))
+            if(!a.mGenes[i].enabled || !b.mGenes[i].enabled)
             {
                 if(Rng::genProbability(mConfig.inheritDisabledChance))
                 {
@@ -357,6 +357,11 @@ bool Genom::isHiddenNode(const NodeId n) const
 }
 
 Config Genom::mConfig = {};
+
+std::size_t Genom::getComplexity() const
+{
+    return std::accumulate(begin(), end(), 0, [](auto a, auto b){return a + b.enabled ? 1 : 0;});
+}
 
 }
 

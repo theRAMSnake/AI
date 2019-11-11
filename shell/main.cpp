@@ -34,7 +34,7 @@ void printGenom(const neat::Genom& g, const bool includeWeights = false)
    }
    else
    {
-      std::cout << "H:" << g.getHiddenNodeCount() << " C:" << g.length() - g.getInputNodeCount() * g.getOutputNodeCount();
+      std::cout << "H:" << g.getHiddenNodeCount() << " C:" << g.getComplexity();
    }
 
    std::cout << ")" << std::endl;

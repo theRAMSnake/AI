@@ -54,6 +54,7 @@ public:
     Gene& operator[] (const std::size_t index);
     const Gene& operator[] (const std::size_t index) const;
     std::size_t length() const;
+    std::size_t getComplexity() const;
 
     NodeId addNode();
 
