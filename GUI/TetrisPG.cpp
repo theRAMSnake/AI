@@ -94,8 +94,8 @@ neat::Config TetrisPG::getConfig()
 
    c.numInputs = BOARD_WIDTH * BOARD_HEIGHT + 3; //PieceType, X, Y
    c.numOutputs = 4;  // Left, Right, Rotate, DoNothing
-   c.initialPopulation = 2500;
-   c.optimalPopulation = 2500;
+   c.initialPopulation = 10;
+   c.optimalPopulation = 10;
    c.compatibilityFactor = 3.0;
    c.inheritDisabledChance = 0.75;
    c.perturbationChance = 0.9;
