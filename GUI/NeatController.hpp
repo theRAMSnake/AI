@@ -10,6 +10,7 @@ public:
    void step();
    void saveState(const std::string& filename);
    void loadState(const std::string& filename);
+   void setGeneration(const unsigned int generation);
 
    const neat::Population& getPopulation() const;
    const unsigned int getGeneration() const;

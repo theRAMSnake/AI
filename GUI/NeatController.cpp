@@ -24,10 +24,15 @@ const unsigned int NeatController::getGeneration() const
 
 void NeatController::saveState(const std::string& filename)
 {
-    mNeat.saveState(filename);
+   mNeat.saveState(filename);
 }
 
 void NeatController::loadState(const std::string& filename)
 {
-    mNeat.loadState(filename);
+   mNeat.loadState(filename);
+}
+
+void NeatController::setGeneration(const unsigned int generation)
+{
+   mGeneration = generation;
 }

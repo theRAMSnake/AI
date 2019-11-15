@@ -6,12 +6,15 @@
 #include <nana/gui/widgets/textbox.hpp>
 #include <nana/gui/widgets/menubar.hpp>
 #include <nana/gui/filebox.hpp>
+#include <nana/gui/place.hpp>
 #include "IPlayground.hpp"
 #include "NeatController.hpp"
 #include "TetrisPG.hpp"
 #include <thread>
 #include <iomanip>
 #include <boost/signals2.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 void printGenom(const neat::Genom& g, std::stringstream& out, const bool includeWeights = false)
 {
@@ -103,6 +106,14 @@ public:
       return !mStop;
    }
 
+   ~Trainer()
+   {
+      if(mThread.joinable())
+      {
+         mThread.join();
+      }
+   }
+
 private:
    void threadFunc()
    {
@@ -112,15 +123,10 @@ private:
       {
          mCtrl->step();
 
-         onOutput(".");
+         std::stringstream s;
+         printState(*mCtrl, s);
 
-         if(mCtrl->getGeneration() % 25 == 0)
-         {
-            std::stringstream s;
-            printState(*mCtrl, s);
-
-            onOutput(s.str());
-         }
+         onOutput(s.str());
       }
 
       onStoped();
@@ -131,11 +137,47 @@ private:
    std::thread mThread;
 };
 
+class ProjectManager
+{
+public:
+   void save(const std::string& fileName, NeatController& ctrl)
+   {
+      boost::property_tree::ptree tree;
+      tree.put("neat_state_filename", fileName + ".neat");
+      tree.put("generation", ctrl.getGeneration());
+
+      boost::property_tree::write_json(fileName, tree);
+
+      ctrl.saveState(fileName + ".neat");
+   }
+
+   bool load(const std::string& fileName, NeatController& ctrl)
+   {
+      try
+      {
+         boost::property_tree::ptree tree;
+         boost::property_tree::read_json(fileName, tree);
+
+         auto neatFileName = tree.get<std::string>("neat_state_filename");
+
+         ctrl.loadState(neatFileName);
+         ctrl.setGeneration(tree.get<unsigned int>("generation"));
+
+         return true;
+      }
+      catch(...)
+      {
+         return false;
+      }
+   }
+};
+
 std::vector<std::shared_ptr<IPlayground>> g_playgrounds;
 std::unique_ptr<NeatController> g_neatController;
 Trainer g_trainer;
+ProjectManager g_projectManager;
 
-void saveState(nana::form& fm)
+void saveProject(nana::form& fm)
 {
    nana::filebox fb(fm, false);
    fb.add_filter("Snake AI Project", "*.saprj");
@@ -146,15 +188,31 @@ void saveState(nana::form& fm)
       auto file = items[0];
       if(g_neatController)
       {
-         g_neatController->saveState(file);
+         g_projectManager.save(file, *g_neatController);
       }
    }
 }
 
-void loadState(nana::form& fm)
+void loadProject(nana::form& fm)
 {
    nana::filebox fb(fm, true);
    fb.add_filter("Snake AI Project", "*.saprj");
+   fb.add_filter("All Files", "*.*");
+
+   auto items = fb();
+   if(!items.empty())
+   {
+      auto file = items[0];
+      if(g_neatController)
+      {
+         g_projectManager.load(file, *g_neatController);
+      }
+   }
+}
+
+void exportProject(nana::form& fm)
+{
+   nana::filebox fb(fm, true);
    fb.add_filter("All Files", "*.*");
 
    auto items = fb();
@@ -180,18 +238,19 @@ int main()
 
    nana::menubar menu(fm);
    auto& p = menu.push_back("Project");
-   p.append("Load", std::bind(&loadState, fm));
-   p.append("Save", std::bind(&saveState, fm));
+   p.append("Load", std::bind(&loadProject, fm));
+   p.append("Save", std::bind(&saveProject, fm));
+   p.append("Export", std::bind(&exportProject, fm));
 
    //-----------------------------------
    
-   nana::group grpCtrl(fm, nana::rectangle(10, 30, fm.size().width / 5, fm.size().height - 100));
+   nana::group grpCtrl(fm);
    grpCtrl.caption("Control Panel");
 
-   nana::label l(grpCtrl, nana::rectangle(10, 20, grpCtrl.size().width - 20, 20));
+   nana::label l(grpCtrl);
    l.caption("Playground:");
 
-   nana::combox c(grpCtrl, nana::rectangle(10, 40, grpCtrl.size().width - 20, 20));
+   nana::combox c(grpCtrl);
 
    for(auto x : g_playgrounds)
    {
@@ -202,7 +261,9 @@ int main()
       g_neatController.reset(new NeatController(*g_playgrounds[c.option()]));
    });
 
-   nana::button b(grpCtrl, nana::rectangle(10, 70, grpCtrl.size().width - 20, 30));
+   c.option(0);
+
+   nana::button b(grpCtrl);
    b.caption("Start");
 
    b.events().click([&](auto args){
@@ -243,14 +304,32 @@ int main()
 
    //----------------------------------
 
-   nana::group grpOut(fm, nana::rectangle(grpCtrl.size().width + 20, 30, fm.size().width / 5 * 4 - 80, 300));
-   grpOut.caption("Output");
+   nana::group grpOut(fm);
 
-   nana::textbox t(grpOut, nana::rectangle(10, 20, grpOut.size().width - 20, grpOut.size().height - 30));
+   //-----------------------------------
+
+   nana::place layout(fm);
+   layout.div("vert <a weight=28><b arrange=[20%,80%]>");
+   layout.field("a") << menu;
+   layout.field("b") << grpCtrl << grpOut;
+   layout.collocate();
+
+   nana::place layout2(grpCtrl);
+   layout2.div("vert <a weight=10><vert d arrange=[30,30,30] margin=10>");
+   layout2.field("d") << l << c << b;
+   layout2.collocate();
+
+   nana::place layout3(grpOut);
+   layout3.div("vert <dock<A> margin=10><dock<B> margin=10>");
+   layout3.dock<nana::textbox>("A", "Raw Out");
+   layout3.collocate();
+
+   auto& t = *static_cast<nana::textbox*>(layout3.dock_create("output"));
+
    t.editable(false);
 
    g_trainer.onOutput.connect([&](auto s){
-      t.append(s, true);
+      t.caption(s);
    });
 
    fm.show();
