@@ -9,6 +9,7 @@ add_executable(gui
 main.cpp
 TetrisPG.cpp
 NeatController.cpp
+widgets/plot.cpp
 )
 
 target_link_libraries(gui nana Xcursor neat tetris)
