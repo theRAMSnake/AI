@@ -5,6 +5,7 @@
 #include <nana/gui/widgets/button.hpp>
 #include <nana/gui/widgets/textbox.hpp>
 #include <nana/gui/widgets/menubar.hpp>
+#include <nana/gui/widgets/treebox.hpp>
 #include <nana/gui/filebox.hpp>
 #include <nana/gui/place.hpp>
 #include "IPlayground.hpp"
@@ -12,9 +13,11 @@
 #include "TetrisPG.hpp"
 #include <thread>
 #include <iomanip>
+#include <numeric>
 #include <boost/signals2.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include "widgets/plot.h"
 
 void printGenom(const neat::Genom& g, std::stringstream& out, const bool includeWeights = false)
 {
@@ -53,25 +56,31 @@ void printState(NeatController& c, std::stringstream& out)
    out << "Total population: " << pops.size() << std::endl;
    out << "Num species: " << pops.numSpecies() << std::endl;
    out << "Average fitness: " << pops.getAverageFitness() << std::endl;
-   out << "Top 5: " << std::endl;
 
-   std::vector<std::pair<int, std::vector<neat::Pop>::const_iterator>> bestPops;
+   std::vector<std::pair<int, const neat::Pop*>> bestPops;
    for(auto& s : pops)
    {
-      auto best = std::max_element(s.population.begin(), s.population.end(), [](auto x, auto y){return x.fitness < y.fitness;});
-      if(bestPops.size() == 5)
+      for(auto& p : s.population)
       {
-         auto worstOf5 = std::min_element(bestPops.begin(), bestPops.end(), [](auto x, auto y){return x.second->fitness < y.second->fitness;});
-         if(worstOf5->second->fitness < best->fitness)
+         if(bestPops.size() == 10)
          {
-            (*worstOf5) = std::make_pair(s.id, best);
+            auto worst = std::min_element(bestPops.begin(), bestPops.end(), [](auto x, auto y){return x.second->fitness < y.second->fitness;});
+            if(worst->second->fitness < p.fitness)
+            {
+               (*worst) = std::make_pair(s.id, &p);
+            }
+         }
+         else
+         {
+            bestPops.push_back(std::make_pair(s.id, &p));
          }
       }
-      else
-      {
-         bestPops.push_back(std::make_pair(s.id, best));
-      }
    }
+
+   std::sort(bestPops.begin(), bestPops.end(), [](auto& x, auto& y){return x.second->fitness > y.second->fitness;});
+
+   out << "Top 10 fitness: " << std::accumulate(bestPops.begin(), bestPops.end(), 0, [](auto& x, auto& y){return x + y.second->fitness;}) << std::endl;
+   out << "Top 10: " << std::endl;
 
    for(auto &b : bestPops)
    {
@@ -142,7 +151,7 @@ int main()
    nana::form fm(nana::rectangle{ sz });
    fm.caption("Snake AI Tool");
 
-   //-----------------------------------
+   //---------------------------------------------------------------------------------------------------
    
    nana::menubar menu(fm);
 
@@ -151,27 +160,27 @@ int main()
 
    nana::group grpOut(fm);
 
-   MainMenuCtrl mainMenuCtrl(menu);
-   ControlPanelCtrl controlPanelCtrl(grpCtrl);
-
    nana::place layout(fm);
    layout.div("vert <a weight=28><b arrange=[20%,80%]>");
    layout.field("a") << menu;
    layout.field("b") << grpCtrl << grpOut;
    layout.collocate();
 
-   nana::place layout3(grpOut);
-   layout3.div("vert <dock<A> margin=10><dock<B> margin=10>");
-   layout3.dock<nana::textbox>("A", "Raw Out");
-   layout3.collocate();
+   nana::place layoutDocks(grpOut);
+   layoutDocks.div("vert <dock<A> margin=10><dock<B> margin=10>");
+   layoutDocks.dock<nana::panel<true>>("A", "Raw Out", ::nana::string("Raw Out"));
+   layoutDocks.dock<nana::panel<true>>("B", "History", ::nana::string("History"));
+   layoutDocks.dock<nana::panel<true>>("B", "Population", ::nana::string("Population"));
+   layoutDocks.collocate();
 
-   auto& t = *static_cast<nana::textbox*>(layout3.dock_create("output"));
+   //---------------------------------------------------------------------------------------------------
 
-   t.editable(false);
+   MainMenuCtrl mainMenuCtrl(menu);
+   ControlPanelCtrl controlPanelCtrl(grpCtrl);
 
-   g_trainer.onOutput.connect([&](auto s){
-      t.caption(s);
-   });
+   RawOutPanel rawOutPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Raw Out")));
+   HistoryPanel historyPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("History")));
+   PopulationPanel populationPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Population")));
 
    fm.show();
 
