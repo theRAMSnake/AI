@@ -80,103 +80,6 @@ void printState(NeatController& c, std::stringstream& out)
    }
 }
 
-class Trainer
-{
-public:
-   boost::signals2::signal<void()> onStoped;
-   boost::signals2::signal<void(std::string)> onOutput;
-
-   void start(NeatController& c)
-   {
-      mCtrl = &c;
-      if(mThread.joinable())
-      {
-         mThread.join();
-      }
-      mThread = std::thread(&Trainer::threadFunc, this);
-   }
-
-   void stop()
-   {
-      mStop = true;
-   }
-
-   bool isRunning()
-   {
-      return !mStop;
-   }
-
-   ~Trainer()
-   {
-      if(mThread.joinable())
-      {
-         mThread.join();
-      }
-   }
-
-private:
-   void threadFunc()
-   {
-      mStop = false;
-
-      while(!mStop)
-      {
-         mCtrl->step();
-
-         std::stringstream s;
-         printState(*mCtrl, s);
-
-         onOutput(s.str());
-      }
-
-      onStoped();
-   }
-
-   bool mStop = true;
-   NeatController* mCtrl;
-   std::thread mThread;
-};
-
-class ProjectManager
-{
-public:
-   void save(const std::string& fileName, NeatController& ctrl)
-   {
-      boost::property_tree::ptree tree;
-      tree.put("neat_state_filename", fileName + ".neat");
-      tree.put("generation", ctrl.getGeneration());
-
-      boost::property_tree::write_json(fileName, tree);
-
-      ctrl.saveState(fileName + ".neat");
-   }
-
-   bool load(const std::string& fileName, NeatController& ctrl)
-   {
-      try
-      {
-         boost::property_tree::ptree tree;
-         boost::property_tree::read_json(fileName, tree);
-
-         auto neatFileName = tree.get<std::string>("neat_state_filename");
-
-         ctrl.loadState(neatFileName);
-         ctrl.setGeneration(tree.get<unsigned int>("generation"));
-
-         return true;
-      }
-      catch(...)
-      {
-         return false;
-      }
-   }
-};
-
-std::vector<std::shared_ptr<IPlayground>> g_playgrounds;
-std::unique_ptr<NeatController> g_neatController;
-Trainer g_trainer;
-ProjectManager g_projectManager;
-
 void saveProject(nana::form& fm)
 {
    nana::filebox fb(fm, false);
@@ -228,96 +131,34 @@ void exportProject(nana::form& fm)
 
 int main()
 {
-   g_playgrounds.push_back(std::make_shared<TetrisPG>());
+   ProjectManager projectManager;
+   Trainer trainer;
+
+   projectManager.signalProjectChanged.connect(std::bind(Trainer::onProjectChanged, &trainer, std::placeholders::_1));
+
+   projectManager.createDefaultProject();
 
    nana::size sz = nana::screen().primary_monitor_size();
    nana::form fm(nana::rectangle{ sz });
    fm.caption("Snake AI Tool");
 
    //-----------------------------------
-
-   nana::menubar menu(fm);
-   auto& p = menu.push_back("Project");
-   p.append("Load", std::bind(&loadProject, fm));
-   p.append("Save", std::bind(&saveProject, fm));
-   p.append("Export", std::bind(&exportProject, fm));
-
-   //-----------------------------------
    
+   nana::menubar menu(fm);
+
    nana::group grpCtrl(fm);
    grpCtrl.caption("Control Panel");
 
-   nana::label l(grpCtrl);
-   l.caption("Playground:");
-
-   nana::combox c(grpCtrl);
-
-   for(auto x : g_playgrounds)
-   {
-      c.push_back(x->getName());
-   }
-
-   c.events().selected([&](auto args){
-      g_neatController.reset(new NeatController(*g_playgrounds[c.option()]));
-   });
-
-   c.option(0);
-
-   nana::button b(grpCtrl);
-   b.caption("Start");
-
-   b.events().click([&](auto args){
-
-      if(!g_trainer.isRunning())
-      {
-         if(g_neatController)
-         {
-            c.enabled(false);
-            p.enabled(0, false);
-            p.enabled(1, false);
-            b.caption("Stop");
-
-            g_trainer.start(*g_neatController);
-         }
-         else
-         {
-            (nana::msgbox(fm, "Error").icon(nana::msgbox::icon_error)<<"Please select playground").show();
-         }
-      }
-      else
-      {
-         b.caption("Stopping");
-         b.enabled(false);
-
-         g_trainer.stop();
-      }
-
-   });
-
-   g_trainer.onStoped.connect([&](){
-      b.enabled(true);
-      c.enabled(true);
-      p.enabled(0, true);
-      p.enabled(1, true);
-      b.caption("Start");
-   });
-
-   //----------------------------------
-
    nana::group grpOut(fm);
 
-   //-----------------------------------
+   MainMenuCtrl mainMenuCtrl(menu);
+   ControlPanelCtrl controlPanelCtrl(grpCtrl);
 
    nana::place layout(fm);
    layout.div("vert <a weight=28><b arrange=[20%,80%]>");
    layout.field("a") << menu;
    layout.field("b") << grpCtrl << grpOut;
    layout.collocate();
-
-   nana::place layout2(grpCtrl);
-   layout2.div("vert <a weight=10><vert d arrange=[30,30,30] margin=10>");
-   layout2.field("d") << l << c << b;
-   layout2.collocate();
 
    nana::place layout3(grpOut);
    layout3.div("vert <dock<A> margin=10><dock<B> margin=10>");
