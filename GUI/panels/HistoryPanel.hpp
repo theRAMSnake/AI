@@ -1,13 +1,14 @@
 #pragma once
+#include <nana/gui/widgets/panel.hpp>
+#include "../widgets/plot.h"
 
-panel.caption("History");
-panel.bgcolor(nana::colors::white);
-nana::plot::plot plot(panel);
+class Trainer;
+class ProjectManager;
+class HistoryPanel
+{
+public:
+   HistoryPanel(nana::panel<true>& parent, ProjectManager& pm, Trainer& trainer);
 
-nana::plot::trace& t1 = plot.AddRealTimeTrace(500);
-t1.color( nana::colors::blue );
-
-g_trainer.onOutput.connect([&](auto s){
-   t.caption(s);
-   t1.add(g_neatController->getPopulation().getAverageFitness());
-});
+private:
+   std::unique_ptr<nana::plot::plot> mPlot;
+};

@@ -1,6 +1,17 @@
 #pragma once
+#include <nana/gui/widgets/menubar.hpp>
 
-auto& p = menu.push_back("Project");
-p.append("Load", std::bind(&loadProject, fm));
-p.append("Save", std::bind(&saveProject, fm));
-p.append("Export", std::bind(&exportProject, fm));
+class ProjectManager;
+class Trainer;
+class MainMenuCtrl
+{
+public:
+   MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& trainer);
+
+private:
+   void saveProject();
+   void loadProject();
+
+   ProjectManager& mPm;
+   nana::window mWnd;
+};

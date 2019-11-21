@@ -1,14 +1,18 @@
 #pragma once
+#include <boost/signals2.hpp>
+#include <thread>
+#include "NeatProject.hpp"
 
 class Trainer
 {
 public:
-   boost::signals2::signal<void()> onStoped;
-   boost::signals2::signal<void(std::string)> onOutput;
+   boost::signals2::signal<void()> signalStarted;
+   boost::signals2::signal<void()> signalStopped;
+   boost::signals2::signal<void()> signalStep;
 
-   void start(NeatController& c)
+   void start(NeatProject& s)
    {
-      mCtrl = &c;
+      mSubject = &s;
       if(mThread.joinable())
       {
          mThread.join();
@@ -37,22 +41,21 @@ public:
 private:
    void threadFunc()
    {
+      signalStarted();
+
       mStop = false;
 
       while(!mStop)
       {
-         mCtrl->step();
+         mSubject->step();
 
-         std::stringstream s;
-         printState(*mCtrl, s);
-
-         onOutput(s.str());
+         signalStep();
       }
 
-      onStoped();
+      signalStopped();
    }
 
    bool mStop = true;
-   NeatController* mCtrl;
+   NeatProject* mSubject;
    std::thread mThread;
 };

@@ -5,10 +5,15 @@ LIST(APPEND CMAKE_MODULE_PATH "..")
 
 include_directories("..")
 
-add_executable(gui 
+add_executable(gui
 main.cpp
 TetrisPG.cpp
-NeatController.cpp
+NeatProject.cpp
+MainMenuCtrl.cpp
+ControlPanelCtrl.cpp
+panels/HistoryPanel.cpp
+panels/PopulationPanel.cpp
+panels/RawOutPanel.cpp
 widgets/plot.cpp
 )
 

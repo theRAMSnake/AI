@@ -1,21 +1,34 @@
 #pragma once
+#include <string>
+#include <memory>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/signals2.hpp>
+#include "NeatProject.hpp"
+#include "TetrisPG.hpp"
 
 class ProjectManager
 {
 public:
-   void save(const std::string& fileName, NeatController& ctrl)
+   boost::signals2::signal<void(const NeatProject&)> signalProjectChanged;
+
+   void save(const std::string& fileName)
    {
-      boost::property_tree::ptree tree;
-      tree.put("neat_state_filename", fileName + ".neat");
-      tree.put("generation", ctrl.getGeneration());
+      if(mCurrentProject)
+      {
+         boost::property_tree::ptree tree;
+         tree.put("neat_state_filename", fileName + ".neat");
+         tree.put("generation", mCurrentProject->getGeneration());
 
-      boost::property_tree::write_json(fileName, tree);
+         boost::property_tree::write_json(fileName, tree);
 
-      ctrl.saveState(fileName + ".neat");
+         mCurrentProject->saveState(fileName + ".neat");
+      }
    }
 
-   bool load(const std::string& fileName, NeatController& ctrl)
+   bool load(const std::string& fileName)
    {
+      mCurrentProject = std::make_unique<NeatProject>(mPlayground);
       try
       {
          boost::property_tree::ptree tree;
@@ -23,8 +36,10 @@ public:
 
          auto neatFileName = tree.get<std::string>("neat_state_filename");
 
-         ctrl.loadState(neatFileName);
-         ctrl.setGeneration(tree.get<unsigned int>("generation"));
+         mCurrentProject->loadState(neatFileName);
+         mCurrentProject->setGeneration(tree.get<unsigned int>("generation"));
+
+         signalProjectChanged(*mCurrentProject);
 
          return true;
       }
@@ -33,4 +48,19 @@ public:
          return false;
       }
    }
+
+   void createDefaultProject()
+   {
+      mCurrentProject = std::make_unique<NeatProject>(mPlayground);
+      signalProjectChanged(*mCurrentProject);
+   }
+
+   NeatProject& getProject()
+   {
+      return *mCurrentProject;
+   }
+
+private:
+   TetrisPG mPlayground;
+   std::unique_ptr<NeatProject> mCurrentProject;
 };

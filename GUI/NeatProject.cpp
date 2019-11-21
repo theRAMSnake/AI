@@ -1,38 +1,38 @@
-#include "NeatController.hpp"
+#include "NeatProject.hpp"
 
-NeatController::NeatController(IPlayground& pg)
+NeatProject::NeatProject(IPlayground& pg)
 : mNeat(pg.getConfig(), pg.getFitnessEvaluator())
 {
 
 }
 
-void NeatController::step()
+void NeatProject::step()
 {
    mNeat.step();
    mGeneration++;
 }
 
-const neat::Population& NeatController::getPopulation() const
+const neat::Population& NeatProject::getPopulation() const
 {
    return mNeat.getPopulation();
 }
 
-const unsigned int NeatController::getGeneration() const
+const unsigned int NeatProject::getGeneration() const
 {
    return mGeneration;
 }
 
-void NeatController::saveState(const std::string& filename)
+void NeatProject::saveState(const std::string& filename)
 {
    mNeat.saveState(filename);
 }
 
-void NeatController::loadState(const std::string& filename)
+void NeatProject::loadState(const std::string& filename)
 {
    mNeat.loadState(filename);
 }
 
-void NeatController::setGeneration(const unsigned int generation)
+void NeatProject::setGeneration(const unsigned int generation)
 {
    mGeneration = generation;
 }
