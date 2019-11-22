@@ -11,6 +11,7 @@ public:
 private:
    void saveProject();
    void loadProject();
+   void newProject();
 
    ProjectManager& mPm;
    nana::window mWnd;

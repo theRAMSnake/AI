@@ -37,6 +37,11 @@ void Neat::step()
     updateFitness();
 }
 
+bool Neat::hasPopulation() const
+{
+    return static_cast<bool>(mPopulation);
+}
+
 int evaluate(IFitnessEvaluator* eval, std::vector<std::vector<Pop>::iterator>::iterator begin, std::vector<std::vector<Pop>::iterator>::iterator end)
 {
     for(auto iter = begin; iter != end; ++iter)

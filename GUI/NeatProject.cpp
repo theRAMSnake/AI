@@ -14,7 +14,8 @@ void NeatProject::step()
 
 const neat::Population& NeatProject::getPopulation() const
 {
-   return mNeat.getPopulation();
+   static neat::Population empty(0, 0);
+   return mNeat.hasPopulation() ? mNeat.getPopulation() : empty;
 }
 
 const unsigned int NeatProject::getGeneration() const

@@ -11,6 +11,9 @@ TetrisPG.cpp
 NeatProject.cpp
 MainMenuCtrl.cpp
 ControlPanelCtrl.cpp
+ProjectManager.cpp
+EmptyPG.cpp
+CheckpointPG.cpp
 panels/HistoryPanel.cpp
 panels/PopulationPanel.cpp
 panels/RawOutPanel.cpp
