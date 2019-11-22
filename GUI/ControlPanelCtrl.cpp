@@ -9,7 +9,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
    mBtn.caption("Start");
 
    nana::place layout(parent);
-   layout.div("vert <a weight=10><vert d arrange=[30,30,30] margin=[10, 20, 10, 10]>");
+   layout.div("vert <a weight=10><vert d arrange=[30,30,30] margin=10>");
    layout.field("d") << mBtn;
    layout.collocate();
 

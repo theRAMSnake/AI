@@ -13,7 +13,7 @@
 
 std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
 {
-   auto panel = std::make_unique<nana::panel<true>>(parent, true);
+   auto panel = std::make_unique<nana::panel<true>>(parent);
    panel->caption(name);
 
    return panel;
@@ -27,9 +27,14 @@ int main()
    projectManager.createDefaultProject();
 
    nana::size sz = nana::screen().primary_monitor_size();
-   nana::form fm(nana::rectangle{ sz });
-   fm.caption("Snake AI Tool");
+#ifdef WINDOWS
+   nana::form fm(nana::rectangle{sz});
+#else
+   sz.width -= 50;
+   nana::form fm(nana::rectangle{sz});
+#endif
 
+   fm.caption("Snake AI Tool");
    //---------------------------------------------------------------------------------------------------
    
    nana::menubar menu(fm);
