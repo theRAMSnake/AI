@@ -2,10 +2,10 @@
 #include "neat/neat.hpp"
 #include "IPlayground.hpp"
 
-class NeatController
+class NeatProject
 {
 public:
-   NeatController(IPlayground& pg);
+   NeatProject(IPlayground& pg);
 
    void step();
    void saveState(const std::string& filename);

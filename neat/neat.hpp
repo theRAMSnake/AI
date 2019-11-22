@@ -18,6 +18,7 @@ public:
     void step();
 
     const Population& getPopulation() const;
+    bool hasPopulation() const;
 
     void saveState(const std::string& fileName);
     void loadState(const std::string& fileName);
