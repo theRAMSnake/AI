@@ -1,4 +1,4 @@
-#include "CheckpointPG.hpp"
+#include "./CheckpointPG.hpp"
 #include "neat/neuro_net.hpp"
 #include <algorithm>
 #include <filesystem>
@@ -9,7 +9,7 @@
 
 bool sameCorridor(int a, int b)
 {
-   return a / 2 == b / 2;
+   return (a - 1) / 2 == (b - 1) / 2;
 }
 
 class CPFitnessEvaluator : public neat::IFitnessEvaluator
@@ -57,7 +57,7 @@ public:
          {
             auto inputIter = n.begin_input();
 
-            std::copy(&m.pscs[0], &m.pscs[0] + 13, inputIter);
+            inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
             *inputIter = m.timeDelta;
 
             n.activate();
@@ -68,11 +68,7 @@ public:
 
          if(counter == s.result)
          {
-            result += 5;
-         }
-         else if(sameCorridor(counter, s.result))
-         {
-            result++;
+            result ++;
          }
       }
 
@@ -133,7 +129,7 @@ private:
       Sample result;
 
       boost::property_tree::ptree tree;
-      boost::property_tree::read_json(p.c_str(), tree);
+      boost::property_tree::read_json(p.string().c_str(), tree);
 
       result.result = tree.get<int>("TrainData.Counter.OrdinalNumber");
 
@@ -179,16 +175,16 @@ neat::Config CheckpointPG::getConfig()
    c.initialPopulation = 800;
    c.optimalPopulation = 800;
    c.compatibilityFactor = 3.0;
-   c.inheritDisabledChance = 0.75;
+   c.inheritDisabledChance = 0.5;
    c.perturbationChance = 0.9;
    c.addNodeMutationChance = 0.05;
-   c.addConnectionMutationChance = 0.05;
-   c.removeConnectionMutationChance = 0.05;
+   c.addConnectionMutationChance = 0.1;
+   c.removeConnectionMutationChance = 0.1;
    c.weightsMutationChance = 0.8;
    c.C1_C2 = 1.0;
    c.C3 = 0.3;
    c.startConnected = true;
-   c.numThreads = 2;
+   c.numThreads = 6;
 
    return c;
 }

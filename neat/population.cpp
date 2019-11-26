@@ -120,25 +120,21 @@ Fitness Specie::getTotalFitness() const
 
 void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out)
 {
-   if(population.empty())
+   if(population.empty() || amount == 0)
    {
       return;
    }
 
    std::sort(population.begin(), population.end(), comparePopsByFitness);
+   int amountLeft = amount;
    if(population.size() >= 5)
    {
       //Keep champion
       out.push_back(population[0].genotype);
-   }
-   
-   auto halfSize = population.size() / 2;
-   while(population.size() > 1 && population.size() > halfSize)//Keep at least one organisms
-   {
-      population.pop_back();
+      amountLeft--;
    }
 
-   for(unsigned int i = 0; i < amount; ++i)
+   for(unsigned int i = 0; i < amountLeft; ++i)
    {
       auto& pop1 = randomPop();
 
@@ -157,7 +153,7 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
             }
             
             auto genom = Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
-            //mutate(genom, history);
+            mutate(genom, history);
             out.push_back(genom);
       }
    }
@@ -311,7 +307,7 @@ Population::ConstIterator Population::end() const
 
 bool Specie::isStagnant() const
 {
-   return numStagnantGenerations >= 30;
+   return false;
 }
 
 Population::Iterator Population::begin()

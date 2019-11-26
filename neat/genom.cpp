@@ -36,13 +36,17 @@ Genom Genom::crossover(const Genom& a, const Genom& b, const Fitness fitA, const
         {
             g.mGenes.push_back(a.mGenes[i]);
             g.mGenes.back().weight = Rng::genProbability(0.5) > 0 ? a.mGenes[i].weight : b.mGenes[i].weight;
-            g.mGenes.back().enabled = true;
+            g.mGenes.back().enabled = a.mGenes[i].enabled && b.mGenes[i].enabled;
 
-            if(!a.mGenes[i].enabled || !b.mGenes[i].enabled)
+            if (!g.mGenes.back().enabled)
             {
-                if(Rng::genProbability(mConfig.inheritDisabledChance))
+                if (!a.mGenes[i].enabled && !b.mGenes[i].enabled)
                 {
                     g.mGenes.back().enabled = false;
+                }
+                else
+                {
+                    g.mGenes.back().enabled = !Rng::genProbability(mConfig.inheritDisabledChance);
                 }
             }
         }
@@ -138,15 +142,16 @@ NodeId Genom::getInputNodeCount() const
 
 void mutateWeights(Genom& a)
 {
-    auto& g = a[Rng::genChoise(a.length())];
-
-    if(Rng::genProbability(Genom::getConfig().perturbationChance))
+    for (auto& x : a)
     {
-        g.weight += Rng::genPerturbation();
-    }
-    else
-    {
-        g.weight = Rng::genWeight();
+        if (Rng::genProbability(Genom::getConfig().perturbationChance))
+        {
+            x.weight += Rng::genPerturbation();
+        }
+        else
+        {
+            x.weight = Rng::genWeight();
+        }
     }
 }
 
@@ -157,11 +162,6 @@ bool mutateAddConnection(Genom& a, InnovationHistory& history)
     //find all possible connections
     for(NodeId src = 0; src < a.getTotalNodeCount(); ++src)
     {
-        if(a.isOutputNode(src))
-        {
-            continue;
-        }
-
         std::vector<Gene> genes;
         std::copy_if(a.begin(), a.end(), std::back_inserter(genes), [&](auto g){return g.srcNodeId == src && g.enabled;});
 
@@ -360,7 +360,7 @@ Config Genom::mConfig = {};
 
 std::size_t Genom::getComplexity() const
 {
-    return std::accumulate(begin(), end(), 0, [](auto a, auto b){return a + b.enabled ? 1 : 0;});
+    return std::accumulate(begin(), end(), 0, [](auto a, auto b){return a + (b.enabled ? 1 : 0);});
 }
 
 }
