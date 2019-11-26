@@ -20,6 +20,7 @@ struct Config
     double addConnectionMutationChance;
     double removeConnectionMutationChance;
     double weightsMutationChance;
+    double adoptionRate;
     double C1_C2;
     double C3;
     bool startConnected = true;

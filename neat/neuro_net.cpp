@@ -78,11 +78,6 @@ NeuroNet::NeuroNet(const Genom& genotype)
    {
       return x->depth < y->depth;
    });
-
-   std::sort(mOutputNodes.begin(), mOutputNodes.end(), [&](auto x, auto y)
-   {
-      return x->depth < y->depth;
-   });
 }
 
 void NeuroNet::activate()

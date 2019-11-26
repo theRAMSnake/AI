@@ -14,7 +14,7 @@ void NeatProject::step()
 
 const neat::Population& NeatProject::getPopulation() const
 {
-   static neat::Population empty(0, 0);
+   static neat::Population empty(0, 0, 0);
    return mNeat.hasPopulation() ? mNeat.getPopulation() : empty;
 }
 

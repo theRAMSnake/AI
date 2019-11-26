@@ -26,7 +26,8 @@ void Neat::step()
             mCfg.numInputs, 
             mCfg.numOutputs, 
             mCfg.initialPopulation,
-            mCfg.compatibilityFactor, 
+            mCfg.compatibilityFactor,
+            mCfg.adoptionRate,
             mHistory));
     }
     else
@@ -150,7 +151,7 @@ void Neat::loadState(const std::string& fileName)
 
     mHistory.loadState(ifile);
     mHistory.buildCache();
-    mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor);
+    mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor, mCfg.adoptionRate);
     mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
     mHistory.clearCache();
 }

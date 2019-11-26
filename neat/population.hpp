@@ -41,7 +41,7 @@ struct Specie
 class Population
 {
 public:
-   Population(const unsigned int optimalSize, const double compatibilityFactor);
+   Population(const unsigned int optimalSize, const double compatibilityFactor, const double adoptionRate);
 
    using Iterator = std::vector<Specie>::iterator;
    using ConstIterator = std::vector<Specie>::const_iterator;
@@ -72,6 +72,7 @@ public:
       const NodeId numOutputs, 
       const unsigned int size,
       const double compatibilityFactor,
+      const double adoptionRate,
       InnovationHistory& history
       );
 
@@ -81,6 +82,7 @@ private:
 
    const unsigned int mOptimalSize;
    const double mCompatibilityFactor;
+   const double mAdoptionRate;
    std::vector<Specie> mSpecies;
 };
 }

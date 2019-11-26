@@ -181,6 +181,7 @@ neat::Config CheckpointPG::getConfig()
    c.addConnectionMutationChance = 0.1;
    c.removeConnectionMutationChance = 0.1;
    c.weightsMutationChance = 0.8;
+   c.adoptionRate = 0.005;
    c.C1_C2 = 1.0;
    c.C3 = 0.3;
    c.startConnected = true;

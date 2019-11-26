@@ -12,10 +12,11 @@ Population Population::createInitialPopulation(
    const NodeId numOutputs, 
    const unsigned int size, 
    const double compatibilityFactor,
+   const double adoptionRate,
    InnovationHistory& history
    )
 {
-   Population p(size, compatibilityFactor);
+   Population p(size, compatibilityFactor, adoptionRate);
 
    Specie s;
    s.id = 0;
@@ -66,9 +67,10 @@ void Specie::selectRepresentor()
    representor = randomPop();
 }
 
-Population::Population(const unsigned int optimalSize, const double compatibilityFactor)
+Population::Population(const unsigned int optimalSize, const double compatibilityFactor, const double adoptionRate)
 : mOptimalSize(optimalSize)
 , mCompatibilityFactor(compatibilityFactor)
+, mAdoptionRate(adoptionRate)
 {
 
 }
@@ -222,7 +224,7 @@ void Population::nextGeneration(InnovationHistory& history)
 
       for(auto& s : mSpecies)
       {
-         if(isCompatible(g, s.representor->genotype, mCompatibilityFactor))
+         if(isCompatible(g, s.representor->genotype, mCompatibilityFactor) || Rng::genProbability(mAdoptionRate))
          {
             s.population.push_back({0, g});
             found = true;
