@@ -65,7 +65,8 @@ void plot::CalcScale( int w, int h )
     {
         if( t->size() > maxCount )
             maxCount = t->size();
-        int tmin, tmax;
+        int tmin = 0;
+        int tmax = 0;
         t->bounds( tmin, tmax );
         if( tmin < myMinY )
             myMinY = tmin;

@@ -1,6 +1,7 @@
 #pragma once
 #include "neat/neat.hpp"
 #include "IPlayground.hpp"
+#include <boost/property_tree/ptree.hpp>
 
 class NeatProject
 {
@@ -14,8 +15,10 @@ public:
 
    const neat::Population& getPopulation() const;
    const unsigned int getGeneration() const;
+   const boost::property_tree::ptree& getConfig();
 
 private:
    unsigned int mGeneration = 0;
+   boost::property_tree::ptree mConfig;
    neat::Neat mNeat;
 };

@@ -26,14 +26,12 @@ struct Specie
    Fitness getSharedFitness() const;
    Fitness getTotalFitness() const;
    void updateFitness();
-   bool isStagnant() const;
    void produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out);
 
    std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
    double maxFitness;
-   unsigned int numStagnantGenerations;
    Fitness totalFitness = 0;
    double sharedFitness = 0;
 };
@@ -41,7 +39,7 @@ struct Specie
 class Population
 {
 public:
-   Population(const unsigned int optimalSize, const double compatibilityFactor, const double adoptionRate);
+   Population(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage);
 
    using Iterator = std::vector<Specie>::iterator;
    using ConstIterator = std::vector<Specie>::const_iterator;
@@ -72,7 +70,7 @@ public:
       const NodeId numOutputs, 
       const unsigned int size,
       const double compatibilityFactor,
-      const double adoptionRate,
+      const double interspecieCrossoverPercentage,
       InnovationHistory& history
       );
 
@@ -82,7 +80,10 @@ private:
 
    const unsigned int mOptimalSize;
    const double mCompatibilityFactor;
-   const double mAdoptionRate;
+   const double minterspecieCrossoverPercentage;
    std::vector<Specie> mSpecies;
+
+   double mBestFitness = 0.0;
+   int mNumStagnantGenerations = 0;
 };
 }

@@ -62,8 +62,7 @@ bool isNeatSame(neat::Neat& a, neat::Neat& b)
         if(s1->getSharedFitness() != s2->getSharedFitness() ||
             s1->getTotalFitness() != s2->getTotalFitness() ||
             s1->id != s2->id ||
-            s1->maxFitness != s2->maxFitness ||
-            s1->numStagnantGenerations != s2->numStagnantGenerations)
+            s1->maxFitness != s2->maxFitness)
         {
             return false;
         }
@@ -97,7 +96,7 @@ BOOST_FIXTURE_TEST_CASE( SaveLoadTest2, SaveLoadStateTest )
 
     n1.loadState("test2.state");
 
-    //BOOST_CHECK(isNeatSame(n, n1));
+    BOOST_CHECK(isNeatSame(n, n1));
 }
 
 BOOST_FIXTURE_TEST_CASE( SaveLoadTest3, SaveLoadStateTest ) 
@@ -115,5 +114,5 @@ BOOST_FIXTURE_TEST_CASE( SaveLoadTest3, SaveLoadStateTest )
 
     n1.loadState("test3.state");
 
-    //BOOST_CHECK(isNeatSame(n, n1));
+    BOOST_CHECK(isNeatSame(n, n1));
 }

@@ -27,7 +27,7 @@ void Neat::step()
             mCfg.numOutputs, 
             mCfg.initialPopulation,
             mCfg.compatibilityFactor,
-            mCfg.adoptionRate,
+            mCfg.interspecieCrossoverPercentage,
             mHistory));
     }
     else
@@ -151,7 +151,7 @@ void Neat::loadState(const std::string& fileName)
 
     mHistory.loadState(ifile);
     mHistory.buildCache();
-    mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor, mCfg.adoptionRate);
+    mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
     mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
     mHistory.clearCache();
 }

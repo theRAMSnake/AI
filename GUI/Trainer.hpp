@@ -10,50 +10,15 @@ public:
    boost::signals2::signal<void()> signalStopped;
    boost::signals2::signal<void()> signalStep;
 
-   void start(NeatProject& s)
-   {
-      mSubject = &s;
-      if(mThread.joinable())
-      {
-         mThread.join();
-      }
-      mThread = std::thread(&Trainer::threadFunc, this);
-   }
+   void start(NeatProject& s);
+   void stop();
 
-   void stop()
-   {
-      mStop = true;
-   }
+   bool isRunning();
 
-   bool isRunning()
-   {
-      return !mStop;
-   }
-
-   ~Trainer()
-   {
-      if(mThread.joinable())
-      {
-         mThread.join();
-      }
-   }
+   ~Trainer();
 
 private:
-   void threadFunc()
-   {
-      signalStarted();
-
-      mStop = false;
-
-      while(!mStop)
-      {
-         mSubject->step();
-
-         signalStep();
-      }
-
-      signalStopped();
-   }
+   void threadFunc();
 
    bool mStop = true;
    NeatProject* mSubject;

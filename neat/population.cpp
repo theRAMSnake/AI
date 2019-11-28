@@ -7,21 +7,25 @@
 namespace neat
 {
 
+bool comparePopsByFitness(const Pop& a, const Pop& b)
+{
+   return a.fitness > b.fitness;
+}
+
 Population Population::createInitialPopulation(
    const NodeId numInputs, 
    const NodeId numOutputs, 
    const unsigned int size, 
    const double compatibilityFactor,
-   const double adoptionRate,
+   const double interspecieCrossoverPercentage,
    InnovationHistory& history
    )
 {
-   Population p(size, compatibilityFactor, adoptionRate);
+   Population p(size, compatibilityFactor, interspecieCrossoverPercentage);
 
    Specie s;
    s.id = 0;
    s.maxFitness = 0;
-   s.numStagnantGenerations = 0;
 
    for(unsigned int i = 0; i < size; ++i)
    {
@@ -48,18 +52,11 @@ void Population::onEvaluationFinished()
 
 void Specie::updateFitness()
 {
+   std::sort(population.begin(), population.end(), comparePopsByFitness);
    totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
    sharedFitness = (double)totalFitness / population.size();
 
-   if(sharedFitness > maxFitness)
-   {
-      numStagnantGenerations = 0;
-      maxFitness = sharedFitness;
-   }
-   else
-   {
-      numStagnantGenerations++;
-   }
+   maxFitness = population[0].fitness;
 }
 
 void Specie::selectRepresentor()
@@ -67,10 +64,10 @@ void Specie::selectRepresentor()
    representor = randomPop();
 }
 
-Population::Population(const unsigned int optimalSize, const double compatibilityFactor, const double adoptionRate)
+Population::Population(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage)
 : mOptimalSize(optimalSize)
 , mCompatibilityFactor(compatibilityFactor)
-, mAdoptionRate(adoptionRate)
+, minterspecieCrossoverPercentage(interspecieCrossoverPercentage)
 {
 
 }
@@ -91,29 +88,38 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          numOffspringsPerSpecie.push_back(mOptimalSize / mSpecies.size());
       }
    }
+   else if(mNumStagnantGenerations > 500)
+   {
+      for(std::size_t i = 0; i < mSpecies.size(); ++i)
+      {
+         numOffspringsPerSpecie.push_back(0);
+      }
+
+      auto bestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto& a, auto& b){return a.maxFitness < b.maxFitness;});
+      numOffspringsPerSpecie[std::distance(mSpecies.begin(), bestSpecie)] = mOptimalSize / 2;
+
+      auto bestSpecieFitness = bestSpecie->maxFitness;
+      bestSpecie->maxFitness = 0.0;
+
+      auto secondBestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto& a, auto& b){return a.maxFitness < b.maxFitness;});
+      numOffspringsPerSpecie[std::distance(mSpecies.begin(), secondBestSpecie)] = mOptimalSize / 2;
+
+      bestSpecie->maxFitness = bestSpecieFitness;
+
+      mNumStagnantGenerations = 0;
+   }
    else
    {
       for(std::size_t i = 0; i < mSpecies.size(); ++i)
       {
-         if(mSpecies[i].isStagnant())
-         {
-            numOffspringsPerSpecie.push_back(0);
-         }
-         else
-         {
-            numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
-            //std::cout << "off for " << mSpecies[i].id << ": " << mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001) << std::endl;
-         }
+         numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
       }
    }
 
    return numOffspringsPerSpecie;
 }
 
-bool comparePopsByFitness(const Pop& a, const Pop& b)
-{
-   return a.fitness > b.fitness;
-}
+
 
 Fitness Specie::getTotalFitness() const
 {
@@ -127,8 +133,7 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
       return;
    }
 
-   std::sort(population.begin(), population.end(), comparePopsByFitness);
-   int amountLeft = amount;
+   unsigned int amountLeft = amount;
    if(population.size() >= 5)
    {
       //Keep champion
@@ -175,9 +180,21 @@ void Population::nextGeneration(InnovationHistory& history)
 {
    std::vector<Genom> newGenoms;
 
+   double bestFitnessThisGeneration = 0.0;
    for(auto& s : mSpecies)
    {
       s.selectRepresentor();
+      bestFitnessThisGeneration = std::max(bestFitnessThisGeneration, s.maxFitness);
+   }
+
+   if(bestFitnessThisGeneration > mBestFitness)
+   {
+      mBestFitness = bestFitnessThisGeneration;
+      mNumStagnantGenerations = 0;
+   }
+   else
+   {
+      mNumStagnantGenerations++;
    }
    
    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
@@ -191,26 +208,15 @@ void Population::nextGeneration(InnovationHistory& history)
       specieNum++;
    }
 
-   if(newGenoms.empty())
+   for(int i = 0; i < mOptimalSize * minterspecieCrossoverPercentage / 100 || newGenoms.size() < mOptimalSize; ++i)
    {
-      //All species are stagnant, repopulate at random
-      while(newGenoms.size() < mOptimalSize)
-      {
-         auto& s = mSpecies[Rng::genChoise(mSpecies.size())];
-         auto genom = s.randomPop().genotype;
-         mutate(genom, history);
-         newGenoms.push_back(genom);
-      }
-   }
-   else if(newGenoms.size() < mOptimalSize)
-   {
-       while (newGenoms.size() < mOptimalSize)
-       {
-           //We have less population than optimal - reproduce from offsprings
-           auto genom = newGenoms[Rng::genChoise(newGenoms.size())];
-           mutate(genom, history);
-           newGenoms.push_back(genom);
-       }
+      auto& s1 = mSpecies[Rng::genChoise(mSpecies.size())];
+      auto& s2 = mSpecies[Rng::genChoise(mSpecies.size())];
+
+      auto& p1 = s1.randomPop();
+      auto& p2 = s2.randomPop();
+
+      newGenoms.push_back(Genom::crossover(p1.genotype, p2.genotype, p1.fitness, p2.fitness));
    }
 
    for(auto& s : mSpecies)
@@ -224,7 +230,7 @@ void Population::nextGeneration(InnovationHistory& history)
 
       for(auto& s : mSpecies)
       {
-         if(isCompatible(g, s.representor->genotype, mCompatibilityFactor) || Rng::genProbability(mAdoptionRate))
+         if(isCompatible(g, s.representor->genotype, mCompatibilityFactor))
          {
             s.population.push_back({0, g});
             found = true;
@@ -239,7 +245,6 @@ void Population::nextGeneration(InnovationHistory& history)
          s.id = genNewSpecieId();
          s.maxFitness = 0;
          s.representor = p;
-         s.numStagnantGenerations = 0;
          s.population.push_back(p);
          mSpecies.push_back(s);
       }
@@ -307,11 +312,6 @@ Population::ConstIterator Population::end() const
    return mSpecies.end();
 }
 
-bool Specie::isStagnant() const
-{
-   return false;
-}
-
 Population::Iterator Population::begin()
 {
    return mSpecies.begin();
@@ -325,13 +325,20 @@ Population::Iterator Population::end()
 void Population::saveState(std::ofstream& s)
 {
    auto size = mSpecies.size();
+   s.write((char*)&mBestFitness, sizeof(double));
+   s.write((char*)&mNumStagnantGenerations, sizeof(int));
+
    s.write((char*)&size, sizeof(std::size_t));
-   std::cout << "S_size" << size;
    for(auto& x : mSpecies)
    {
       s.write((char*)&x.id, sizeof(unsigned int));
       s.write((char*)&x.maxFitness, sizeof(double));
-      s.write((char*)&x.numStagnantGenerations, sizeof(unsigned int));
+
+      //Keeping for compatibility
+      const unsigned int zero = 0;
+      s.write((char*)&zero, sizeof(unsigned int));
+      //End
+
       s.write((char*)&x.sharedFitness, sizeof(double));
       s.write((char*)&x.totalFitness, sizeof(Fitness));
 
@@ -364,9 +371,11 @@ void Population::loadState(
 {
    mSpecies.clear();
 
+   s.read((char*)&mBestFitness, sizeof(double));
+   s.read((char*)&mNumStagnantGenerations, sizeof(int));
+
    std::size_t numSpecies = 0;
    s.read((char*)&numSpecies, sizeof(std::size_t));
-   std::cout << "L_size" << numSpecies;
 
    mSpecies.reserve(numSpecies);
    for(std::size_t i = 0; i < numSpecies; ++i)
@@ -376,22 +385,22 @@ void Population::loadState(
       std::cout << ".";
       s.read((char*)&x.id, sizeof(unsigned int));
       s.read((char*)&x.maxFitness, sizeof(double));
-      s.read((char*)&x.numStagnantGenerations, sizeof(unsigned int));
+
+      //Keeping for compatibility
+      const unsigned int unused = 0;
+      s.read((char*)&unused, sizeof(unsigned int));
+      //End
+
       s.read((char*)&x.sharedFitness, sizeof(double));
       s.read((char*)&x.totalFitness, sizeof(Fitness));
 
       std::size_t popSize = 0;
       s.read((char*)&popSize, sizeof(std::size_t));
-      std::cout << "pop_size" << popSize;
 
       x.population.reserve(popSize);
 
       for(std::size_t j = 0; j < popSize; ++j)
       {
-          if (!(j % 100))
-          {
-              std::cout << ".";
-          }
          Pop y{0, Genom(numInputs, numOutputs)};
 
          s.read((char*)&y.fitness, sizeof(Fitness));

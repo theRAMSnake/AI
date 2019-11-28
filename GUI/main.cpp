@@ -19,12 +19,16 @@ std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
    return panel;
 }
 
+const int autosaveEachXGenerations = 500;
+
 int main()
 {
    ProjectManager projectManager;
    Trainer trainer;
 
    projectManager.createDefaultProject();
+
+   trainer.signalStopped.connect(std::bind(&ProjectManager::autosave, &projectManager));
 
    nana::size sz = nana::screen().primary_monitor_size();
 #ifdef WINDOWS
@@ -65,6 +69,19 @@ int main()
    RawOutPanel rawOutPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Raw Out")), projectManager, trainer);
    HistoryPanel historyPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("History")), projectManager, trainer);
    PopulationPanel populationPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Population")), projectManager, trainer);
+
+   //---------------------------------------------------------------------------------------------------
+
+   trainer.signalStep.connect([&](){
+      if(projectManager.getProject().getGeneration() % autosaveEachXGenerations == 0)
+      {
+         projectManager.autosave();
+      }
+   });
+
+   fm.events().unload([&](const nana::arg_unload& arg){
+      arg.cancel = trainer.isRunning();
+   });
 
    fm.show();
 

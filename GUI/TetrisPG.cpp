@@ -18,12 +18,6 @@ public:
 
       std::copy(&view[0][0], &view[0][0] + BOARD_WIDTH*BOARD_HEIGHT, inputIter);
 
-      *inputIter = piece;
-      ++inputIter;
-      *inputIter = xpos;
-      ++inputIter;
-      *inputIter = ypos;
-
       mNet.activate();
 
       auto pos = std::max_element(mNet.begin_output(), mNet.end_output());
@@ -92,16 +86,16 @@ neat::Config TetrisPG::getConfig()
 {
    neat::Config c;
 
-   c.numInputs = BOARD_WIDTH * BOARD_HEIGHT + 3; //PieceType, X, Y
+   c.numInputs = BOARD_WIDTH * BOARD_HEIGHT;
    c.numOutputs = 4;  // Left, Right, Rotate, DoNothing
-   c.initialPopulation = 100;
-   c.optimalPopulation = 100;
-   c.compatibilityFactor = 3.0;
-   c.inheritDisabledChance = 0.75;
+   c.initialPopulation = 1000;
+   c.optimalPopulation = 1000;
+   c.compatibilityFactor = 5.0;
+   c.inheritDisabledChance = 0.5;
    c.perturbationChance = 0.9;
-   c.addNodeMutationChance = 0.05;
-   c.addConnectionMutationChance = 0.05;
-   c.removeConnectionMutationChance = 0.05;
+   c.addNodeMutationChance = 0.1;
+   c.addConnectionMutationChance = 0.2;
+   c.removeConnectionMutationChance = 0.1;
    c.weightsMutationChance = 0.8;
    c.C1_C2 = 1.0;
    c.C3 = 0.3;

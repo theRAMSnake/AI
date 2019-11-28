@@ -4,7 +4,9 @@
 #include <nana/gui/filebox.hpp>
 #include <nana/gui.hpp>
 #include <nana/gui/widgets/combox.hpp>
+#include <nana/gui/widgets/textbox.hpp>
 #include <nana/gui/widgets/button.hpp>
+#include <iostream>
 
 void MainMenuCtrl::saveProject()
 {
@@ -35,18 +37,21 @@ void MainMenuCtrl::loadProject()
 
 void MainMenuCtrl::newProject()
 {
+   std::string prjname;
+
    auto pgs = mPm.getPlaygroundList();
 
-   nana::form dlg(mWnd, {150, 80});
+   nana::form dlg(mWnd, {250, 160});
    dlg.caption("Choose playground");
 
    nana::combox cmb(dlg);
+   nana::textbox filename(dlg);
    nana::button btn(dlg);
    btn.caption("OK");
 
    nana::place layout(dlg);
-   layout.div("<vert a arrange=[28, 28] margin=10 gap=5>");
-   layout.field("a") << cmb << btn;
+   layout.div("<vert a arrange=[28, 28, 28] margin=10 gap=5>");
+   layout.field("a") << cmb << filename << btn;
    layout.collocate();
 
    for(auto x : pgs)
@@ -58,10 +63,14 @@ void MainMenuCtrl::newProject()
       dlg.close();
    });
 
+   filename.events().text_changed.connect([&](){
+      prjname = filename.text();
+   });
+
    cmb.option(0);
    dlg.modality();
 
-   mPm.createProject(pgs[cmb.option()]);
+   mPm.createProject(pgs[cmb.option()], prjname + ".saprj");
 }
 
 MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& trainer)

@@ -2,7 +2,9 @@
 #include "Pieces.h"
 #include "Board.h"
 #include "Game.h"
-
+#ifndef WINDOWS
+   #include "IO.h"
+#endif
 #include <iostream>
 #include <thread>
 
@@ -52,10 +54,10 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
          if(mMode == Mode::AI)
          {
-            /*io->ClearScreen (); 		
+            io->ClearScreen (); 		
             game.DrawScene (*io);	
             game.DrawView (*io, view);	
-            io->UpdateScreen ();*/
+            io->UpdateScreen ();
          }
 
          auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);

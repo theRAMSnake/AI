@@ -53,20 +53,6 @@ BOOST_FIXTURE_TEST_CASE( UpdateFitness, SpecieTest )
 
    BOOST_CHECK_EQUAL(185, s.getTotalFitness());
    BOOST_CHECK_EQUAL(18, s.getSharedFitness());
-   BOOST_CHECK(!s.isStagnant());
-
-   for(int i = 0; i < 29; ++i)
-   {
-      s.updateFitness();
-      BOOST_CHECK(!s.isStagnant());
-   }
-
-   s.updateFitness();
-   BOOST_CHECK(s.isStagnant());
-
-   s.population.back().fitness = 5000;
-   s.updateFitness();
-   BOOST_CHECK(!s.isStagnant());
 }
 
 BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest ) 
@@ -95,7 +81,7 @@ BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest )
    std::vector<neat::Genom> out;
    s.produceOffsprings(10, mHistory, out);
 
-   BOOST_CHECK_EQUAL(10 + 1/*champ*/, out.size());
+   BOOST_CHECK_EQUAL(10, out.size());
 
    //make sure champion is there
    BOOST_CHECK(neat::Genom::calculateDivergence(champ, out[0]) == 0);

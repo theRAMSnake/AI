@@ -13,9 +13,10 @@ public:
    boost::signals2::signal<void(const NeatProject&)> signalProjectChanged;
 
    void save(const std::string& fileName);
+   void autosave();
    bool load(const std::string& fileName);
    void createDefaultProject();
-   void createProject(const std::string& playgroundName);
+   void createProject(const std::string& playgroundName, const std::string& fileName);
    NeatProject& getProject();
    std::vector<std::string> getPlaygroundList() const;
 
@@ -24,4 +25,5 @@ private:
 
    std::unique_ptr<IPlayground> mPlayground;
    std::unique_ptr<NeatProject> mCurrentProject;
+   std::string mCurrentProjectFileName;
 };

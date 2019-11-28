@@ -15,6 +15,7 @@ void ProjectManager::save(const std::string& fileName)
       boost::property_tree::write_json(fileName, tree);
 
       mCurrentProject->saveState(fileName + ".neat");
+      mCurrentProjectFileName = fileName;
    }
 }
 
@@ -30,6 +31,7 @@ bool ProjectManager::load(const std::string& fileName)
       mCurrentProject = std::make_unique<NeatProject>(createPlayground(tree.get<std::string>("playground")));
       mCurrentProject->loadState(neatFileName);
       mCurrentProject->setGeneration(tree.get<unsigned int>("generation"));
+      mCurrentProjectFileName = fileName;
 
       signalProjectChanged(*mCurrentProject);
       return true;
@@ -47,8 +49,9 @@ void ProjectManager::createDefaultProject()
    signalProjectChanged(*mCurrentProject);
 }
 
-void ProjectManager::createProject(const std::string& playgroundName)
+void ProjectManager::createProject(const std::string& playgroundName, const std::string& fileName)
 {
+   mCurrentProjectFileName = fileName;
    mCurrentProject = std::make_unique<NeatProject>(createPlayground(playgroundName));
    signalProjectChanged(*mCurrentProject);
 }
@@ -87,4 +90,9 @@ std::vector<std::string> ProjectManager::getPlaygroundList() const
       "Tetris",
       "Checkpoint"
    };
+}
+
+void ProjectManager::autosave()
+{
+   save(mCurrentProjectFileName);
 }

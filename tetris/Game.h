@@ -6,13 +6,10 @@
 
 #include "Board.h"
 #include "Pieces.h"
-//#include "IO.h"
+#ifndef WINDOWS
+#include "IO.h"
+#endif
 #include <time.h>
-
-class IO
-{
-public:
-};
 
 // ------ Defines -----
 

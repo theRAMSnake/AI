@@ -68,7 +68,6 @@ void InnovationHistory::loadState(std::ifstream& s)
     mAllConnections.clear();
 
     s.read((char*)&mInnovationNumber, sizeof(InnovationNumber));
-    std::cout << "L_innovationNumber" << mInnovationNumber;
     for(InnovationNumber i = 0; i < mInnovationNumber; ++i)
     {
         NodeId a;

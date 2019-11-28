@@ -14,10 +14,13 @@ ControlPanelCtrl.cpp
 ProjectManager.cpp
 EmptyPG.cpp
 CheckpointPG.cpp
+Trainer.cpp
 panels/HistoryPanel.cpp
 panels/PopulationPanel.cpp
 panels/RawOutPanel.cpp
 widgets/plot.cpp
+widgets/propertygrid.cpp
+widgets/pgitems.cpp
 )
 
 target_link_libraries(gui nana Xcursor neat tetris)
