@@ -82,29 +82,6 @@ private:
    std::vector<int> mValues;
 };
 
-neat::Config TetrisPG::getConfig()
-{
-   neat::Config c;
-
-   c.numInputs = BOARD_WIDTH * BOARD_HEIGHT;
-   c.numOutputs = 4;  // Left, Right, Rotate, DoNothing
-   c.initialPopulation = 1000;
-   c.optimalPopulation = 1000;
-   c.compatibilityFactor = 5.0;
-   c.inheritDisabledChance = 0.5;
-   c.perturbationChance = 0.9;
-   c.addNodeMutationChance = 0.1;
-   c.addConnectionMutationChance = 0.2;
-   c.removeConnectionMutationChance = 0.1;
-   c.weightsMutationChance = 0.8;
-   c.C1_C2 = 1.0;
-   c.C3 = 0.3;
-   c.startConnected = true;
-   c.numThreads = 3;
-
-   return c;
-}
-
 neat::IFitnessEvaluator& TetrisPG::getFitnessEvaluator()
 {
    return *mFitnessEvaluator;
@@ -114,6 +91,16 @@ TetrisPG::TetrisPG()
 : mFitnessEvaluator(new TetrisFitnessEvaluator)
 {
    
+}
+
+unsigned int TetrisPG::getNumInputs() const
+{
+   return BOARD_WIDTH * BOARD_HEIGHT;
+}
+
+unsigned int TetrisPG::getNumOutputs() const
+{
+   return 4;
 }
 
 void TetrisPG::step()

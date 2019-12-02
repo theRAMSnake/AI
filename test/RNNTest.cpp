@@ -11,8 +11,7 @@ public:
 
       c.numInputs = 2;
       c.numOutputs = 1;
-      c.initialPopulation = 100;
-      c.optimalPopulation = 100;
+      c.population = 100;
       c.compatibilityFactor = 3.0;
       c.inheritDisabledChance = 0.75;
       c.perturbationChance = 0.9;

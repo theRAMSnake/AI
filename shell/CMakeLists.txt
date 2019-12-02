@@ -8,8 +8,6 @@ include_directories("/usr/include/SDL/" "..")
 add_executable(shell 
 main.cpp
 NeatController.cpp
-NumberCmpPG.cpp
-MaxPG.cpp
 TetrisPG.cpp
 )
 

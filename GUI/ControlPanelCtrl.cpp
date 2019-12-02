@@ -4,65 +4,108 @@
 #include <nana/gui/widgets/button.hpp>
 #include "widgets/pgitems.hpp"
 
+std::string formatCfgStr(const std::string& input)
+{
+   //For now strings containg '.' is considered to be double values.
+   auto pos = input.find('.');
+   if(pos != std::string::npos)
+   {
+      auto tmpStr = input.substr(0, pos + 4);
+      while(tmpStr.back() == '0')
+      {
+         tmpStr.pop_back();
+      }
+
+      return tmpStr;
+   }
+   else
+   {
+      return input;
+   }
+}
+
 ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trainer& trainer)
 : mPm(pm)
-, mBtn(parent)
+, mStartStopBtn(parent)
+, mUpdateBtn(parent)
 , mGrid(parent)
 {
-   mBtn.caption("Start");
+   mStartStopBtn.caption("Start");
+   mUpdateBtn.caption("Update");
 
    nana::place layout(parent);
-   layout.div("vert <a weight=10><vert d arrange=[30, 90%] margin=10 gap=10>");
-   layout.field("d") << mBtn << mGrid;
+   layout.div("vert <a weight=10><vert d arrange=[30, 30, 87%] margin=10 gap=10>");
+   layout.field("d") << mStartStopBtn << mUpdateBtn << mGrid;
    layout.collocate();
 
-   mBtn.events().click([&](auto args){
+   mStartStopBtn.events().click([&](auto args){
 
       if(!trainer.isRunning())
       {
-         mBtn.caption("Stop");
+         mStartStopBtn.caption("Stop");
          trainer.start(pm.getProject());
       }
       else
       {
-         mBtn.caption("Stopping");
-         mBtn.enabled(false);
+         mStartStopBtn.caption("Stopping");
+         mStartStopBtn.enabled(false);
+         mUpdateBtn.enabled(false);
 
          trainer.stop();
       }
    });
 
-   trainer.signalStopped.connect([&](){
-      mBtn.enabled(true);
-      mBtn.caption("Start");
+   mUpdateBtn.events().click([&](auto args){
+
+      auto cfg = mPm.getProject().getConfig();
+
+      for(auto& c: cfg)
+      {
+         for(auto& item: c.second)
+         {
+            item.second.put("", mGrid.find(c.first, item.first).value());
+         }
+      }
+
+      try
+      {
+         mPm.getProject().updateConfig(cfg);
+      }
+      catch(const std::exception& e)
+      {
+         nana::msgbox(parent, e.what());
+      }
    });
 
-   //mPm.signalProjectChanged.connect(std::bind(&ControlPanelCtrl::fillGrid, this));
+   trainer.signalStopped.connect([&](){
+      mStartStopBtn.enabled(true);
+      mUpdateBtn.enabled(true);
+      mStartStopBtn.caption("Start");
+   });
+
+   for(auto& c: mPm.getProject().getConfig())
+   {
+      auto cat = mGrid.append(c.first);
+      for(auto& item: c.second)
+      {
+         cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>("")))));
+      }
+   }
+
+   mPm.signalProjectChanged.connect(std::bind(&ControlPanelCtrl::fillGrid, this));
 }
 
 void ControlPanelCtrl::fillGrid()
 {
    auto cfg = mPm.getProject().getConfig();
 
-   mGrid.clear();
-   mGrid.auto_draw(false);
-
-   //auto cat = mGrid.append("Basic");
-   //auto item = cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string_uint("Population", "800")));
-   //cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string_uint("Num Threads", "6")));
-   /*cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string_uint("Autosave Period", "500")));*/
-
-   //cat = mGrid.append("Speciation");
-   //cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("Compatibility Factor", "3.0")));
-   /*cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("C1/C2", "1.0")));
-   cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("C3", "0.3")));
-
-   cat = mGrid.append("Mutation");
-   cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("Perturbation", "0.9")));
-   cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("Add Node", "0.05")));
-   cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("Add Connection", "0.1")));
-   cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("Remove Connection", "0.1")));
-   cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string("Weights", "0.8")));*/
+   for(auto& c: cfg)
+   {
+      for(auto& item: c.second)
+      {
+         mGrid.find(c.first, item.first).value(formatCfgStr(item.second.get<std::string>("")));
+      }
+   }
 }
 
    

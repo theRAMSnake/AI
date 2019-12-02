@@ -166,30 +166,6 @@ private:
    std::vector<Sample> mSamples;
 };
 
-neat::Config CheckpointPG::getConfig()
-{
-   neat::Config c;
-
-   c.numInputs = 14; //12 psc + 170 + timeDelta
-   c.numOutputs = 6; //Counters
-   c.initialPopulation = 800;
-   c.optimalPopulation = 800;
-   c.compatibilityFactor = 3.0;
-   c.inheritDisabledChance = 0.5;
-   c.perturbationChance = 0.9;
-   c.addNodeMutationChance = 0.05;
-   c.addConnectionMutationChance = 0.1;
-   c.removeConnectionMutationChance = 0.1;
-   c.weightsMutationChance = 0.8;
-   c.interspecieCrossoverPercentage = 1;
-   c.C1_C2 = 1.0;
-   c.C3 = 0.3;
-   c.startConnected = true;
-   c.numThreads = 6;
-
-   return c;
-}
-
 neat::IFitnessEvaluator& CheckpointPG::getFitnessEvaluator()
 {
    return *mFitnessEvaluator;
@@ -199,6 +175,16 @@ CheckpointPG::CheckpointPG()
 : mFitnessEvaluator(new CPFitnessEvaluator)
 {
    
+}
+
+unsigned int CheckpointPG::getNumInputs() const
+{
+   return 14;
+}
+
+unsigned int CheckpointPG::getNumOutputs() const
+{
+   return 6;
 }
 
 void CheckpointPG::step()

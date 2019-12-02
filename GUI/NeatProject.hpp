@@ -6,7 +6,7 @@
 class NeatProject
 {
 public:
-   NeatProject(IPlayground& pg);
+   NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg);
 
    void step();
    void saveState(const std::string& filename);
@@ -16,9 +16,12 @@ public:
    const neat::Population& getPopulation() const;
    const unsigned int getGeneration() const;
    const boost::property_tree::ptree& getConfig();
+   const unsigned int getAutosavePeriod() const;
+
+   void updateConfig(const boost::property_tree::ptree& newCfg);
 
 private:
    unsigned int mGeneration = 0;
-   boost::property_tree::ptree mConfig;
    neat::Neat mNeat;
+   boost::property_tree::ptree mConfig;
 };

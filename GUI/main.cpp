@@ -19,8 +19,6 @@ std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
    return panel;
 }
 
-const int autosaveEachXGenerations = 500;
-
 int main()
 {
    ProjectManager projectManager;
@@ -73,7 +71,7 @@ int main()
    //---------------------------------------------------------------------------------------------------
 
    trainer.signalStep.connect([&](){
-      if(projectManager.getProject().getGeneration() % autosaveEachXGenerations == 0)
+      if(projectManager.getProject().getGeneration() % projectManager.getProject().getAutosavePeriod() == 0)
       {
          projectManager.autosave();
       }
