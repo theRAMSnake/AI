@@ -1,5 +1,6 @@
 #include "PopulationPanel.hpp"
 #include <nana/gui/place.hpp>
+#include <nana/gui/widgets/menu.hpp>
 #include "../Trainer.hpp"
 #include "../ProjectManager.hpp"
 
@@ -44,4 +45,16 @@ PopulationPanel::PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, 
 
    trainer.signalStopped.connect(std::bind(&PopulationPanel::refresh, this));
    pm.signalProjectChanged.connect(std::bind(&PopulationPanel::refresh, this));
+
+   nana::menu mctx;
+   mctx.append ("Export", std::bind(&PopulationPanel::exportGenomFromTree, this));
+   mTree.events().mouse_down( nana::menu_popuper( mctx, nana::mouse::right_button ));
+}
+
+void PopulationPanel::exportGenomFromTree()
+{
+   if(mTree.selected().level() == 2)
+   {
+
+   }
 }

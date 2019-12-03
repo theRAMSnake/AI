@@ -11,6 +11,7 @@ public:
 
 private:
    void refresh();
+   void exportGenomFromTree();
 
    nana::treebox mTree;
    ProjectManager& mPm;
