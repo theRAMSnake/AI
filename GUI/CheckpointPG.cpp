@@ -6,6 +6,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <iostream>
+#include <nana/gui/widgets/form.hpp>
+#include <nana/gui/widgets/textbox.hpp>
 
 bool sameCorridor(int a, int b)
 {
@@ -43,6 +45,49 @@ public:
    void step()
    {
       
+   }
+
+   std::string play(const neat::Genom& g)
+   {
+      std::string result;
+      int numSolved = 0;
+
+      for(auto &s: mSamples)
+      {
+         auto n = neat::NeuroNet(g);
+
+         for(auto &m : s.measurements)
+         {
+            auto inputIter = n.begin_input();
+
+            inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
+            *inputIter = m.timeDelta;
+
+            n.activate();
+         }
+
+         auto pos = std::max_element(n.begin_output(), n.end_output());
+         auto counter = std::distance(n.begin_output(), pos) + 1;
+
+         if(counter == s.result)
+         {
+            result += "+";
+            numSolved++;
+         }
+         else
+         {
+            result += "-";
+         }
+
+         if(result.size() % 25 == 0)
+         {
+            result += "\n";
+         }
+      }
+
+      result += "\nSolved " + std::to_string(numSolved) + "/" + std::to_string(mSamples.size());
+
+      return result;
    }
 
    neat::Fitness evaluate(const neat::Genom& g) override
@@ -194,7 +239,19 @@ void CheckpointPG::step()
 
 void CheckpointPG::play(const neat::Genom& g)
 {
-   
+   nana::form frm(nana::API::make_center(500, 800));
+   frm.caption("Checkpoint output");
+
+   nana::textbox tb(frm);
+   std::string out = mFitnessEvaluator->play(g);
+   tb.caption(out);
+
+   nana::place layout(frm);
+   layout.div("vert <a weight=10><vert d margin=10 gap=10>");
+   layout.field("d") << tb;
+   layout.collocate();
+
+   frm.modality();
 }
 
 std::string CheckpointPG::getName() const

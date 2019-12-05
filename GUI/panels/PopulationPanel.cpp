@@ -1,8 +1,13 @@
 #include "PopulationPanel.hpp"
 #include <nana/gui/place.hpp>
+#include <nana/gui/filebox.hpp>
 #include <nana/gui/widgets/menu.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include "../Trainer.hpp"
 #include "../ProjectManager.hpp"
+
+#include <iostream>
 
 void PopulationPanel::refresh()
 {
@@ -21,13 +26,13 @@ void PopulationPanel::refresh()
          popStrings.push_back(std::make_pair(p.fitness, str));
       }
 
-      std::sort(popStrings.begin(), popStrings.end(), [](auto& x, auto& y){return x.first > y.first;});
+      //std::sort(popStrings.begin(), popStrings.end(), [](auto& x, auto& y){return x.first > y.first;});
 
       int i = 0;
       for(auto& p: popStrings)
       {
-         i++;
          mTree.insert(path + "/" + std::to_string(i), p.second);
+         i++;
       }
    }
 }
@@ -46,15 +51,55 @@ PopulationPanel::PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, 
    trainer.signalStopped.connect(std::bind(&PopulationPanel::refresh, this));
    pm.signalProjectChanged.connect(std::bind(&PopulationPanel::refresh, this));
 
-   nana::menu mctx;
-   mctx.append ("Export", std::bind(&PopulationPanel::exportGenomFromTree, this));
-   mTree.events().mouse_down( nana::menu_popuper( mctx, nana::mouse::right_button ));
+   mCtx.append ("Export", std::bind(&PopulationPanel::exportGenomFromTree, this));
+   mCtx.append ("Play", std::bind(&PopulationPanel::playGenom, this));
+   mTree.events().mouse_down([&](auto args){
+
+      if(mTree.selected().level() == 3 && !trainer.isRunning())
+      {
+         nana::menu_popuper(mCtx, mTree, nana::point(args.pos.x, args.pos.y), nana::mouse::right_button )(args);
+      }
+   });
 }
 
 void PopulationPanel::exportGenomFromTree()
-{
-   if(mTree.selected().level() == 2)
-   {
+{  
+   auto& organism = extractPopFromSelected();
 
+   {
+      nana::filebox fb(mTree, false);
+      fb.add_filter("Genom file", "*.genom");
+
+      auto items = fb();
+      if(!items.empty())
+      {
+         auto file = items[0];
+        
+         std::ofstream f;
+         f.open(file, std::ios_base::out | std::ios_base::trunc);
+         for(auto& x : organism.genotype)
+         {
+            f << x.innovationNumber << ":" << (x.enabled ? "+" : "-") << " " << x.srcNodeId << "->" << x.dstNodeId << " " << x.weight << std::endl;
+         }
+         
+         f.close();
+      }
    }
+}
+
+void PopulationPanel::playGenom()
+{
+   auto& organism = extractPopFromSelected();
+
+   mPm.getProject().play(organism.genotype);
+}
+
+const neat::Pop& PopulationPanel::extractPopFromSelected()
+{
+   auto specieId = boost::lexical_cast<unsigned int>(mTree.selected().owner().key());
+   auto organismIdx = boost::lexical_cast<unsigned int>(mTree.selected().key());
+
+   auto& pops = mPm.getProject().getPopulation();
+   auto specieIter = std::find_if(pops.begin(), pops.end(), [=](auto x){return x.id == specieId;});
+   return specieIter->population[organismIdx];
 }
