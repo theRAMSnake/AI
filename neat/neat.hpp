@@ -16,6 +16,7 @@ class Neat
 public:
     Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator);
     void step();
+    void reconfigure(const Config& cfg);
 
     const Population& getPopulation() const;
     bool hasPopulation() const;

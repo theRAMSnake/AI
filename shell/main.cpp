@@ -1,8 +1,5 @@
 #include "neat/neuro_net.hpp"
-//#include "NumberCmpPG.hpp"
-//#include "MaxPG.hpp"
 #include "NeatController.hpp"
-//#include "TetrisPG.hpp"
 #include "CheckpointPG.hpp"
 
 #include <iostream>

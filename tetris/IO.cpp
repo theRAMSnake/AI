@@ -154,3 +154,8 @@ int IO::InitGraph()
 	}
     return 0;
 }
+
+IO::~IO()
+{
+	SDL_Quit();
+}

@@ -1,23 +1,11 @@
 #include "NeatProject.hpp"
 
-NeatProject::NeatProject(IPlayground& pg)
-: mNeat(pg.getConfig(), pg.getFitnessEvaluator())
+NeatProject::NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg)
+: mNeat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), pg.getFitnessEvaluator())
+, mConfig(cfg)
 , mPlayground(pg)
 {
-   //Current config policy - inherit from playground
-   auto pgConfig = pg.getConfig();
 
-   /*mConfig.put("Population", pgConfig.optimalPopulation);
-   mConfig.put("Threads", pgConfig.numThreads);
-   mConfig.put("Autosave Period", 500);
-   mConfig.put("Compatibility Factor", pgConfig.compatibilityFactor);
-   mConfig.put("C1/C2", pgConfig.C1_C2);
-   mConfig.put("C3", pgConfig.C3);
-   mConfig.put("Mutation.Perturbation", pgConfig.perturbationChance);
-   mConfig.put("Mutation.Add Node", pgConfig.addNodeMutationChance);
-   mConfig.put("Mutation.Add Connection", pgConfig.addConnectionMutationChance);
-   mConfig.put("Mutation.Remove Connection", pgConfig.removeConnectionMutationChance);
-   mConfig.put("Mutation.Weights", pgConfig.weightsMutationChance);*/
 }
 
 void NeatProject::step()
@@ -56,4 +44,20 @@ void NeatProject::setGeneration(const unsigned int generation)
 const boost::property_tree::ptree& NeatProject::getConfig()
 {
    return mConfig;
+}
+
+void NeatProject::updateConfig(const boost::property_tree::ptree& newCfg)
+{
+   mConfig = newCfg;
+   mNeat.reconfigure(toNeatConfig(mConfig, 0, 0));
+}
+
+const unsigned int NeatProject::getAutosavePeriod() const
+{
+   return mConfig.get<unsigned int>("Basic.Autosave Period");
+}
+
+void NeatProject::play(const neat::Genom& g)
+{
+   mPlayground.play(g);
 }

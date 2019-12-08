@@ -36,6 +36,55 @@ void MainMenuCtrl::loadProject()
    }
 }
 
+void MainMenuCtrl::play()
+{
+   nana::filebox fb(mWnd, true);
+   fb.add_filter("Genom file", "*.genom");
+   fb.add_filter("All Files", "*.*");
+
+   auto items = fb();
+   if(!items.empty())
+   {
+      auto file = items[0];
+
+      //Should it be exposed here?
+      auto& firstGenom = mPm.getProject().getPopulation().begin()->population[0].genotype;
+
+      neat::Genom result( firstGenom.getInputNodeCount(), firstGenom.getOutputNodeCount());
+
+      std::ifstream f;
+      f.open(file, std::ios_base::in);
+      if (f.is_open())
+      {
+         std::string str;
+         while ( std::getline (f, str) )
+         {
+            std::istringstream s(str);
+            char spare;
+            neat::Gene g;
+
+            s >> g.innovationNumber;
+            s >> spare;
+            s >> spare;
+
+            g.enabled = spare == '+';
+
+            s >> g.srcNodeId;
+            s >> spare;
+            s >> spare;
+            s >> g.dstNodeId;
+            s >> g.weight;
+
+            result += g;
+         }
+
+         f.close();
+      }
+
+      mPm.getProject().play(result);
+   }
+}
+
 void MainMenuCtrl::newProject()
 {
    std::string prjname;
@@ -82,6 +131,9 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
    p.append("New", std::bind(&MainMenuCtrl::newProject, this));
    p.append("Load", std::bind(&MainMenuCtrl::loadProject, this));
    p.append("Save", std::bind(&MainMenuCtrl::saveProject, this));
+
+   auto& t = parent.push_back("Tools");
+   t.append("Play", std::bind(&MainMenuCtrl::play, this));
 
    trainer.signalStarted.connect([&](){
       p.enabled(false);

@@ -11,8 +11,7 @@ struct Config
 {
     NodeId numInputs;
     NodeId numOutputs;
-    unsigned int initialPopulation;
-    unsigned int optimalPopulation;
+    unsigned int population;
     double compatibilityFactor;
     double inheritDisabledChance;
     double perturbationChance;
@@ -23,7 +22,6 @@ struct Config
     double interspecieCrossoverPercentage = 1;
     double C1_C2;
     double C3;
-    bool startConnected = true;
     int numThreads = 1;
 };
 

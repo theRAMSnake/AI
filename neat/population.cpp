@@ -182,6 +182,13 @@ unsigned int Population::genNewSpecieId() const
    return std::max_element(mSpecies.begin(), mSpecies.end(), [] (auto x, auto y){return x.id < y.id;})->id + 1;
 }
 
+void Population::reconfigure(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage)
+{
+   mOptimalSize = optimalSize;
+   mCompatibilityFactor = compatibilityFactor;
+   minterspecieCrossoverPercentage = interspecieCrossoverPercentage;
+}
+
 void Population::nextGeneration(InnovationHistory& history)
 {
    std::vector<Genom> newGenoms;

@@ -6,6 +6,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <iostream>
+#include <nana/gui/widgets/form.hpp>
+#include <nana/gui/widgets/textbox.hpp>
 
 bool sameCorridor(int a, int b)
 {
@@ -43,6 +45,49 @@ public:
    void step()
    {
       
+   }
+
+   std::string play(const neat::Genom& g)
+   {
+      std::string result;
+      int numSolved = 0;
+
+      for(auto &s: mSamples)
+      {
+         auto n = neat::NeuroNet(g);
+
+         for(auto &m : s.measurements)
+         {
+            auto inputIter = n.begin_input();
+
+            inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
+            *inputIter = m.timeDelta;
+
+            n.activate();
+         }
+
+         auto pos = std::max_element(n.begin_output(), n.end_output());
+         auto counter = std::distance(n.begin_output(), pos) + 1;
+
+         if(counter == s.result)
+         {
+            result += "+";
+            numSolved++;
+         }
+         else
+         {
+            result += "-";
+         }
+
+         if(result.size() % 25 == 0)
+         {
+            result += "\n";
+         }
+      }
+
+      result += "\nSolved " + std::to_string(numSolved) + "/" + std::to_string(mSamples.size());
+
+      return result;
    }
 
    neat::Fitness evaluate(const neat::Genom& g) override
@@ -167,30 +212,6 @@ private:
    std::vector<Sample> mSamples;
 };
 
-neat::Config CheckpointPG::getConfig()
-{
-   neat::Config c;
-
-   c.numInputs = 14; //12 psc + 170 + timeDelta
-   c.numOutputs = 6; //Counters
-   c.initialPopulation = 1000;
-   c.optimalPopulation = 1000;
-   c.compatibilityFactor = 4.0;
-   c.inheritDisabledChance = 0.5;
-   c.perturbationChance = 0.9;
-   c.addNodeMutationChance = 0.1;
-   c.addConnectionMutationChance = 0.2;
-   c.removeConnectionMutationChance = 0.1;
-   c.weightsMutationChance = 0.8;
-   c.adoptionRate = 0.01;
-   c.C1_C2 = 1.0;
-   c.C3 = 0.3;
-   c.startConnected = true;
-   c.numThreads = 6;
-
-   return c;
-}
-
 neat::IFitnessEvaluator& CheckpointPG::getFitnessEvaluator()
 {
    return *mFitnessEvaluator;
@@ -202,6 +223,16 @@ CheckpointPG::CheckpointPG()
    
 }
 
+unsigned int CheckpointPG::getNumInputs() const
+{
+   return 14;
+}
+
+unsigned int CheckpointPG::getNumOutputs() const
+{
+   return 6;
+}
+
 void CheckpointPG::step()
 {
    mFitnessEvaluator->step();
@@ -209,7 +240,19 @@ void CheckpointPG::step()
 
 void CheckpointPG::play(const neat::Genom& g)
 {
-   
+   nana::form frm(nana::API::make_center(500, 800));
+   frm.caption("Checkpoint output");
+
+   nana::textbox tb(frm);
+   std::string out = mFitnessEvaluator->play(g);
+   tb.caption(out);
+
+   nana::place layout(frm);
+   layout.div("vert <a weight=10><vert d margin=10 gap=10>");
+   layout.field("d") << tb;
+   layout.collocate();
+
+   frm.modality();
 }
 
 std::string CheckpointPG::getName() const

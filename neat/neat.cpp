@@ -14,6 +14,7 @@ Neat::Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator)
 : mCfg(cfg)
 , mFitnessEvaluator(fitnessEvaluator)
 {
+    
     Rng::seed(static_cast<unsigned int>(std::time(0)));
     Genom::setConfig(cfg);
 }
@@ -25,7 +26,7 @@ void Neat::step()
         mPopulation.emplace(Population::createInitialPopulation(
             mCfg.numInputs, 
             mCfg.numOutputs, 
-            mCfg.initialPopulation,
+            mCfg.population,
             mCfg.compatibilityFactor,
             mCfg.interspecieCrossoverPercentage,
             mHistory));
@@ -85,7 +86,7 @@ void Neat::updateFitness()
     if(mCfg.numThreads != 1)
     {
         std::vector<std::vector<Pop>::iterator> popPtrs;
-        popPtrs.reserve(mCfg.optimalPopulation * 2); //x2 is not to reallocate overpopulation
+        popPtrs.reserve(mCfg.population * 2); //x2 is not to reallocate overpopulation
 
         for(auto& s: (*mPopulation))
         {
@@ -151,9 +152,26 @@ void Neat::loadState(const std::string& fileName)
 
     mHistory.loadState(ifile);
     mHistory.buildCache();
-    mPopulation.emplace(mCfg.optimalPopulation, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
+    mPopulation.emplace(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
     mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
     mHistory.clearCache();
+}
+
+void Neat::reconfigure(const Config& cfg)
+{
+    auto oldNumInputs = mCfg.numInputs;
+    auto oldNumOutputs = mCfg.numOutputs;
+
+    mCfg = cfg;
+
+    mCfg.numInputs = oldNumInputs;
+    mCfg.numOutputs = oldNumOutputs;
+
+    Genom::setConfig(mCfg);
+    if(mPopulation)
+    {
+        mPopulation->reconfigure(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
+    }
 }
 
 }

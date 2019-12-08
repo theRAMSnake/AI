@@ -41,6 +41,8 @@ class Population
 public:
    Population(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage);
 
+   void reconfigure(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage);
+
    using Iterator = std::vector<Specie>::iterator;
    using ConstIterator = std::vector<Specie>::const_iterator;
 
@@ -78,9 +80,9 @@ private:
    std::vector<unsigned int> getSpeciesOffspringQuotas();
    unsigned int genNewSpecieId() const;
 
-   const unsigned int mOptimalSize;
-   const double mCompatibilityFactor;
-   const double minterspecieCrossoverPercentage;
+   unsigned int mOptimalSize;
+   double mCompatibilityFactor;
+   double minterspecieCrossoverPercentage;
    std::vector<Specie> mSpecies;
 
    double mBestFitness = 0.0;

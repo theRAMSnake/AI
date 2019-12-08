@@ -12,6 +12,7 @@ private:
    void saveProject();
    void loadProject();
    void newProject();
+   void play();
 
    ProjectManager& mPm;
    nana::window mWnd;

@@ -96,14 +96,11 @@ Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs, Inno
 {
     Genom g(numInputs, numOutputs);
 
-    if(mConfig.startConnected)
+    for(NodeId i = 0; i < numInputs; ++i)
     {
-        for(NodeId i = 0; i < numInputs; ++i)
+        for(NodeId j = 0; j < numOutputs; ++j)
         {
-            for(NodeId j = 0; j < numOutputs; ++j)
-            {
-                g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
-            }
+            g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
         }
     }
     

@@ -15,6 +15,7 @@ private:
    void fillGrid();
 
    ProjectManager& mPm;
-   nana::button mBtn;
+   nana::button mStartStopBtn;
+   nana::button mUpdateBtn;
    nana::propertygrid mGrid;
 };
