@@ -2,6 +2,7 @@
 
 NeatProject::NeatProject(IPlayground& pg)
 : mNeat(pg.getConfig(), pg.getFitnessEvaluator())
+, mPlayground(pg)
 {
    //Current config policy - inherit from playground
    auto pgConfig = pg.getConfig();
@@ -21,6 +22,7 @@ NeatProject::NeatProject(IPlayground& pg)
 
 void NeatProject::step()
 {
+   mPlayground.step();
    mNeat.step();
    mGeneration++;
 }

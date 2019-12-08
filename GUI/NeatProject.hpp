@@ -21,4 +21,5 @@ private:
    unsigned int mGeneration = 0;
    boost::property_tree::ptree mConfig;
    neat::Neat mNeat;
+   IPlayground& mPlayground;
 };

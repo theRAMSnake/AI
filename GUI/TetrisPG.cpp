@@ -100,7 +100,7 @@ neat::Config TetrisPG::getConfig()
    c.C1_C2 = 1.0;
    c.C3 = 0.3;
    c.startConnected = true;
-   c.numThreads = 3;
+   c.numThreads = 4;
 
    return c;
 }

@@ -1,11 +1,12 @@
 #include "MainMenuCtrl.hpp"
 #include "Trainer.hpp"
 #include "ProjectManager.hpp"
-#include <nana/gui/filebox.hpp>
 #include <nana/gui.hpp>
 #include <nana/gui/widgets/combox.hpp>
 #include <nana/gui/widgets/textbox.hpp>
 #include <nana/gui/widgets/button.hpp>
+#include <filesystem>
+#include <nana/gui/filebox.hpp>
 #include <iostream>
 
 void MainMenuCtrl::saveProject()
@@ -17,7 +18,7 @@ void MainMenuCtrl::saveProject()
    if(!items.empty())
    {
       auto file = items[0];
-      mPm.save(file);
+      mPm.save(file.string());
    }
 }
 
@@ -31,7 +32,7 @@ void MainMenuCtrl::loadProject()
    if(!items.empty())
    {
       auto file = items[0];
-      mPm.load(file);
+      mPm.load(file.string());
    }
 }
 

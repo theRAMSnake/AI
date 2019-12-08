@@ -22,7 +22,7 @@ public:
          mSamples.push_back(loadSample(f.path()));
       }
 
-      for(auto &s: mSamples)
+      /*for(auto &s: mSamples)
       {
          std::cout << "Sample: counter = " << s.result << " meas = [" << std::endl;
          for(auto &m : s.measurements)
@@ -37,7 +37,7 @@ public:
          }
 
          std::cout << "]" << std::endl;
-      }
+      }*/
    }
 
    void step()
@@ -117,10 +117,11 @@ private:
 
    std::time_t extractTs(const std::string& s)
    {
-      auto pos = s.find('(');
-      auto pos2 = s.find(')');
+      auto pos = s.find("(");
+      auto pos2 = s.find(")");
 
-      return std::atoi(s.substr(pos + 1, pos2 - pos - 1).c_str());
+      auto result = std::atoll(s.substr(pos + 1, pos2 - pos - 1).c_str());
+      return result;
    }
 
    Sample loadSample(const std::filesystem::path& p)
@@ -172,16 +173,16 @@ neat::Config CheckpointPG::getConfig()
 
    c.numInputs = 14; //12 psc + 170 + timeDelta
    c.numOutputs = 6; //Counters
-   c.initialPopulation = 800;
-   c.optimalPopulation = 800;
-   c.compatibilityFactor = 3.0;
+   c.initialPopulation = 1000;
+   c.optimalPopulation = 1000;
+   c.compatibilityFactor = 4.0;
    c.inheritDisabledChance = 0.5;
    c.perturbationChance = 0.9;
-   c.addNodeMutationChance = 0.05;
-   c.addConnectionMutationChance = 0.1;
+   c.addNodeMutationChance = 0.1;
+   c.addConnectionMutationChance = 0.2;
    c.removeConnectionMutationChance = 0.1;
    c.weightsMutationChance = 0.8;
-   c.interspecieCrossoverPercentage = 1;
+   c.adoptionRate = 0.01;
    c.C1_C2 = 1.0;
    c.C3 = 0.3;
    c.startConnected = true;

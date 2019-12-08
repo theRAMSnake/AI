@@ -1,8 +1,9 @@
 #include "neat/neuro_net.hpp"
-#include "NumberCmpPG.hpp"
-#include "MaxPG.hpp"
+//#include "NumberCmpPG.hpp"
+//#include "MaxPG.hpp"
 #include "NeatController.hpp"
-#include "TetrisPG.hpp"
+//#include "TetrisPG.hpp"
+#include "CheckpointPG.hpp"
 
 #include <iostream>
 #include <memory>
@@ -96,6 +97,8 @@ void exportToFile(const neat::Genom& g, const std::string& filename)
    {
       f << x.innovationNumber << ":" << (x.enabled ? "+" : "-") << " " << x.srcNodeId << "->" << x.dstNodeId << " " << x.weight << std::endl;
    }
+
+   neat::NeuroNet n(g);
    
    f.close();
 }
@@ -190,6 +193,11 @@ void reachCommand(IPlayground& p, NeatController& c)
          }
       }
 
+      if (c.getGeneration() % 25 == 0)
+      {
+          printState(c);
+      }
+
       std::cout << ".";
       std::cout.flush();
    }
@@ -274,7 +282,7 @@ int main()
 
    //NumberCmpPG playground;
    //MaxPG playground;
-   TetrisPG playground;
+   CheckpointPG playground;
    NeatController neatController(playground);
 
    std::map<std::string, CommandFunction> commands;

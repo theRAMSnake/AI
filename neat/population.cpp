@@ -88,7 +88,7 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          numOffspringsPerSpecie.push_back(mOptimalSize / mSpecies.size());
       }
    }
-   else if(mNumStagnantGenerations > 500)
+   else if(false)//mNumStagnantGenerations > 1000)
    {
       for(std::size_t i = 0; i < mSpecies.size(); ++i)
       {
@@ -139,6 +139,12 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
       //Keep champion
       out.push_back(population[0].genotype);
       amountLeft--;
+   }
+
+   auto halfSize = population.size() / 2;
+   while (population.size() > 1 && population.size() > halfSize)//Keep at least one organisms
+   {
+       population.pop_back();
    }
 
    for(unsigned int i = 0; i < amountLeft; ++i)
