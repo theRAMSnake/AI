@@ -1,4 +1,7 @@
 #include "PopulationPanel.hpp"
+
+#include <filesystem>
+
 #include <nana/gui/place.hpp>
 #include <nana/gui/filebox.hpp>
 #include <nana/gui/widgets/menu.hpp>
@@ -21,12 +24,10 @@ void PopulationPanel::refresh()
       popStrings.reserve(s.population.size());
       for(auto& p: s.population)
       {
-         auto str = std::to_string(p.fitness) + " - H:" + std::to_string(p.genotype.getHiddenNodeCount()) +
+         auto str = std::to_string(p.fitness) + " - H:" + std::to_string(p.genotype.getNumConnectedHiddenNodes()) +
                " C:" + std::to_string(p.genotype.getComplexity());
          popStrings.push_back(std::make_pair(p.fitness, str));
       }
-
-      //std::sort(popStrings.begin(), popStrings.end(), [](auto& x, auto& y){return x.first > y.first;});
 
       int i = 0;
       for(auto& p: popStrings)

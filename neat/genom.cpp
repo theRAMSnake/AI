@@ -2,6 +2,7 @@
 #include "rng.hpp"
 #include <algorithm>
 #include <numeric>
+#include <set>
 
 namespace neat
 {
@@ -358,6 +359,28 @@ Config Genom::mConfig = {};
 std::size_t Genom::getComplexity() const
 {
     return std::accumulate(begin(), end(), 0, [](auto a, auto b){return a + (b.enabled ? 1 : 0);});
+}
+
+NodeId Genom::getNumConnectedHiddenNodes() const
+{
+    std::set<NodeId> nodes;
+    
+    for (auto& x : mGenes)
+    {
+        if (x.enabled)
+        {
+            if (isHiddenNode(x.srcNodeId))
+            {
+                nodes.insert(x.srcNodeId);
+            }
+            if (isHiddenNode(x.dstNodeId))
+            {
+                nodes.insert(x.dstNodeId);
+            }
+        }
+    }
+
+    return nodes.size();
 }
 
 }

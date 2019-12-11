@@ -67,6 +67,7 @@ public:
     NodeId getInputNodeCount() const;
     NodeId getOutputNodeCount() const;
     NodeId getHiddenNodeCount() const;
+    NodeId getNumConnectedHiddenNodes() const;
     NodeId getBiasNodeId() const;
     const std::vector<NodeId>& getInputNodes() const;
     const std::vector<NodeId>& getOutputNodes() const;

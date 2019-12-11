@@ -4,8 +4,10 @@
 
 // ------ Includes -----
 
+#ifndef WIN32
 #include <SDL/SDL.h>									
 #include <SDL/SDL_gfxPrimitives.h>
+#endif
 
 // ------ Enums -----
 

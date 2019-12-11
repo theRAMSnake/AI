@@ -2,7 +2,7 @@
 #include "Pieces.h"
 #include "Board.h"
 #include "Game.h"
-#ifndef WINDOWS
+#ifndef WIN32
    #include "IO.h"
 #endif
 #include <iostream>

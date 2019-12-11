@@ -27,7 +27,7 @@ void printGenom(const neat::Genom& g, std::stringstream& out, const bool include
    }
    else
    {
-      out << "H:" << g.getHiddenNodeCount() << " C:" << g.getComplexity();
+      out << "H:" << g.getNumConnectedHiddenNodes() << " C:" << g.getComplexity();
    }
 
    out << ")" << std::endl;

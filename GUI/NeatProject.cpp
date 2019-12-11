@@ -1,5 +1,27 @@
 #include "NeatProject.hpp"
 
+neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned int numInputs, const unsigned int numOutputs)
+{
+    neat::Config result;
+
+    result.numInputs = numInputs;
+    result.numOutputs = numOutputs;
+    result.addConnectionMutationChance = cfg.get<double>("Mutation.Add Connection");
+    result.addNodeMutationChance = cfg.get<double>("Mutation.Add Node");
+    result.C1_C2 = cfg.get<double>("Speciation.C1/C2");
+    result.C3 = cfg.get<double>("Speciation.C3");
+    result.compatibilityFactor = cfg.get<double>("Speciation.Compatibility Factor");
+    result.inheritDisabledChance = cfg.get<double>("Mutation.Inherit Disabled");
+    result.population = cfg.get<unsigned int>("Basic.Population");
+    result.interspecieCrossoverPercentage = cfg.get<double>("Speciation.Interspecie Crossover");
+    result.numThreads = cfg.get<unsigned int>("Basic.Threads");
+    result.perturbationChance = cfg.get<double>("Mutation.Perturbation");
+    result.removeConnectionMutationChance = cfg.get<double>("Mutation.Remove Connection");
+    result.weightsMutationChance = cfg.get<double>("Mutation.Weights");
+
+    return result;
+}
+
 NeatProject::NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg)
 : mNeat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), pg.getFitnessEvaluator())
 , mConfig(cfg)
