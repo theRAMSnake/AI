@@ -17,6 +17,7 @@ private:
    void refresh();
    void exportGenomFromTree();
    void playGenom();
+   void visualizeGenom();
 
    nana::treebox mTree;
    ProjectManager& mPm;

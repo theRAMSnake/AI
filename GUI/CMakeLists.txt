@@ -21,9 +21,10 @@ panels/RawOutPanel.cpp
 widgets/plot.cpp
 widgets/propertygrid.cpp
 widgets/pgitems.cpp
+widgets/nn_view.cpp
 )
 
-target_link_libraries(gui nana Xcursor neat tetris)
+target_link_libraries(gui nana Xcursor neat tetris logger)
 
 add_custom_command(
         TARGET gui POST_BUILD

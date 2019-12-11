@@ -1,15 +1,19 @@
 #include "PopulationPanel.hpp"
 
+#ifdef WIN32
 #include <filesystem>
+#endif
 
 #include <nana/gui/place.hpp>
 #include <nana/gui/filebox.hpp>
 #include <nana/gui/widgets/menu.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include "../widgets/nn_view.hpp"
 #include "../Trainer.hpp"
 #include "../ProjectManager.hpp"
 
+#include "neat/neuro_net.hpp"
 #include <iostream>
 
 void PopulationPanel::refresh()
@@ -54,6 +58,7 @@ PopulationPanel::PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, 
 
    mCtx.append ("Export", std::bind(&PopulationPanel::exportGenomFromTree, this));
    mCtx.append ("Play", std::bind(&PopulationPanel::playGenom, this));
+   mCtx.append ("Visualize", std::bind(&PopulationPanel::visualizeGenom, this));
    mTree.events().mouse_down([&](auto args){
 
       if(mTree.selected().level() == 3 && !trainer.isRunning())
@@ -93,6 +98,14 @@ void PopulationPanel::playGenom()
    auto& organism = extractPopFromSelected();
 
    mPm.getProject().play(organism.genotype);
+}
+
+void PopulationPanel::visualizeGenom()
+{
+   auto& organism = extractPopFromSelected();
+
+   //Will delete itself on close
+   auto view = new Nn_view(std::move(std::make_unique<neat::NeuroNet>(organism.genotype)));
 }
 
 const neat::Pop& PopulationPanel::extractPopFromSelected()

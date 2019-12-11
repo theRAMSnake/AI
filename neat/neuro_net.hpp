@@ -9,6 +9,12 @@
 namespace neat
 {
 
+class NetworkTopology
+{
+public:
+
+};
+
 class NeuroNet
 {
 private:
@@ -59,6 +65,8 @@ public:
 
    const NodeIterator begin_output() const;
    const NodeIterator end_output() const;
+
+   NetworkTopology createTopology() const;
 
 private:
 

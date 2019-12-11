@@ -5,7 +5,9 @@
 #include <nana/gui/widgets/combox.hpp>
 #include <nana/gui/widgets/textbox.hpp>
 #include <nana/gui/widgets/button.hpp>
+#ifdef WIN32
 #include <filesystem>
+#endif
 #include <nana/gui/filebox.hpp>
 #include <iostream>
 

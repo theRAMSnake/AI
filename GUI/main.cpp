@@ -10,6 +10,7 @@
 #include "panels/RawOutPanel.hpp"
 #include "panels/HistoryPanel.hpp"
 #include "panels/PopulationPanel.hpp"
+#include "logger/Logger.hpp"
 
 std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
 {
@@ -21,6 +22,8 @@ std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
 
 int main()
 {
+   LOG("GUI started");
+
    ProjectManager projectManager;
    Trainer trainer;
 
