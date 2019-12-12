@@ -7,6 +7,7 @@ class Nn_view
 {
 public:
    explicit Nn_view(std::unique_ptr<neat::NeuroNet>&& ann);
+   ~Nn_view();
 
 private:
    nana::form mForm;

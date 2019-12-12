@@ -3,9 +3,11 @@
 #include <nana/gui/widgets/treebox.hpp>
 #include <nana/gui/widgets/menu.hpp>
 #include <neat/population.hpp>
+#include "../widgets/nn_view.hpp"
 
 class Trainer;
 class ProjectManager;
+
 class PopulationPanel
 {
 public:
@@ -22,4 +24,5 @@ private:
    nana::treebox mTree;
    ProjectManager& mPm;
    nana::menu mCtx;
+   std::unique_ptr<Nn_view> mNnView;
 };

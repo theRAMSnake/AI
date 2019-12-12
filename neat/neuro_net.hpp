@@ -12,7 +12,19 @@ namespace neat
 class NetworkTopology
 {
 public:
+   struct Node
+   {
+      NodeId id;
+      boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
+   };
 
+   void add(const std::size_t layerIndex, const NodeId id, boost::container::small_vector<std::pair<NodeId, double>, 10> inputs);
+
+   const std::size_t getNumLayers() const;
+   std::vector<Node> getLayer(const std::size_t index) const;
+
+private:
+   std::map<std::size_t, std::vector<Node>> mLayers;
 };
 
 class NeuroNet

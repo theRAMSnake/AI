@@ -173,4 +173,48 @@ NeuroNet::NodeIterator::difference_type NeuroNet::NodeIterator::operator- (const
    return mNodePtr - other.mNodePtr;
 }
 
+NetworkTopology NeuroNet::createTopology() const
+{
+   NetworkTopology result;
+
+   int maxDepth = std::max_element(mNodes.begin(), mNodes.end(), [](auto x, auto y){return x.depth < y.depth;})->depth;
+
+   for(auto &n: mNodes)
+   {
+      if(mGenotype.isOutputNode(n.id))
+      {
+         result.add(maxDepth, n.id, n.inputs);
+      }
+      else
+      {
+         result.add(std::min(maxDepth - 1, std::max(n.depth, 0)), n.id, n.inputs);
+      }
+   }
+
+   return result;
+}
+
+void NetworkTopology::add(const std::size_t layerIndex, const NodeId id, boost::container::small_vector<std::pair<NodeId, double>, 10> inputs)
+{
+   mLayers[layerIndex].push_back({id, inputs});
+}
+
+const std::size_t NetworkTopology::getNumLayers() const
+{
+   return mLayers.size();
+}
+
+std::vector<NetworkTopology::Node> NetworkTopology::getLayer(const std::size_t index) const
+{
+   auto pos = mLayers.find(index);
+   if(pos == mLayers.end())
+   {
+      return std::vector<NetworkTopology::Node>();
+   }
+   else
+   {
+      return pos->second;
+   }
+}
+
 }
