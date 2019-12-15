@@ -1,7 +1,11 @@
 #include "TetrisPG.hpp"
 #include "neat/neuro_net.hpp"
 #include <boost/random.hpp>
+#include <future>
+#include <nana/gui.hpp>
+#include <nana/gui/timer.hpp>
 #include "../tetris/Tetris.hpp"
+#include "../logger/Logger.hpp"
 
 class TetrisPlayer : public IPlayer
 {
@@ -46,6 +50,133 @@ private:
    neat::NeuroNet& mNet;
 };
 
+class FakeIO : public IO
+{
+public:
+   virtual void DrawRectangle(int pX1, int pY1, int pX2, int pY2, enum color pC)
+   {
+
+   }
+
+	virtual void ClearScreen()
+   {
+
+   }
+
+	virtual int GetScreenHeight()
+   {
+      return 100;
+   }
+
+	virtual int InitGraph()
+   {
+      return 0;
+   }
+
+	virtual void UpdateScreen()
+   {
+
+   }
+};
+
+nana::color toNanaColor(color c)
+{
+   //BLUE, CYAN, MAGENTA, YELLOW, WHITE
+   switch(c)
+   {
+      case BLACK:
+         return nana::colors::black;
+
+      case RED:
+         return nana::colors::red;
+
+      case GREEN:
+         return nana::colors::green;
+
+      case BLUE:
+         return nana::colors::blue;
+
+      case CYAN:
+         return nana::colors::cyan;
+
+      case MAGENTA:
+         return nana::colors::magenta;
+
+      case YELLOW:
+         return nana::colors::yellow;
+
+      case WHITE:
+         return nana::colors::white;
+
+      default:
+         return nana::colors::black;
+   }
+}
+
+class RealIO : public IO
+{
+public:
+   RealIO()
+   : mForm(nana::API::make_center(600, 800))
+   , mDrawer(mForm)
+   , mTimer(std::chrono::milliseconds(50))
+   {
+      mForm.bgcolor(nana::colors::grey);
+      
+      mDrawer.draw([&](nana::paint::graphics& graph){
+
+         LOG("Draw called");
+         graph.rectangle(true, nana::colors::grey);
+
+         for(auto &r : mDrawObjects)
+         {
+            graph.rectangle(r.first, true, r.second);
+         }
+      });
+
+      mTimer.elapse([&](){ LOG("Elapsed"); mDrawer.update(); });
+      mTimer.start();
+
+      mForm.show();
+   }
+
+   virtual void DrawRectangle(int pX1, int pY1, int pX2, int pY2, enum color pC)
+   {
+      LOG("New Rect");
+      mDrawObjects.push_back({{pX1, pY1, static_cast<unsigned int>(pX2 - pX1), static_cast<unsigned int>(pY2 - pY1)}, 
+         toNanaColor(pC)});
+   }
+
+	virtual void ClearScreen()
+   {
+      mDrawObjects.clear();
+   }
+
+	virtual int GetScreenHeight()
+   {
+      LOG("GetScreenHeight");
+      return 800;
+   }
+
+	virtual int InitGraph()
+   {
+      return 0;
+   }
+
+	virtual void UpdateScreen()
+   {
+      mDrawer.update();
+   }
+
+private:
+   std::vector<std::pair<nana::rectangle, nana::color>> mDrawObjects;
+
+
+   nana::form mForm;
+   nana::drawing mDrawer;
+   nana::timer mTimer;
+};
+
 class TetrisFitnessEvaluator : public neat::IFitnessEvaluator
 {
 public:
@@ -61,6 +192,8 @@ public:
 
    neat::Fitness evaluate(const neat::Genom& g) override
    {
+      FakeIO io;
+
       const unsigned int scoreLimit = 10000000;
 
       neat::Fitness result = 0;
@@ -72,7 +205,7 @@ public:
          Tetris t(Mode::AI_Background);
          TetrisPlayer p(n);
 
-         result += t.run(p, scoreLimit);
+         result += t.run(p, scoreLimit, io);
       }
 
       return result;
@@ -109,15 +242,22 @@ void TetrisPG::step()
 }
 
 void TetrisPG::play(const neat::Genom& g)
-{
-   const unsigned int scoreLimit = 10000000;
+{  
+   RealIO* io = new RealIO();
 
-   auto n = neat::NeuroNet(g);
+   std::async([=](){
+      const unsigned int scoreLimit = 10000000;
 
-   Tetris t(Mode::AI);
-   TetrisPlayer p(n);
-   
-   t.run(p, scoreLimit);
+      auto n = neat::NeuroNet(g);
+
+      Tetris t(Mode::AI);
+      TetrisPlayer p(n);
+
+      LOG("About ot run");
+      t.run(p, scoreLimit, *io);
+
+      delete io;
+   });
 }
 
 std::string TetrisPG::getName() const

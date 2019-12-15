@@ -2,11 +2,10 @@
 #include "Pieces.h"
 #include "Board.h"
 #include "Game.h"
-#ifndef WIN32
-   #include "IO.h"
-#endif
+#include "IO.h"
 #include <iostream>
 #include <thread>
+#include "../logger/Logger.hpp"
 
 Tetris::Tetris(Mode m)
 : mMode(m)
@@ -14,11 +13,11 @@ Tetris::Tetris(Mode m)
    
 }
 
-int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
+int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io)
 {
-   IO* io = mMode == Mode::AI ? new IO() : nullptr;
+   int screenHeight = io.GetScreenHeight();
 
-   int screenHeight = io ? io->GetScreenHeight() : 100;
+   LOG("Height: " + std::to_string(screenHeight));
 
    Pieces pieces;
 	Board board (&pieces, screenHeight);
@@ -54,11 +53,14 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
          if(mMode == Mode::AI)
          {
-            io->ClearScreen (); 		
-            game.DrawScene (*io);	
-            game.DrawView (*io, view);	
-            io->UpdateScreen ();
+            LOG("Will draw");
+            io.ClearScreen();
+            game.DrawScene(io);	
+            //game.DrawView(io, view);
+            //io.UpdateScreen();
          }
+
+         LOG("Step");
 
          auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);
 
@@ -104,45 +106,11 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit)
 
          score += board.DeletePossibleLines ();
 
-         /*switch(linesDeleted)
-         {
-            case 0: 
-            {
-               break;
-            }
-            case 1:
-            {
-               score += 4;
-               break;
-            }
-            case 2:
-            {
-               score += 10;
-               break;
-            }
-            case 3:
-            {
-               score += 30;
-               break;
-            }
-            case 4:
-            {
-               score += 120;
-               break;
-            }
-            default:
-            {
-               score += 200;
-               break;
-            }
-         }*/
-
          game.CreateNewPiece();
       }
 
       if (board.IsGameOver() || score >= scoreLimit)
       {
-         delete io;
          return score;
       }
    }

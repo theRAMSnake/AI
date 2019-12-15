@@ -6,26 +6,12 @@
 
 #include "Board.h"
 #include "Pieces.h"
-#ifndef WIN32
 #include "IO.h"
-#endif
 #include <time.h>
 
 // ------ Defines -----
 
 #define WAIT_TIME 100			// Number of milliseconds that the piece remains before going 1 block down */ 
-
-#ifdef WIN32
-
-class IO
-{
-public:
-    int GetScreenHeight() { return 0; }
-    void ClearScreen() {}
-    void UpdateScreen() {}
-};
-
-#endif
 
 
 // --------------------------------------------------------------------------------

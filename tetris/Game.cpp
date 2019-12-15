@@ -95,7 +95,6 @@ Parameters:
 */
 void Game::DrawPiece (int pX, int pY, int pPiece, int pRotation, IO& io)
 {
-#ifndef WIN32
 	color mColor = BLACK;				// Color of the block 
 
 	// Obtain the position in pixel in the screen of the block we want to draw
@@ -122,7 +121,6 @@ void Game::DrawPiece (int pX, int pY, int pPiece, int pRotation, IO& io)
 									mColor);
 		}
 	}
-#endif
 }
 
 
@@ -135,7 +133,6 @@ Draw the two lines that delimit the board
 */
 void Game::DrawBoard (IO& io)
 {
-#ifndef WIN32
 	// Calculate the limits of the board in pixels	
 	int mX1 = BOARD_POSITION - (BLOCK_SIZE * (BOARD_WIDTH / 2)) - 1;
 	int mX2 = BOARD_POSITION + (BLOCK_SIZE * (BOARD_WIDTH / 2));
@@ -166,12 +163,10 @@ void Game::DrawBoard (IO& io)
 										RED);
 		}
 	}
-#endif
 }
 
 void Game::DrawView(IO& io, bool view[BOARD_WIDTH][BOARD_HEIGHT])
 {
-#ifndef WIN32
 	constexpr int smallBlockSize = 10;
 	int mY = mScreenHeight / 2;
 
@@ -186,7 +181,6 @@ void Game::DrawView(IO& io, bool view[BOARD_WIDTH][BOARD_HEIGHT])
 										view[i][j] ? RED : WHITE);
 		}
 	}
-#endif
 }
 
 

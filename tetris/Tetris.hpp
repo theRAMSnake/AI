@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Defines.hpp"
+#include "IO.h"
 
 enum class Mode
 {
@@ -28,7 +29,7 @@ class Tetris
 public:
    Tetris(Mode m);
 
-   int run(IPlayer& p, const unsigned int scoreLimit);
+   int run(IPlayer& p, const unsigned int scoreLimit, IO& io);
 
 private:
    Mode mMode;

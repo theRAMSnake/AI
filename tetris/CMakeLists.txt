@@ -9,7 +9,6 @@ add_library(tetris
 Board.cpp
 Game.cpp
 Pieces.cpp
-IO.cpp
 Tetris.cpp
 )
 
