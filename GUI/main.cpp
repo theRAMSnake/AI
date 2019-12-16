@@ -10,6 +10,7 @@
 #include "panels/RawOutPanel.hpp"
 #include "panels/HistoryPanel.hpp"
 #include "panels/PopulationPanel.hpp"
+#include "panels/SpeciePanel.hpp"
 #include "logger/Logger.hpp"
 
 std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
@@ -58,6 +59,7 @@ int main()
    nana::place layoutDocks(grpOut);
    layoutDocks.div("vert <dock<A> margin=10><dock<B> margin=10>");
    layoutDocks.dock("A", "Raw Out", std::bind(dockCreate, std::placeholders::_1, "Raw Out"));
+   layoutDocks.dock("A", "Species", std::bind(dockCreate, std::placeholders::_1, "Species"));
    layoutDocks.dock("B", "History", std::bind(dockCreate, std::placeholders::_1, "History"));
    layoutDocks.dock("B", "Population", std::bind(dockCreate, std::placeholders::_1, "Population"));
    layoutDocks.collocate();
@@ -68,6 +70,7 @@ int main()
    ControlPanelCtrl controlPanelCtrl(grpCtrl, projectManager, trainer);
 
    RawOutPanel rawOutPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Raw Out")), projectManager, trainer);
+   SpeciePanel speciePanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Species")), projectManager, trainer);
    HistoryPanel historyPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("History")), projectManager, trainer);
    PopulationPanel populationPanel(*static_cast<nana::panel<true>*>(layoutDocks.dock_create("Population")), projectManager, trainer);
 

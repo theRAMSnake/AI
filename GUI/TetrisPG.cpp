@@ -81,7 +81,6 @@ public:
 
 nana::color toNanaColor(color c)
 {
-   //BLUE, CYAN, MAGENTA, YELLOW, WHITE
    switch(c)
    {
       case BLACK:
@@ -136,8 +135,11 @@ public:
 
       mTimer.elapse([&](){ LOG("Elapsed"); mDrawer.update(); });
       mTimer.start();
+   }
 
-      mForm.show();
+   void start()
+   {
+      mForm.modality();
    }
 
    virtual void DrawRectangle(int pX1, int pY1, int pX2, int pY2, enum color pC)
@@ -245,7 +247,7 @@ void TetrisPG::play(const neat::Genom& g)
 {  
    RealIO* io = new RealIO();
 
-   std::async([=](){
+   auto t = std::thread([=](){
       const unsigned int scoreLimit = 10000000;
 
       auto n = neat::NeuroNet(g);
@@ -255,9 +257,10 @@ void TetrisPG::play(const neat::Genom& g)
 
       LOG("About ot run");
       t.run(p, scoreLimit, *io);
-
-      delete io;
    });
+
+   io->start();
+   t.join();
 }
 
 std::string TetrisPG::getName() const

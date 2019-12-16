@@ -18,6 +18,7 @@ Trainer.cpp
 panels/HistoryPanel.cpp
 panels/PopulationPanel.cpp
 panels/RawOutPanel.cpp
+panels/SpeciePanel.cpp
 widgets/plot.cpp
 widgets/propertygrid.cpp
 widgets/pgitems.cpp
