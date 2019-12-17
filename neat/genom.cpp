@@ -445,7 +445,7 @@ void mutateRemoveNode(Genom& a, InnovationHistory& history)
 
         for(auto& g: a)
         {
-            if(g.srcNodeId != nodeId && g.dstNodeId != nodeId)
+            if(!g.enabled || (g.srcNodeId != nodeId && g.dstNodeId != nodeId))
             {
                 continue;
             }

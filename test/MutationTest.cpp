@@ -107,21 +107,6 @@ BOOST_FIXTURE_TEST_CASE( AddConnectionMutation_EnableAgain, MutationTest )
    BOOST_CHECK(g.begin()->enabled);
 }
 
-static void printGenom(const neat::Genom& g)
-{
-   std::cout << "         (";
-
-   for(auto& x : g)
-   {
-      if(x.enabled)
-      {
-         std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
-      }
-   }
-
-   std::cout << ")" << std::endl;
-}
-
 BOOST_FIXTURE_TEST_CASE( RemoveNodeMutation, MutationTest ) 
 {
    //No nodes
@@ -158,8 +143,6 @@ BOOST_FIXTURE_TEST_CASE( RemoveNodeMutation, MutationTest )
          neat::mutateAddNode(g, mHistory);
       }
 
-      printGenom(g);
-      
       for(int i = 0; i < 5; ++i)
       {
          neat::mutateRemoveNode(g, mHistory);
