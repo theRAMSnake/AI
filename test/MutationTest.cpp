@@ -28,7 +28,7 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(3, 2, mHistory);
+       return neat::Genom::createMinimal(3, 2, mHistory, true);
    }
 
    neat::InnovationHistory mHistory;
@@ -105,4 +105,106 @@ BOOST_FIXTURE_TEST_CASE( AddConnectionMutation_EnableAgain, MutationTest )
    }
    
    BOOST_CHECK(g.begin()->enabled);
+}
+
+static void printGenom(const neat::Genom& g)
+{
+   std::cout << "         (";
+
+   for(auto& x : g)
+   {
+      if(x.enabled)
+      {
+         std::cout << x.srcNodeId << "->" << x.dstNodeId << " ";
+      }
+   }
+
+   std::cout << ")" << std::endl;
+}
+
+BOOST_FIXTURE_TEST_CASE( RemoveNodeMutation, MutationTest ) 
+{
+   //No nodes
+   {
+      auto g = createSampleGenom();
+      neat::mutateRemoveNode(g, mHistory);
+
+      BOOST_CHECK_EQUAL(6, g.length());
+   }
+
+   //1 node, 1-1 connection
+   {
+      auto g = createSampleGenom();
+      neat::mutateAddNode(g, mHistory);
+      neat::NodeId newNodeId = 6;
+      
+      auto disabledCon = std::find_if(g.begin(), g.end(), [&](auto x){return !x.enabled;});
+      auto src = disabledCon->srcNodeId;
+      auto dst = disabledCon->dstNodeId;
+
+      neat::mutateRemoveNode(g, mHistory);
+
+      BOOST_CHECK(!std::find_if(g.begin(), g.end(), [&](auto x){return x.srcNodeId == newNodeId;})->enabled);
+      BOOST_CHECK(!std::find_if(g.begin(), g.end(), [&](auto x){return x.dstNodeId == newNodeId;})->enabled);
+
+      BOOST_CHECK(std::find_if(g.begin(), g.end(), [&](auto x){return x.dstNodeId == dst && x.srcNodeId == src;})->enabled);
+   }
+
+   //5 nodes
+   {
+      auto g = createSampleGenom();
+      for(int i = 0; i < 5; ++i)
+      {
+         neat::mutateAddNode(g, mHistory);
+      }
+
+      printGenom(g);
+      
+      for(int i = 0; i < 5; ++i)
+      {
+         neat::mutateRemoveNode(g, mHistory);
+      }
+
+      BOOST_CHECK_EQUAL(0, g.getNumConnectedHiddenNodes());
+   }
+
+   //1-n connections
+   {
+      auto g = neat::Genom::createMinimal(3, 2, mHistory, false);
+      
+      //Create node with all(3) sources connected to one output
+      g += {1, 6, true, 0, 1.0};
+      g += {2, 6, true, 0, 1.0};
+      g += {3, 6, true, 0, 1.0};
+      g += {6, 4, true, 0, 5.0};
+
+      neat::mutateRemoveNode(g, mHistory);
+      
+      BOOST_CHECK(!g.isConnected(1, 6));
+      BOOST_CHECK(!g.isConnected(2, 6));
+      BOOST_CHECK(!g.isConnected(3, 6));
+      BOOST_CHECK(!g.isConnected(6, 1));
+
+      //After removal all src nodes are connected to those output with avg weight
+      BOOST_CHECK(g.isConnected(1, 4));
+      BOOST_CHECK(g.isConnected(2, 4));
+      BOOST_CHECK(g.isConnected(3, 4));
+   }
+
+   //n-n connections
+   {
+      auto g = neat::Genom::createMinimal(3, 2, mHistory, false);
+      
+      //Create node with all(3) sources connected to one output
+      g += {1, 6, true, 0, 1.0};
+      g += {2, 6, true, 0, 1.0};
+      g += {3, 6, true, 0, 1.0};
+      g += {6, 4, true, 0, 5.0};
+      g += {6, 5, true, 0, 5.0};
+
+      auto gCopy = g;
+      neat::mutateRemoveNode(gCopy, mHistory);
+
+      BOOST_CHECK_EQUAL(0, neat::Genom::calculateDivergence(g, gCopy));
+   }
 }

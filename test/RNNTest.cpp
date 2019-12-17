@@ -28,7 +28,7 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(2, 1, mHistory);
+       return neat::Genom::createMinimal(2, 1, mHistory, true);
    }
 
    neat::InnovationHistory mHistory;
@@ -65,8 +65,6 @@ BOOST_FIXTURE_TEST_CASE( TestRNN, RNNTest )
    a += neat::Gene({newNodeId2, newNodeId1, true, 0, 1.0});
    a += neat::Gene({newNodeId1, a.getOutputNodes()[0], true, 0, 1.0});
    a += neat::Gene({a.getOutputNodes()[0], a.getOutputNodes()[0], true, 0, 1.0});
-
-   printGenom(a);
 
    neat::NeuroNet n(a);
    BOOST_CHECK_EQUAL(0.92414181997875655, neat::activate(n, {0, 0})[0]);

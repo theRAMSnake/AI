@@ -28,7 +28,7 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(3, 2, mHistory);
+       return neat::Genom::createMinimal(3, 2, mHistory, true);
    }
 
    neat::InnovationHistory mHistory;
@@ -45,11 +45,9 @@ BOOST_FIXTURE_TEST_CASE( CalculateDivergence, SpeciationTest )
     neat::mutateAddNode(b, mHistory);
 
     auto diff = neat::Genom::calculateDivergence(a, b);
-    std::cout << diff << std::endl;
     BOOST_CHECK(diff > 2);
 
     neat::mutateAddConnection(b, mHistory);
     diff = neat::Genom::calculateDivergence(a, b);
-    std::cout << diff << std::endl;
     BOOST_CHECK(diff > 3);
 }

@@ -93,15 +93,18 @@ Genom::Genom(const NodeId numInputs, const NodeId numOutputs)
     mNumTotalNodes = 1 + numInputs + numOutputs;
 }
 
-Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history)
+Genom Genom::createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history, const bool connected)
 {
     Genom g(numInputs, numOutputs);
 
-    for(NodeId i = 0; i < numInputs; ++i)
+    if(connected)
     {
-        for(NodeId j = 0; j < numOutputs; ++j)
+        for(NodeId i = 0; i < numInputs; ++i)
         {
-            g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
+            for(NodeId j = 0; j < numOutputs; ++j)
+            {
+                g.mGenes.push_back({i + 1, j + numInputs + 1, true, history.get(i + 1, j + numInputs + 1), Rng::genWeight()});
+            }
         }
     }
     
@@ -181,18 +184,7 @@ bool mutateAddConnection(Genom& a, InnovationHistory& history)
         //choose one at random
         auto& newConnection = possibleConnections[Rng::genChoise(possibleConnections.size())];
 
-        auto pos = std::find_if(a.begin(), a.end(), [=](auto x){return x.srcNodeId == newConnection.first &&
-            newConnection.second == x.dstNodeId;});
-
-        if(pos == a.end())
-        {
-            auto innovationNumber = history.get(newConnection.first, newConnection.second);
-            a += Gene({newConnection.first, newConnection.second, true, innovationNumber, Rng::genWeight()});
-        }
-        else
-        {
-            pos->enabled = true;
-        }
+        a.connect(newConnection.first, newConnection.second, history);
         
         return true;
     }
@@ -256,12 +248,26 @@ NodeId Genom::addNode()
 
 void mutateAddNode(Genom& a, InnovationHistory& history)
 {
-    auto& randomConnection = a[Rng::genChoise(a.length())];
-    randomConnection.enabled = false;
+    std::vector<Gene*> enabled;
+    for(auto& x : a)
+    {
+        if(x.enabled)
+        {
+            enabled.push_back(&x);
+        }
+    }
 
-    auto srcId = randomConnection.srcNodeId;
-    auto dstId = randomConnection.dstNodeId;
-    auto oldWeight = randomConnection.weight;
+    if(enabled.empty())
+    {
+        return;
+    }
+
+    auto randomConnection = enabled[Rng::genChoise(enabled.size())];
+    randomConnection->enabled = false;
+
+    auto srcId = randomConnection->srcNodeId;
+    auto dstId = randomConnection->dstNodeId;
+    auto oldWeight = randomConnection->weight;
     auto newNodeId = a.addNode();
 
     a += Gene({srcId, newNodeId, true, history.get(srcId, newNodeId), 1.0});
@@ -285,6 +291,10 @@ void mutate(Genom& a, InnovationHistory& history)
     if(Rng::genProbability(Genom::getConfig().removeConnectionMutationChance) && a.length() != 0)
     {
         mutateRemoveConnection(a);
+    }
+    if(Rng::genProbability(Genom::getConfig().removeNodeMutationChance) && a.length() != 0)
+    {
+        mutateRemoveNode(a, history);
     }
 }
 
@@ -381,6 +391,97 @@ NodeId Genom::getNumConnectedHiddenNodes() const
     }
 
     return nodes.size();
+}
+
+void Genom::connect(const NodeId src, const NodeId dst, InnovationHistory& history)
+{
+    auto pos = std::find_if(begin(), end(), [=](auto x){return x.srcNodeId == src &&
+        dst == x.dstNodeId;});
+
+    if(pos == end())
+    {
+        auto innovationNumber = history.get(src, dst);
+        (*this) += Gene({src, dst, true, innovationNumber, Rng::genWeight()});
+    }
+    else
+    {
+        pos->enabled = true;
+    }
+}
+
+void mutateRemoveNode(Genom& a, InnovationHistory& history)
+{
+    std::vector<NodeId> candidates;
+
+    for(NodeId i = 0; i < a.getTotalNodeCount(); ++i)
+    {
+        if(!a.isHiddenNode(i))
+        {
+            continue;
+        }
+
+        std::vector<Gene> srcConnections;
+        std::vector<Gene> dstConnections;
+
+        std::copy_if(a.begin(), a.end(), std::back_inserter(srcConnections), [&](auto g){return g.enabled && g.dstNodeId == i;});
+        std::copy_if(a.begin(), a.end(), std::back_inserter(dstConnections), [&](auto g){return g.enabled && g.srcNodeId == i;});
+
+        //NOTE: update this assumptions once Node genes will be up
+        if((srcConnections.size() > 1 && dstConnections.size() > 1) ||
+            (srcConnections.empty() && dstConnections.empty())) 
+        {
+            continue;
+        }
+
+        candidates.push_back(i);
+    }
+
+    if(!candidates.empty())
+    {
+        auto nodeId = candidates[Rng::genChoise(candidates.size())];
+
+        std::vector<NodeId> srcIds;
+        std::vector<NodeId> dstIds;
+
+        for(auto& g: a)
+        {
+            if(g.srcNodeId != nodeId && g.dstNodeId != nodeId)
+            {
+                continue;
+            }
+            else if(g.srcNodeId == nodeId)
+            {
+                dstIds.push_back(g.dstNodeId);
+            }
+            else if(g.dstNodeId == nodeId)
+            {
+                srcIds.push_back(g.srcNodeId);
+            }
+
+            g.enabled = false;
+        }
+
+        for(auto src : srcIds)
+        {
+            for(auto dst : dstIds)
+            {
+                a.connect(src, dst, history);
+            }
+        }
+    }
+}
+
+bool Genom::isConnected(const NodeId src, const NodeId dst) const
+{
+    auto g = std::find_if(begin(), end(), [&](auto x){return x.dstNodeId == dst && x.srcNodeId == src;});
+    if(g != end())
+    {
+        return g->enabled;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 }

@@ -30,7 +30,6 @@ InnovationNumber InnovationHistory::get(const NodeId from, const NodeId to)
 void InnovationHistory::saveState(std::ofstream& s)
 {
     s.write((char*)&mInnovationNumber, sizeof(InnovationNumber));
-    std::cout << "S_innovationNumber" << mInnovationNumber;
     for(auto x : mAllConnections)
     {
         for(auto y : x.second)

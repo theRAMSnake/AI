@@ -28,7 +28,7 @@ public:
 protected:
    neat::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(2, 1, mHistory);
+       return neat::Genom::createMinimal(2, 1, mHistory, true);
    }
 
    neat::InnovationHistory mHistory;

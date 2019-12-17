@@ -8,6 +8,7 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
     result.numOutputs = numOutputs;
     result.addConnectionMutationChance = cfg.get<double>("Mutation.Add Connection");
     result.addNodeMutationChance = cfg.get<double>("Mutation.Add Node");
+    result.removeNodeMutationChance = cfg.get<double>("Mutation.Remove Node");
     result.C1_C2 = cfg.get<double>("Speciation.C1/C2");
     result.C3 = cfg.get<double>("Speciation.C3");
     result.compatibilityFactor = cfg.get<double>("Speciation.Compatibility Factor");

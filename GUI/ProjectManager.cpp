@@ -30,8 +30,9 @@ void initiatializeConfig(boost::property_tree::ptree& cfg)
    cfg.put("Speciation.C3", 0.3);
    cfg.put("Speciation.Interspecie Crossover", 1);
    cfg.put("Mutation.Perturbation", 0.9);
-   cfg.put("Mutation.Add Node", 0.1);
-   cfg.put("Mutation.Add Connection", 0.2);
+   cfg.put("Mutation.Add Node", 0.05);
+   cfg.put("Mutation.Remove Node", 0.05);
+   cfg.put("Mutation.Add Connection", 0.1);
    cfg.put("Mutation.Remove Connection", 0.1);
    cfg.put("Mutation.Weights", 0.8);
    cfg.put("Mutation.Inherit Disabled", 0.5);
@@ -42,6 +43,10 @@ void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
    if(!cfg.get_optional<unsigned int>("Basic.Population"))
    {
       initiatializeConfig(cfg);
+   }
+   else if(cfg.get_optional<double>("Mutation.Remove Node"))
+   {
+      cfg.put("Mutation.Remove Node", 0.05);
    }
    else
    {

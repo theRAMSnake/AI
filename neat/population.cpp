@@ -29,7 +29,7 @@ Population Population::createInitialPopulation(
 
    for(unsigned int i = 0; i < size; ++i)
    {
-      s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history)});
+      s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history, false)});
    }
 
    p.mSpecies.push_back(s);

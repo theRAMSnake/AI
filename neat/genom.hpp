@@ -18,6 +18,7 @@ struct Config
     double addNodeMutationChance;
     double addConnectionMutationChance;
     double removeConnectionMutationChance;
+    double removeNodeMutationChance = 0.05;
     double weightsMutationChance;
     double interspecieCrossoverPercentage = 1;
     double C1_C2;
@@ -42,7 +43,7 @@ public:
 
     Genom(const NodeId numInputs, const NodeId numOutputs);
 
-    static Genom createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history);
+    static Genom createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history, const bool connected);
     static Genom crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB);
     static double calculateDivergence(const Genom& a, const Genom& b);
 
@@ -75,6 +76,9 @@ public:
     bool isInputNode(const NodeId n) const;
     bool isHiddenNode(const NodeId n) const;
 
+    bool isConnected(const NodeId src, const NodeId dst) const;
+    void connect(const NodeId src, const NodeId dst, InnovationHistory& history);
+
 private:
 
     //NodeId convention is [bias][input][output][hidden]
@@ -92,6 +96,7 @@ void mutateWeights(Genom& a);
 bool mutateAddConnection(Genom& a, InnovationHistory& history);
 void mutateRemoveConnection(Genom& a);
 void mutateAddNode(Genom& a, InnovationHistory& history);
+void mutateRemoveNode(Genom& a, InnovationHistory& history);
 
 void mutate(Genom& a, InnovationHistory& history);
 
