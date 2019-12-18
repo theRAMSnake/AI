@@ -51,11 +51,6 @@ Nn_view::Nn_view(std::unique_ptr<neat::NeuroNet>&& ann)
             {
                const int y = heightPerRow * j + heightPerRow / 2;
                posPerNode[layerNodes[j].id] = nana::point(x, y);
-
-               for(auto& c : layerNodes[j].inputs)
-               {
-                  graph.line(posPerNode[c.first], nana::point(x, y), colorByWeight(c.second));
-               }
             }
          }
          else
@@ -67,20 +62,33 @@ Nn_view::Nn_view(std::unique_ptr<neat::NeuroNet>&& ann)
                graph.round_rectangle(nana::rectangle(x - 2, y - 2, 5, 5), 5, 5, nana::colors::black, true, nana::colors::black);
 
                posPerNode[layerNodes[j].id] = nana::point(x, y);
-
-               for(auto& c : layerNodes[j].inputs)
-               {
-                  graph.line(posPerNode[c.first], nana::point(x, y), colorByWeight(c.second));
-
-                  if(c.first == layerNodes[j].id)
-                  {
-                     graph.string(nana::point(x + 10, y), "r", nana::colors::black);
-                  }
-               }
             }
          }
       }
 
+      for(std::size_t i = 0; i < topology.getNumLayers(); ++i)
+      {
+         auto layerNodes = topology.getLayer(i);
+
+         if(layerNodes.empty())
+         {
+            continue;
+         }
+
+         for(std::size_t j = 0; j < layerNodes.size(); ++j)
+         {
+            auto nodePos = posPerNode[layerNodes[j].id];
+            for(auto& c : layerNodes[j].inputs)
+            {
+               graph.line(posPerNode[c.first], nodePos, colorByWeight(c.second));
+
+               if(c.first == layerNodes[j].id)
+               {
+                  graph.string(nana::point{nodePos.x + 10, nodePos.y}, "r", nana::colors::black);
+               }
+            }
+         }
+      }
 	});
 
    mForm.show();
