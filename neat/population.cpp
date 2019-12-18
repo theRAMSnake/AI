@@ -177,9 +177,9 @@ bool isCompatible(const Genom& g1, const Genom& g2, const double compatibilityFa
     return Genom::calculateDivergence(g1, g2) < compatibilityFactor;
 }
 
-unsigned int Population::genNewSpecieId() const
+unsigned int Speciation::genNewSpecieId(const std::vector<Specie>& species)
 {
-   return std::max_element(mSpecies.begin(), mSpecies.end(), [] (auto x, auto y){return x.id < y.id;})->id + 1;
+   return std::max_element(species.begin(), species.end(), [] (auto x, auto y){return x.id < y.id;})->id + 1;
 }
 
 void Population::reconfigure(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage)
@@ -187,6 +187,47 @@ void Population::reconfigure(const unsigned int optimalSize, const double compat
    mOptimalSize = optimalSize;
    mCompatibilityFactor = compatibilityFactor;
    minterspecieCrossoverPercentage = interspecieCrossoverPercentage;
+}
+
+void Speciation::respeciate(std::vector<Specie>& species, const std::vector<Genom>& genoms, const double compatibilityFactor)
+{
+   for(auto& s : species)
+   {
+      s.population.clear();
+   }
+
+   for(auto& g : genoms)
+   {
+      Specie* mostCompatibleSpecie = nullptr;
+      double bestDistance = compatibilityFactor;
+      for(auto& s : species)
+      {
+         auto distance = Genom::calculateDivergence(g, s.representor->genotype);
+         if(distance < bestDistance)
+         {
+            mostCompatibleSpecie = &s;
+            bestDistance = distance;
+         }
+      }
+
+      if(mostCompatibleSpecie == nullptr)
+      {
+         Pop p {0, g};
+         Specie s;
+         s.id = genNewSpecieId(species);
+         s.maxFitness = 0;
+         s.representor = p;
+         s.population.push_back(p);
+         species.push_back(s);
+      }
+      else
+      {
+         mostCompatibleSpecie->population.push_back({0, g});
+      }
+   }
+
+   //remove extinct
+   species.erase(std::remove_if(species.begin(), species.end(), [](auto x){return x.population.empty();}), species.end());
 }
 
 void Population::nextGeneration(InnovationHistory& history)
@@ -232,39 +273,7 @@ void Population::nextGeneration(InnovationHistory& history)
       newGenoms.push_back(Genom::crossover(p1.genotype, p2.genotype, p1.fitness, p2.fitness));
    }
 
-   for(auto& s : mSpecies)
-   {
-      s.population.clear();
-   }
-
-   for(auto& g : newGenoms)
-   {
-      bool found = false;
-
-      for(auto& s : mSpecies)
-      {
-         if(isCompatible(g, s.representor->genotype, mCompatibilityFactor))
-         {
-            s.population.push_back({0, g});
-            found = true;
-            break;
-         }
-      }
-
-      if(!found)
-      {
-         Pop p {0, g};
-         Specie s;
-         s.id = genNewSpecieId();
-         s.maxFitness = 0;
-         s.representor = p;
-         s.population.push_back(p);
-         mSpecies.push_back(s);
-      }
-   }
-
-   //remove extinct
-   mSpecies.erase(std::remove_if(mSpecies.begin(), mSpecies.end(), [](auto x){return x.population.empty();}), mSpecies.end());
+   Speciation::respeciate(mSpecies, newGenoms, mCompatibilityFactor);
 }
 
 const Specie& Population::operator[] (const std::size_t index) const

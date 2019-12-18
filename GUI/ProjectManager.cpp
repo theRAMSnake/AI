@@ -44,13 +44,10 @@ void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
    {
       initiatializeConfig(cfg);
    }
-   else if(cfg.get_optional<double>("Mutation.Remove Node"))
+
+   if(!cfg.get_optional<double>("Mutation.Remove Node"))
    {
       cfg.put("Mutation.Remove Node", 0.05);
-   }
-   else
-   {
-      //Project is up to date
    }
 }
 

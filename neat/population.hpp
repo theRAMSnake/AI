@@ -36,6 +36,15 @@ struct Specie
    double sharedFitness = 0;
 };
 
+class Speciation
+{
+public:
+   static void respeciate(std::vector<Specie>& species, const std::vector<Genom>& genoms, const double compatibilityFactor);
+
+private:
+   static unsigned int genNewSpecieId(const std::vector<Specie>& species);
+};
+
 class Population
 {
 public:
@@ -78,7 +87,6 @@ public:
 
 private:
    std::vector<unsigned int> getSpeciesOffspringQuotas();
-   unsigned int genNewSpecieId() const;
 
    unsigned int mOptimalSize;
    double mCompatibilityFactor;
