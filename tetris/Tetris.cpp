@@ -5,7 +5,6 @@
 #include "IO.h"
 #include <iostream>
 #include <thread>
-#include "../logger/Logger.hpp"
 
 Tetris::Tetris(Mode m)
 : mMode(m)
@@ -16,8 +15,6 @@ Tetris::Tetris(Mode m)
 int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io)
 {
    int screenHeight = io.GetScreenHeight();
-
-   LOG("Height: " + std::to_string(screenHeight));
 
    Pieces pieces;
 	Board board (&pieces, screenHeight);
@@ -53,14 +50,11 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io)
 
          if(mMode == Mode::AI)
          {
-            LOG("Will draw");
             io.ClearScreen();
             game.DrawScene(io);	
             //game.DrawView(io, view);
             //io.UpdateScreen();
          }
-
-         LOG("Step");
 
          auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);
 
