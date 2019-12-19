@@ -35,6 +35,18 @@ struct Gene
     double weight;
 };
 
+enum class Mutation
+{
+    Weigths = 1,
+    AddNode = 2,
+    RemoveNode = 4,
+    AddConnection = 8,
+    RemoveConnection = 16,
+    Complexifying = Weigths | AddNode | AddConnection,
+    Simplifying = Weigths | RemoveNode | RemoveConnection,
+    All = Weigths | AddNode | RemoveNode | AddConnection | RemoveConnection
+};
+
 class Genom
 {
 public:
@@ -98,6 +110,6 @@ void mutateRemoveConnection(Genom& a);
 void mutateAddNode(Genom& a, InnovationHistory& history);
 void mutateRemoveNode(Genom& a, InnovationHistory& history);
 
-void mutate(Genom& a, InnovationHistory& history);
+void mutate(Genom& a, InnovationHistory& history, const int allowedMutations = static_cast<int>(Mutation::All));
 
 }

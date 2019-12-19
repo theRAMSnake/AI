@@ -18,6 +18,7 @@ public:
    const unsigned int getGeneration() const;
    const boost::property_tree::ptree& getConfig();
    const unsigned int getAutosavePeriod() const;
+   std::string getEsInfo() const;
 
    void updateConfig(const boost::property_tree::ptree& newCfg);
 

@@ -88,26 +88,6 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          numOffspringsPerSpecie.push_back(mOptimalSize / mSpecies.size());
       }
    }
-   else if(false)//mNumStagnantGenerations > 1000)
-   {
-      for(std::size_t i = 0; i < mSpecies.size(); ++i)
-      {
-         numOffspringsPerSpecie.push_back(0);
-      }
-
-      auto bestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto& a, auto& b){return a.maxFitness < b.maxFitness;});
-      numOffspringsPerSpecie[std::distance(mSpecies.begin(), bestSpecie)] = mOptimalSize / 2;
-
-      auto bestSpecieFitness = bestSpecie->maxFitness;
-      bestSpecie->maxFitness = 0.0;
-
-      auto secondBestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto& a, auto& b){return a.maxFitness < b.maxFitness;});
-      numOffspringsPerSpecie[std::distance(mSpecies.begin(), secondBestSpecie)] = mOptimalSize / 2;
-
-      bestSpecie->maxFitness = bestSpecieFitness;
-
-      mNumStagnantGenerations = 0;
-   }
    else
    {
       for(std::size_t i = 0; i < mSpecies.size(); ++i)
@@ -126,7 +106,13 @@ Fitness Specie::getTotalFitness() const
    return totalFitness;
 }
 
-void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out)
+void Specie::produceOffsprings(
+   const unsigned int amount, 
+   InnovationHistory& history, 
+   const bool isCrossoverAllowed,
+   const Mutation allowedMutations,
+   std::vector<Genom>& out
+   )
 {
    if(population.empty() || amount == 0)
    {
@@ -151,10 +137,10 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
    {
       auto& pop1 = randomPop();
 
-      if(Rng::genProbability(0.5) || population.size() == 1)
+      if(!isCrossoverAllowed || Rng::genProbability(0.5) || population.size() == 1)
       {
             auto genom = pop1.genotype;
-            mutate(genom, history);
+            mutate(genom, history, static_cast<int>(allowedMutations));
             out.push_back(genom);
       }
       else
@@ -166,7 +152,7 @@ void Specie::produceOffsprings(const unsigned int amount, InnovationHistory& his
             }
             
             auto genom = Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
-            mutate(genom, history);
+            mutate(genom, history, static_cast<int>(allowedMutations));
             out.push_back(genom);
       }
    }
@@ -234,22 +220,22 @@ void Population::nextGeneration(InnovationHistory& history)
 {
    std::vector<Genom> newGenoms;
 
-   double bestFitnessThisGeneration = 0.0;
    for(auto& s : mSpecies)
    {
       s.selectRepresentor();
-      bestFitnessThisGeneration = std::max(bestFitnessThisGeneration, s.maxFitness);
    }
 
-   if(bestFitnessThisGeneration > mBestFitness)
+   unsigned int averageComplexity = 0;
+   for(auto& s : mSpecies)
    {
-      mBestFitness = bestFitnessThisGeneration;
-      mNumStagnantGenerations = 0;
+      for(auto& p : s.population)
+      {
+         averageComplexity += p.genotype.getComplexity();
+      }
    }
-   else
-   {
-      mNumStagnantGenerations++;
-   }
+   averageComplexity /= size();
+
+   mEs->setGenerationResults(getAverageFitness(), averageComplexity);
    
    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
 
@@ -258,20 +244,24 @@ void Population::nextGeneration(InnovationHistory& history)
    int specieNum = 0;
    for(auto& s : mSpecies)
    {
-      s.produceOffsprings(quotas[specieNum], history, newGenoms);
+      s.produceOffsprings(quotas[specieNum], history, mEs->isCrossoverAllowed(), mEs->getAllowedMutations(), newGenoms);
       specieNum++;
    }
 
-   for(int i = 0; i < mOptimalSize * minterspecieCrossoverPercentage / 100 || newGenoms.size() < mOptimalSize; ++i)
+   if(mEs->isCrossoverAllowed())
    {
-      auto& s1 = mSpecies[Rng::genChoise(mSpecies.size())];
-      auto& s2 = mSpecies[Rng::genChoise(mSpecies.size())];
+      for(int i = 0; i < mOptimalSize * minterspecieCrossoverPercentage / 100 || newGenoms.size() < mOptimalSize; ++i)
+      {
+         auto& s1 = mSpecies[Rng::genChoise(mSpecies.size())];
+         auto& s2 = mSpecies[Rng::genChoise(mSpecies.size())];
 
-      auto& p1 = s1.randomPop();
-      auto& p2 = s2.randomPop();
+         auto& p1 = s1.randomPop();
+         auto& p2 = s2.randomPop();
 
-      newGenoms.push_back(Genom::crossover(p1.genotype, p2.genotype, p1.fitness, p2.fitness));
+         newGenoms.push_back(Genom::crossover(p1.genotype, p2.genotype, p1.fitness, p2.fitness));
+      }
    }
+   
 
    Speciation::respeciate(mSpecies, newGenoms, mCompatibilityFactor);
 }
@@ -347,8 +337,13 @@ Population::Iterator Population::end()
 void Population::saveState(std::ofstream& s)
 {
    auto size = mSpecies.size();
-   s.write((char*)&mBestFitness, sizeof(double));
-   s.write((char*)&mNumStagnantGenerations, sizeof(int));
+
+   //Keeping for compatibility
+   const double p1 = 0.0;
+   s.write((char*)&p1, sizeof(double));
+   const int p2 = 0;
+   s.write((char*)&p2, sizeof(int));
+   //End
 
    s.write((char*)&size, sizeof(std::size_t));
    for(auto& x : mSpecies)
@@ -393,8 +388,12 @@ void Population::loadState(
 {
    mSpecies.clear();
 
-   s.read((char*)&mBestFitness, sizeof(double));
-   s.read((char*)&mNumStagnantGenerations, sizeof(int));
+   //Keeping for compatibility
+   const double p1 = 0.0;
+   s.read((char*)&p1, sizeof(double));
+   const int p2 = 0;
+   s.read((char*)&p2, sizeof(int));
+   //End
 
    std::size_t numSpecies = 0;
    s.read((char*)&numSpecies, sizeof(std::size_t));
@@ -451,6 +450,11 @@ void Population::loadState(
 
       mSpecies.push_back(x);
    }
+}
+
+void Population::setEvolutionStrategy(std::shared_ptr<IEvolutionStrategy>& es)
+{
+   mEs = es;
 }
 
 }

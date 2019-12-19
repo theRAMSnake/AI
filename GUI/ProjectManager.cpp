@@ -36,6 +36,7 @@ void initiatializeConfig(boost::property_tree::ptree& cfg)
    cfg.put("Mutation.Remove Connection", 0.1);
    cfg.put("Mutation.Weights", 0.8);
    cfg.put("Mutation.Inherit Disabled", 0.5);
+   cfg.put("Es.Phasing", 0);
 }
 
 void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
@@ -48,6 +49,11 @@ void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
    if(!cfg.get_optional<double>("Mutation.Remove Node"))
    {
       cfg.put("Mutation.Remove Node", 0.05);
+   }
+
+   if(!cfg.get_optional<int>("Es.Phasing"))
+   {
+      cfg.put("Es.Phasing", 0);
    }
 }
 

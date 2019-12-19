@@ -78,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest )
    s.updateFitness();
 
    std::vector<neat::Genom> out;
-   s.produceOffsprings(10, mHistory, out);
+   s.produceOffsprings(10, mHistory, true, neat::Mutation::All, out);
 
    BOOST_CHECK_EQUAL(10, out.size());
 

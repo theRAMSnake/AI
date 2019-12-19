@@ -274,25 +274,25 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
     a += Gene({newNodeId, dstId, true, history.get(newNodeId, dstId), oldWeight});
 }
 
-void mutate(Genom& a, InnovationHistory& history)
+void mutate(Genom& a, InnovationHistory& history, const int allowedMutations)
 {
-    if(Rng::genProbability(Genom::getConfig().addNodeMutationChance) && a.length() != 0)
+    if(allowedMutations & static_cast<int>(Mutation::AddNode) && Rng::genProbability(Genom::getConfig().addNodeMutationChance) && a.length() != 0)
     {
         mutateAddNode(a, history);
     }
-    if(Rng::genProbability(Genom::getConfig().addConnectionMutationChance))
+    if(allowedMutations & static_cast<int>(Mutation::AddConnection) && Rng::genProbability(Genom::getConfig().addConnectionMutationChance))
     {
         mutateAddConnection(a, history);
     }
-    if(Rng::genProbability(Genom::getConfig().weightsMutationChance) && a.length() != 0)
+    if(allowedMutations & static_cast<int>(Mutation::Weigths) && Rng::genProbability(Genom::getConfig().weightsMutationChance) && a.length() != 0)
     {
         mutateWeights(a);
     }
-    if(Rng::genProbability(Genom::getConfig().removeConnectionMutationChance) && a.length() != 0)
+    if(allowedMutations & static_cast<int>(Mutation::RemoveConnection) && Rng::genProbability(Genom::getConfig().removeConnectionMutationChance) && a.length() != 0)
     {
         mutateRemoveConnection(a);
     }
-    if(Rng::genProbability(Genom::getConfig().removeNodeMutationChance) && a.length() != 0)
+    if(Rng::genProbability(allowedMutations & static_cast<int>(Mutation::RemoveNode) && Genom::getConfig().removeNodeMutationChance) && a.length() != 0)
     {
         mutateRemoveNode(a, history);
     }

@@ -1,6 +1,8 @@
 #pragma once
 #include "genom.hpp"
 #include <optional>
+#include <memory>
+#include "EvolutionStrategy.hpp"
 
 namespace neat
 {
@@ -26,7 +28,13 @@ struct Specie
    Fitness getSharedFitness() const;
    Fitness getTotalFitness() const;
    void updateFitness();
-   void produceOffsprings(const unsigned int amount, InnovationHistory& history, std::vector<Genom>& out);
+   void produceOffsprings(
+      const unsigned int amount, 
+      InnovationHistory& history, 
+      const bool isCrossoverAllowed,
+      const Mutation allowedMutations,
+      std::vector<Genom>& out
+      );
 
    std::optional<Pop> representor;
    unsigned int id;
@@ -48,9 +56,17 @@ private:
 class Population
 {
 public:
-   Population(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage);
+   Population(
+      const unsigned int optimalSize, 
+      const double compatibilityFactor, 
+      const double interspecieCrossoverPercentage
+      );
 
-   void reconfigure(const unsigned int optimalSize, const double compatibilityFactor, const double interspecieCrossoverPercentage);
+   void reconfigure(
+      const unsigned int optimalSize, 
+      const double compatibilityFactor, 
+      const double interspecieCrossoverPercentage
+      );
 
    using Iterator = std::vector<Specie>::iterator;
    using ConstIterator = std::vector<Specie>::const_iterator;
@@ -85,6 +101,8 @@ public:
       InnovationHistory& history
       );
 
+   void setEvolutionStrategy(std::shared_ptr<IEvolutionStrategy>& es);
+
 private:
    std::vector<unsigned int> getSpeciesOffspringQuotas();
 
@@ -93,7 +111,6 @@ private:
    double minterspecieCrossoverPercentage;
    std::vector<Specie> mSpecies;
 
-   double mBestFitness = 0.0;
-   int mNumStagnantGenerations = 0;
+   std::shared_ptr<IEvolutionStrategy> mEs;
 };
 }

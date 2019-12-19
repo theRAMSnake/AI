@@ -10,13 +10,26 @@
 namespace neat
 {
 
-Neat::Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator)
+Neat::Neat(const Config& cfg, const EvolutionStrategyType esType, IFitnessEvaluator& fitnessEvaluator)
 : mCfg(cfg)
 , mFitnessEvaluator(fitnessEvaluator)
 {
+    if(esType == EvolutionStrategyType::Blend)
+    {
+        mEs = std::make_shared<BlendEvolutionStrategy>();
+    }
+    else if(esType == EvolutionStrategyType::Phasing)
+    {
+        mEs = std::make_shared<PhasingEvolutionStrategy>();
+    }
     
     Rng::seed(static_cast<unsigned int>(std::time(0)));
     Genom::setConfig(cfg);
+}
+
+std::string Neat::getEsInfo() const
+{
+    return mEs->getInfo();
 }
 
 void Neat::step()
@@ -30,6 +43,8 @@ void Neat::step()
             mCfg.compatibilityFactor,
             mCfg.interspecieCrossoverPercentage,
             mHistory));
+
+        mPopulation->setEvolutionStrategy(mEs);
     }
     else
     {
@@ -153,12 +168,22 @@ void Neat::loadState(const std::string& fileName)
     mHistory.loadState(ifile);
     mHistory.buildCache();
     mPopulation.emplace(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
+    mPopulation->setEvolutionStrategy(mEs);
     mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
     mHistory.clearCache();
 }
 
-void Neat::reconfigure(const Config& cfg)
+void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
 {
+    if(esType == EvolutionStrategyType::Blend)
+    {
+        mEs = std::make_shared<BlendEvolutionStrategy>();
+    }
+    else if(esType == EvolutionStrategyType::Phasing)
+    {
+        mEs = std::make_shared<PhasingEvolutionStrategy>();
+    }
+
     auto oldNumInputs = mCfg.numInputs;
     auto oldNumOutputs = mCfg.numOutputs;
 
@@ -171,6 +196,7 @@ void Neat::reconfigure(const Config& cfg)
     if(mPopulation)
     {
         mPopulation->reconfigure(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
+        mPopulation->setEvolutionStrategy(mEs);
     }
 }
 

@@ -85,13 +85,13 @@ bool isNeatSame(neat::Neat& a, neat::Neat& b)
 BOOST_FIXTURE_TEST_CASE( SaveLoadTest2, SaveLoadStateTest ) 
 {  
     SimpleFitnessEvaluator ev;
-    neat::Neat n(mCfg, ev);
+    neat::Neat n(mCfg, neat::EvolutionStrategyType::Blend, ev);
 
     n.step();
 
     n.saveState("test2.state");
 
-    neat::Neat n1(mCfg, ev);
+    neat::Neat n1(mCfg, neat::EvolutionStrategyType::Blend, ev);
 
     n1.loadState("test2.state");
 
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE( SaveLoadTest2, SaveLoadStateTest )
 BOOST_FIXTURE_TEST_CASE( SaveLoadTest3, SaveLoadStateTest ) 
 {  
     SimpleFitnessEvaluator ev;
-    neat::Neat n(mCfg, ev);
+    neat::Neat n(mCfg, neat::EvolutionStrategyType::Blend, ev);
 
     n.step();
     n.step();
@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE( SaveLoadTest3, SaveLoadStateTest )
 
     n.saveState("test3.state");
 
-    neat::Neat n1(mCfg, ev);
+    neat::Neat n1(mCfg, neat::EvolutionStrategyType::Blend, ev);
 
     n1.loadState("test3.state");
 

@@ -24,7 +24,9 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
 }
 
 NeatProject::NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg)
-: mNeat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), pg.getFitnessEvaluator())
+: mNeat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), 
+      cfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing,
+      pg.getFitnessEvaluator())
 , mConfig(cfg)
 , mPlayground(pg)
 {
@@ -72,7 +74,8 @@ const boost::property_tree::ptree& NeatProject::getConfig()
 void NeatProject::updateConfig(const boost::property_tree::ptree& newCfg)
 {
    mConfig = newCfg;
-   mNeat.reconfigure(toNeatConfig(mConfig, 0, 0));
+   mNeat.reconfigure(toNeatConfig(mConfig, 0, 0), 
+      newCfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing);
 }
 
 const unsigned int NeatProject::getAutosavePeriod() const
@@ -83,4 +86,9 @@ const unsigned int NeatProject::getAutosavePeriod() const
 void NeatProject::play(const neat::Genom& g)
 {
    mPlayground.play(g);
+}
+
+std::string NeatProject::getEsInfo() const
+{
+   return mNeat.getEsInfo();
 }

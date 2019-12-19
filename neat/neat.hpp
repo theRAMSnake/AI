@@ -6,23 +6,26 @@
 namespace neat
 {
 
-class NeatResult
+enum class EvolutionStrategyType
 {
-
+    Blend,
+    Phasing
 };
 
 class Neat
 {
 public:
-    Neat(const Config& cfg, IFitnessEvaluator& fitnessEvaluator);
+    Neat(const Config& cfg, const EvolutionStrategyType esType, IFitnessEvaluator& fitnessEvaluator);
     void step();
-    void reconfigure(const Config& cfg);
+    void reconfigure(const Config& cfg, const EvolutionStrategyType esType);
 
     const Population& getPopulation() const;
     bool hasPopulation() const;
 
     void saveState(const std::string& fileName);
     void loadState(const std::string& fileName);
+
+    std::string getEsInfo() const;
 
 private:
 
@@ -31,6 +34,7 @@ private:
     Config mCfg;
     IFitnessEvaluator& mFitnessEvaluator;
 
+    std::shared_ptr<IEvolutionStrategy> mEs;
     std::optional<Population> mPopulation;
     InnovationHistory mHistory;
 };
