@@ -250,7 +250,7 @@ void Population::nextGeneration(InnovationHistory& history)
 
    if(mEs->isCrossoverAllowed())
    {
-      for(int i = 0; i < mOptimalSize * minterspecieCrossoverPercentage / 100 || newGenoms.size() < mOptimalSize; ++i)
+      for(int i = 0; i < mOptimalSize * minterspecieCrossoverPercentage / 100 && newGenoms.size() < mOptimalSize; ++i)
       {
          auto& s1 = mSpecies[Rng::genChoise(mSpecies.size())];
          auto& s2 = mSpecies[Rng::genChoise(mSpecies.size())];
@@ -262,6 +262,15 @@ void Population::nextGeneration(InnovationHistory& history)
       }
    }
    
+
+   //Fill population up to level
+   while (newGenoms.size() < mOptimalSize)
+   {
+       auto& s1 = mSpecies[Rng::genChoise(mSpecies.size())];
+       auto& p1 = s1.randomPop();
+
+       newGenoms.push_back(p1.genotype);
+   }
 
    Speciation::respeciate(mSpecies, newGenoms, mCompatibilityFactor);
 }

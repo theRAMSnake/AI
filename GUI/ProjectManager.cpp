@@ -59,28 +59,20 @@ void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
 
 bool ProjectManager::load(const std::string& fileName)
 {
-   try
-   {
-      boost::property_tree::ptree tree;
-      boost::property_tree::read_json(fileName, tree);
+    boost::property_tree::ptree tree;
+    boost::property_tree::read_json(fileName, tree);
 
-      checkAndUpdateLegacyProjectFile(tree);
+    checkAndUpdateLegacyProjectFile(tree);
 
-      auto neatFileName = tree.get<std::string>("neat_state_filename");
+    auto neatFileName = tree.get<std::string>("neat_state_filename");
 
-      mCurrentProject = std::make_unique<NeatProject>(tree, createPlayground(tree.get<std::string>("playground")));
-      mCurrentProject->loadState(neatFileName);
-      mCurrentProject->setGeneration(tree.get<unsigned int>("generation"));
-      mCurrentProjectFileName = fileName;
+    mCurrentProject = std::make_unique<NeatProject>(tree, createPlayground(tree.get<std::string>("playground")));
+    mCurrentProject->loadState(neatFileName);
+    mCurrentProject->setGeneration(tree.get<unsigned int>("generation"));
+    mCurrentProjectFileName = fileName;
 
-      signalProjectChanged(*mCurrentProject);
-      return true;
-   }
-   catch(...)
-   {
-      mCurrentProject = std::make_unique<NeatProject>(boost::property_tree::ptree(), createPlayground("Empty"));
-      return false;
-   }
+    signalProjectChanged(*mCurrentProject);
+    return true;
 }
 
 void ProjectManager::createDefaultProject()
