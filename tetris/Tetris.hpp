@@ -29,7 +29,7 @@ class Tetris
 public:
    Tetris(Mode m);
 
-   int run(IPlayer& p, const unsigned int scoreLimit, IO& io);
+   int run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigned int seed);
 
 private:
    Mode mMode;

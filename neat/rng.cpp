@@ -34,4 +34,9 @@ unsigned int Rng::genChoise(const unsigned int numOptions)
    return rng() % numOptions;
 }
 
+unsigned int Rng::gen32()
+{
+    return rng();
+}
+
 }

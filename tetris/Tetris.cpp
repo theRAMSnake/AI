@@ -12,8 +12,9 @@ Tetris::Tetris(Mode m)
    
 }
 
-int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io)
+int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigned int seed)
 {
+    srand(seed);
    int screenHeight = io.GetScreenHeight();
 
    Pieces pieces;

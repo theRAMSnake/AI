@@ -11,6 +11,7 @@ public:
    static double genWeight();
    static double genPerturbation();
    static unsigned int genChoise(const unsigned int numOptions);
+   static unsigned int gen32();
 };
 
 }

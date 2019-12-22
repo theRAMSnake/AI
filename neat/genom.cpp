@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <numeric>
 #include <set>
-
+#include <string>
+#include <iostream>
 namespace neat
 {
+
 
 void Genom::setConfig(const Config& c)
 {
@@ -160,6 +162,18 @@ bool mutateAddConnection(Genom& a, InnovationHistory& history)
 {
     std::vector<std::pair<NodeId, NodeId>> possibleConnections;
 
+    std::vector<NodeId> possibleHiddenNodes;
+    for (auto& g : a)
+    {
+        if (g.enabled)
+        {
+            if (a.isHiddenNode(g.srcNodeId) || a.isHiddenNode(g.dstNodeId))
+            {
+                possibleHiddenNodes.push_back(g.srcNodeId);
+            }
+        }
+    }
+
     //find all possible connections
     for(NodeId src = 0; src < a.getTotalNodeCount(); ++src)
     {
@@ -168,13 +182,18 @@ bool mutateAddConnection(Genom& a, InnovationHistory& history)
 
         for(NodeId dst = a.getInputNodeCount() + 1; dst < a.getTotalNodeCount(); ++dst)
         {
+            if (a.isHiddenNode(dst) && std::find(possibleHiddenNodes.begin(), possibleHiddenNodes.end(), dst) == possibleHiddenNodes.end())
+            {
+                continue;
+            }
+
             if(std::find_if(genes.begin(), genes.end(), [=](auto x){return x.dstNodeId == dst;}) == genes.end())
             {
                 possibleConnections.push_back(std::make_pair(src, dst));
             }
         }
     }
-
+    
     if(possibleConnections.empty())
     {
         return false;
@@ -262,6 +281,8 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
         return;
     }
 
+    //std::cout << "-";
+
     auto randomConnection = enabled[Rng::genChoise(enabled.size())];
     randomConnection->enabled = false;
 
@@ -276,8 +297,10 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
 
 void mutate(Genom& a, InnovationHistory& history, const int allowedMutations)
 {
+    
     if(allowedMutations & static_cast<int>(Mutation::AddNode) && Rng::genProbability(Genom::getConfig().addNodeMutationChance) && a.length() != 0)
     {
+        //std::cout << "+";
         mutateAddNode(a, history);
     }
     if(allowedMutations & static_cast<int>(Mutation::AddConnection) && Rng::genProbability(Genom::getConfig().addConnectionMutationChance))

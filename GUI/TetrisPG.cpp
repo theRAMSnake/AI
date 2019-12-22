@@ -1,5 +1,6 @@
 #include "TetrisPG.hpp"
 #include "neat/neuro_net.hpp"
+#include "neat/rng.hpp"
 #include <boost/random.hpp>
 #include <future>
 #include <nana/gui.hpp>
@@ -200,14 +201,14 @@ public:
 
       neat::Fitness result = 0;
 
-      for(int i = 0; i < 20; ++i)
+      for(int i = 0; i < 10; ++i)
       {
          auto n = neat::NeuroNet(g);
 
          Tetris t(Mode::AI_Background);
          TetrisPlayer p(n);
 
-         result += t.run(p, scoreLimit, io);
+         result += t.run(p, scoreLimit, io, neat::Rng::gen32());
       }
 
       return result;
@@ -256,7 +257,7 @@ void TetrisPG::play(const neat::Genom& g)
       TetrisPlayer p(n);
 
       LOG("About ot run");
-      t.run(p, scoreLimit, *io);
+      t.run(p, scoreLimit, *io, neat::Rng::gen32());
    });
 
    io->start();

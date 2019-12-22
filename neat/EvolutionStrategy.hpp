@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace neat
 {
@@ -6,7 +7,7 @@ namespace neat
 class IEvolutionStrategy
 {
 public:
-   virtual void setGenerationResults(const double fitness, const unsigned int averageComplexity) = 0;
+   virtual void setGenerationResults(const double fitness, const double averageComplexity) = 0;
    virtual bool isCrossoverAllowed() const = 0;
    virtual Mutation getAllowedMutations() const = 0;
    virtual std::string getInfo() const = 0;
@@ -20,7 +21,7 @@ public:
 class BlendEvolutionStrategy : public IEvolutionStrategy
 {
 public:
-   void setGenerationResults(const double fitness, const unsigned int averageComplexity) override
+   void setGenerationResults(const double fitness, const double averageComplexity) override
    {
 
    }
@@ -44,7 +45,7 @@ public:
 class PhasingEvolutionStrategy : public IEvolutionStrategy
 {
 public:
-   void setGenerationResults(const double fitness, const unsigned int averageComplexity) override
+   void setGenerationResults(const double fitness, const double averageComplexity) override
    {
       if(mGrowing)
       {
@@ -55,29 +56,33 @@ public:
          }
          else
          {
-            mSteps++;
-            if(mSteps > GROWING_LIMIT)
-            {
-               mSteps = 0;
-               mGrowing = false;
-               mLowestComplexity = averageComplexity;
-            }
+             //if (averageComplexity > mComplexityTreshold)
+             {
+                 mSteps++;
+                 if (mSteps > mGrowingLimit)
+                 {
+                     mSteps = 0;
+                     mGrowing = false;
+                     mLowestComplexity = averageComplexity;
+                 }
+             }
          }
       }
       else
       {
-         if(averageComplexity < mLowestComplexity)
+         /*if(averageComplexity < mLowestComplexity)
          {
             mSteps = 0;
             mLowestComplexity = averageComplexity;
          }
-         else
+         else*/
          {
             mSteps++;
             if(mSteps > SHRINKING_LIMIT)
             {
                mSteps = 0;
                mGrowing = true;
+              // mComplexityTreshold = mLowestComplexity + mLowestComplexity / 4;
                mTopFitness = fitness;
             }
          }
@@ -96,16 +101,17 @@ public:
 
    std::string getInfo() const override
    {
-      return mGrowing ? "Growing: " + std::to_string(GROWING_LIMIT - mSteps) :  "Shrinking: " + std::to_string(SHRINKING_LIMIT - mSteps);
+      return mGrowing ? "Growing: " + std::to_string(mGrowingLimit - mSteps) :  "Shrinking: " + std::to_string(SHRINKING_LIMIT - mSteps);
    }
 
 private:
    bool mGrowing = true;
    unsigned int mSteps = 0;
    double mTopFitness = 0;
-   unsigned int mLowestComplexity = 0;
-   const unsigned int GROWING_LIMIT = 250;
-   const unsigned int SHRINKING_LIMIT = 25;
+   double mLowestComplexity = 0;
+   unsigned int mComplexityTreshold = 0;
+   unsigned int mGrowingLimit = 25;
+   const unsigned int SHRINKING_LIMIT = 15;
 };
 
 }

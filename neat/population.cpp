@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <numeric>
 #include <iostream>
+#include <string>
+#include "../logger/Logger.hpp"
 
 namespace neat
 {
@@ -29,7 +31,7 @@ Population Population::createInitialPopulation(
 
    for(unsigned int i = 0; i < size; ++i)
    {
-      s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history, false)});
+      s.population.push_back({0, Genom::createMinimal(numInputs, numOutputs, history, true)});
    }
 
    p.mSpecies.push_back(s);
@@ -127,8 +129,8 @@ void Specie::produceOffsprings(
       amountLeft--;
    }
 
-   auto halfSize = population.size() / 2;
-   while (population.size() > 1 && population.size() > halfSize)//Keep at least one organisms
+   auto quorterSize = population.size() / 2;
+   while (population.size() > 1 && population.size() > quorterSize)//Keep at least one organisms
    {
        population.pop_back();
    }
@@ -233,13 +235,15 @@ void Population::nextGeneration(InnovationHistory& history)
          averageComplexity += p.genotype.getComplexity();
       }
    }
-   averageComplexity /= size();
+   ;
 
-   mEs->setGenerationResults(getAverageFitness(), averageComplexity);
+   mEs->setGenerationResults(getAverageFitness(), static_cast<double>(averageComplexity) / size());
    
    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
 
    newGenoms.reserve(mOptimalSize);
+
+   //std::cout << ("Allowed_m:" + std::to_string(static_cast<int>(mEs->getAllowedMutations())));
 
    int specieNum = 0;
    for(auto& s : mSpecies)
