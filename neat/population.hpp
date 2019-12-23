@@ -82,6 +82,7 @@ public:
    std::size_t size() const;
 
    double getAverageFitness() const;
+   double getAverageComplexity() const;
 
    void nextGeneration(InnovationHistory& history);
    void onEvaluationFinished();
@@ -111,6 +112,7 @@ private:
    unsigned int mOptimalSize;
    double mCompatibilityFactor;
    double minterspecieCrossoverPercentage;
+   double mAverageComplexity = 0.0;
    std::vector<Specie> mSpecies;
 
    std::shared_ptr<IEvolutionStrategy> mEs;

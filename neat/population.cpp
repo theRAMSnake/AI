@@ -58,15 +58,7 @@ void Specie::updateFitness()
    totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
    sharedFitness = (double)totalFitness / population.size();
 
-   if (maxFitness >= population[0].fitness)
-   {
-       numStagnant++;
-   }
-   else
-   {
-       maxFitness = population[0].fitness;
-       numStagnant = 0;
-   }
+   maxFitness = population[0].fitness;
 }
 
 void Specie::selectRepresentor()
@@ -255,9 +247,9 @@ void Population::nextGeneration(InnovationHistory& history)
          averageComplexity += p.genotype.getComplexity();
       }
    }
-   ;
+   mAverageComplexity = static_cast<double>(averageComplexity) / size();
 
-   mEs->setGenerationResults(getAverageFitness(), static_cast<double>(averageComplexity) / size());
+   mEs->setGenerationResults(getAverageFitness(), mAverageComplexity);
    
    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
 
@@ -488,6 +480,11 @@ void Population::loadState(
 void Population::setEvolutionStrategy(std::shared_ptr<IEvolutionStrategy>& es)
 {
    mEs = es;
+}
+
+double Population::getAverageComplexity() const
+{
+   return mAverageComplexity;
 }
 
 }
