@@ -92,3 +92,8 @@ std::string NeatProject::getEsInfo() const
 {
    return mNeat.getEsInfo();
 }
+
+void NeatProject::rebase()
+{
+   mNeat.rebase();
+}

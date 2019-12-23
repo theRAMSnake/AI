@@ -13,6 +13,7 @@ public:
    void loadState(const std::string& filename);
    void setGeneration(const unsigned int generation);
    void play(const neat::Genom& g);
+   void rebase();
 
    const neat::Population& getPopulation() const;
    const unsigned int getGeneration() const;

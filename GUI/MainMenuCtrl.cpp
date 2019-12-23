@@ -136,6 +136,7 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
 
    auto& t = parent.push_back("Tools");
    t.append("Play", std::bind(&MainMenuCtrl::play, this));
+   t.append("Rebase", std::bind(&MainMenuCtrl::rebase, this));
 
    trainer.signalStarted.connect([&](){
       p.enabled(false);
@@ -144,4 +145,9 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
    trainer.signalStopped.connect([&](){
       p.enabled(true);
    });
+}
+
+void MainMenuCtrl::rebase()
+{
+   mPm.getProject().rebase();
 }

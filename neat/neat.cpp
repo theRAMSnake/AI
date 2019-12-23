@@ -6,6 +6,8 @@
 #include <numeric>
 #include <cmath>
 #include <fstream>
+#include <set>
+#include "../logger/Logger.hpp"
 
 namespace neat
 {
@@ -197,6 +199,49 @@ void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
     {
         mPopulation->reconfigure(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
         mPopulation->setEvolutionStrategy(mEs);
+    }
+}
+
+void Neat::rebase()
+{
+    //1. Collect all innovations which are enabled in at least one genom
+    std::set<InnovationNumber> allInnovations;
+
+    for(auto &s: (*mPopulation))
+    {
+        for(auto &p: s.population)
+        {
+            for(auto &g : p.genotype)
+            {
+                if(g.enabled)
+                {
+                    allInnovations.insert(g.innovationNumber);
+                }
+            }
+        }
+    }
+
+    mHistory = InnovationHistory();
+
+    //2. Rebuild genoms with clean history, skipping outdated innovations
+    for(auto &s: (*mPopulation))
+    {
+        for(auto &p: s.population)
+        {
+            auto newGenom = Genom(p.genotype.getInputNodeCount(), p.genotype.getOutputNodeCount());
+
+            for(auto &g : p.genotype)
+            {
+                if(allInnovations.find(g.innovationNumber) != allInnovations.end())
+                {
+                    newGenom += {g.srcNodeId, g.dstNodeId, g.enabled, mHistory.get(g.srcNodeId, g.dstNodeId), g.weight};
+                }
+            }
+
+            LOG("Old genom size: " + std::to_string(p.genotype.length()));
+            p.genotype = newGenom;
+            LOG("New genom size: " + std::to_string(p.genotype.length()));
+        }
     }
 }
 

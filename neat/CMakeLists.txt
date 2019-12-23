@@ -12,4 +12,4 @@ InnovationHistory.cpp
 neuro_net.cpp
 )
 
-target_link_libraries(neat pthread)
+target_link_libraries(neat logger pthread)

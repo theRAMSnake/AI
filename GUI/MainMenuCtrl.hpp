@@ -13,6 +13,7 @@ private:
    void loadProject();
    void newProject();
    void play();
+   void rebase();
 
    ProjectManager& mPm;
    nana::window mWnd;
