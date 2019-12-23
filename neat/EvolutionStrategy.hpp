@@ -9,6 +9,7 @@ class IEvolutionStrategy
 public:
    virtual void setGenerationResults(const double fitness, const double averageComplexity) = 0;
    virtual bool isCrossoverAllowed() const = 0;
+   virtual bool enableDoomsday() const = 0;
    virtual Mutation getAllowedMutations() const = 0;
    virtual std::string getInfo() const = 0;
 
@@ -39,6 +40,11 @@ public:
    std::string getInfo() const override
    {
       return "Blending";
+   }
+
+   bool enableDoomsday() const override
+   {
+       return true;
    }
 };
 
@@ -102,6 +108,11 @@ public:
    std::string getInfo() const override
    {
       return mGrowing ? "Growing: " + std::to_string(mGrowingLimit - mSteps) :  "Shrinking: " + std::to_string(SHRINKING_LIMIT - mSteps);
+   }
+
+   bool enableDoomsday() const override
+   {
+       return false;
    }
 
 private:

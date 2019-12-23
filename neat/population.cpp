@@ -90,18 +90,32 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
          numOffspringsPerSpecie.push_back(mOptimalSize / mSpecies.size());
       }
    }
+   else if (mEs->enableDoomsday() && mNumStagnantGenerations > 100)
+   {
+       for (std::size_t i = 0; i < mSpecies.size(); ++i)
+       {
+           numOffspringsPerSpecie.push_back(0);
+       }
+
+       auto bestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto & a, auto & b) {return a.maxFitness < b.maxFitness; });
+       numOffspringsPerSpecie[std::distance(mSpecies.begin(), bestSpecie)] = mOptimalSize / 2;
+
+       auto bestSpecieFitness = bestSpecie->maxFitness;
+       bestSpecie->maxFitness = 0.0;
+
+       auto secondBestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto & a, auto & b) {return a.maxFitness < b.maxFitness; });
+       numOffspringsPerSpecie[std::distance(mSpecies.begin(), secondBestSpecie)] = mOptimalSize / 2;
+
+       bestSpecie->maxFitness = bestSpecieFitness;
+
+       mNumStagnantGenerations = 0;
+       mMaxComplexity = 0.0;
+   }
    else
    {
       for(std::size_t i = 0; i < mSpecies.size(); ++i)
       {
-          if (false)
-          {
-              numOffspringsPerSpecie.push_back(0);
-          }
-          else
-          {
-              numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
-          }
+         numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
       }
    }
 
@@ -234,9 +248,11 @@ void Population::nextGeneration(InnovationHistory& history)
 {
    std::vector<Genom> newGenoms;
 
+   double bestFitnessThisGeneration = 0.0;
    for(auto& s : mSpecies)
    {
       s.selectRepresentor();
+      bestFitnessThisGeneration = std::max(bestFitnessThisGeneration, s.maxFitness);
    }
 
    unsigned int averageComplexity = 0;
@@ -250,6 +266,21 @@ void Population::nextGeneration(InnovationHistory& history)
    mAverageComplexity = static_cast<double>(averageComplexity) / size();
 
    mEs->setGenerationResults(getAverageFitness(), mAverageComplexity);
+
+   if (bestFitnessThisGeneration > mBestFitness)
+   {
+       mBestFitness = bestFitnessThisGeneration;
+       mNumStagnantGenerations = 0;
+   }
+   else if (mAverageComplexity > mMaxComplexity)
+   {
+       mMaxComplexity = mAverageComplexity;
+       mNumStagnantGenerations = 0;
+   }
+   else
+   {
+       mNumStagnantGenerations++;
+   }
    
    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
 

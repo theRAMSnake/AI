@@ -5,6 +5,7 @@
 #include "IO.h"
 #include <iostream>
 #include <thread>
+#include <algorithm>
 
 Tetris::Tetris(Mode m)
 : mMode(m)
@@ -114,7 +115,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
 
       if (board.IsGameOver() || score >= scoreLimit)
       {
-         return score;
+         return std::max(0, score);
       }
    }
 }
