@@ -56,7 +56,7 @@ public:
          }
          else
          {
-             //if (averageComplexity > mComplexityTreshold)
+             if (averageComplexity > mComplexityTreshold)
              {
                  mSteps++;
                  if (mSteps > mGrowingLimit)
@@ -70,19 +70,19 @@ public:
       }
       else
       {
-         /*if(averageComplexity < mLowestComplexity)
+         if(averageComplexity < mLowestComplexity)
          {
             mSteps = 0;
             mLowestComplexity = averageComplexity;
          }
-         else*/
+         else
          {
             mSteps++;
             if(mSteps > SHRINKING_LIMIT)
             {
                mSteps = 0;
                mGrowing = true;
-              // mComplexityTreshold = mLowestComplexity + mLowestComplexity / 4;
+               mComplexityTreshold = mLowestComplexity + 50;
                mTopFitness = fitness;
             }
          }
@@ -110,7 +110,7 @@ private:
    double mTopFitness = 0;
    double mLowestComplexity = 0;
    unsigned int mComplexityTreshold = 0;
-   unsigned int mGrowingLimit = 50;
+   unsigned int mGrowingLimit = 25;
    const unsigned int SHRINKING_LIMIT = 15;
 };
 

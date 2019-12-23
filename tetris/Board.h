@@ -37,6 +37,7 @@ public:
 	void StorePiece				(int pX, int pY, int pPiece, int pRotation);
 	int DeletePossibleLines	();
 	bool IsGameOver				();
+    int getNumHoles();
 
 private:
 

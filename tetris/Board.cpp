@@ -30,6 +30,29 @@ void Board::InitBoard()
 			mBoard[i][j] = POS_FREE;
 }
 
+int Board::getNumHoles()
+{
+    int numHoles = 0;
+    for (int i = 0; i < BOARD_WIDTH; i++)
+    {
+        bool firstFound = false;
+        for (int j = 0; j < BOARD_HEIGHT; j++)
+        {
+            if (firstFound && mBoard[i][j] == POS_FREE)
+            {
+                numHoles++;
+            }
+
+            if (!firstFound && mBoard[i][j] == POS_FILLED)
+            {
+                firstFound = true;
+            }
+        }
+    }
+
+    return numHoles;
+}
+
 /* 
 ======================================									
 Store a piece in the board by filling the blocks

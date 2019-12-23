@@ -21,7 +21,8 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
 	Board board (&pieces, screenHeight);
 	Game game (&board, &pieces, screenHeight, false);
  
-   unsigned int score = 0;
+   int score = 0;
+   int numHoles = 0;
 
    bool view[BOARD_WIDTH][BOARD_HEIGHT];
 
@@ -96,10 +97,17 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
       }
       else
       {
-         //score++;
+         score += 4;
+
          board.StorePiece (game.mPosX, game.mPosY, game.mPiece, game.mRotation);
 
-         score += board.DeletePossibleLines ();
+         int newHoles = board.getNumHoles();
+
+         score -= newHoles - numHoles;
+
+         numHoles = newHoles;
+
+         board.DeletePossibleLines ();
 
          game.CreateNewPiece();
       }
