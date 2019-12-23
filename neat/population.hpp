@@ -35,11 +35,13 @@ struct Specie
       const Mutation allowedMutations,
       std::vector<Genom>& out
       );
+   bool isStagnant() const;
 
    std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
-   double maxFitness;
+   double maxFitness = 0.0;
+   unsigned int numStagnant = 0;
    Fitness totalFitness = 0;
    double sharedFitness = 0;
 };

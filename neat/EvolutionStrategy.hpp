@@ -110,7 +110,7 @@ private:
    double mTopFitness = 0;
    double mLowestComplexity = 0;
    unsigned int mComplexityTreshold = 0;
-   unsigned int mGrowingLimit = 25;
+   unsigned int mGrowingLimit = 50;
    const unsigned int SHRINKING_LIMIT = 15;
 };
 
