@@ -44,7 +44,7 @@ public:
 
    bool enableDoomsday() const override
    {
-       return true;
+       return false;
    }
 };
 

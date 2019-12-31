@@ -98,24 +98,16 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
       }
       else
       {
-         score += 4;
-
          board.StorePiece (game.mPosX, game.mPosY, game.mPiece, game.mRotation);
-
-         int newHoles = board.getNumHoles();
-
-         score -= newHoles - numHoles;
-
-         numHoles = newHoles;
-
-         board.DeletePossibleLines ();
-
+         
+         score += board.DeletePossibleLines();
+         
          game.CreateNewPiece();
       }
 
       if (board.IsGameOver() || score >= scoreLimit)
       {
-         return std::max(0, score);
+          return std::max(0, score);
       }
    }
 }

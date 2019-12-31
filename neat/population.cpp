@@ -58,6 +58,16 @@ void Specie::updateFitness()
    totalFitness = std::accumulate(population.begin(), population.end(), 0, [](auto a, auto b){return a + b.fitness;});
    sharedFitness = (double)totalFitness / population.size();
 
+   if (sharedFitness > maxAverageFitness)
+   {
+       maxAverageFitness = sharedFitness;
+       numStagnant = 0;
+   }
+   else
+   {
+       numStagnant++;
+   }
+
    maxFitness = population[0].fitness;
 }
 
@@ -115,7 +125,14 @@ std::vector<unsigned int> Population::getSpeciesOffspringQuotas()
    {
       for(std::size_t i = 0; i < mSpecies.size(); ++i)
       {
-         numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
+          if (mSpecies[i].isStagnant())
+          {
+              numOffspringsPerSpecie.push_back(0);
+          }
+          else
+          {
+              numOffspringsPerSpecie.push_back(mSpecies[i].getTotalFitness() / double(getAverageFitness() + 0.001));
+          }
       }
    }
 

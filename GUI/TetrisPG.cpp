@@ -190,11 +190,7 @@ public:
 
    void step()
    {
-       mGen++;
-       if ((mGen % 1000) == 0)
-       {
-           mSeed = neat::Rng::gen32();
-       }
+       mSeed = neat::Rng::gen32();
    }
 
    neat::Fitness evaluate(const neat::Genom& g) override
@@ -204,14 +200,16 @@ public:
     const unsigned int scoreLimit = 10000000;
 
     neat::Fitness result = 0;
-      
-    auto n = neat::NeuroNet(g);
+    
+    for (int i = 0; i < 10; ++i)
+    {
+        auto n = neat::NeuroNet(g);
 
-    Tetris t(Mode::AI_Background);
-    TetrisPlayer p(n);
+        Tetris t(Mode::AI_Background);
+        TetrisPlayer p(n);
 
-    result += t.run(p, scoreLimit, io, mSeed);
-      
+        result += t.run(p, scoreLimit, io, neat::Rng::gen32());
+    }
 
     return result;
    }

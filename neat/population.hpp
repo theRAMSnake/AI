@@ -41,6 +41,7 @@ struct Specie
    unsigned int id;
    std::vector<Pop> population;
    double maxFitness = 0.0;
+   double maxAverageFitness = 0.0;
    unsigned int numStagnant = 0;
    Fitness totalFitness = 0;
    double sharedFitness = 0;
