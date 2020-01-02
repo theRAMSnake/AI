@@ -22,8 +22,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
 	Board board (&pieces, screenHeight);
 	Game game (&board, &pieces, screenHeight, false);
  
-   int score = 0;
-   int numHoles = 0;
+   unsigned int score = 0;
 
    bool view[BOARD_WIDTH][BOARD_HEIGHT];
 
@@ -107,7 +106,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
 
       if (board.IsGameOver() || score >= scoreLimit)
       {
-          return std::max(0, score);
+         return score;
       }
    }
 }
