@@ -281,8 +281,6 @@ void mutateAddNode(Genom& a, InnovationHistory& history)
         return;
     }
 
-    //std::cout << "-";
-
     auto randomConnection = enabled[Rng::genChoise(enabled.size())];
     randomConnection->enabled = false;
 
@@ -299,7 +297,6 @@ void mutate(Genom& a, InnovationHistory& history, const int allowedMutations)
 {
     if(allowedMutations & static_cast<int>(Mutation::AddNode) && Rng::genProbability(Genom::getConfig().addNodeMutationChance) && a.length() != 0)
     {
-        //std::cout << "+";
         mutateAddNode(a, history);
     }
     if(allowedMutations & static_cast<int>(Mutation::AddConnection) && Rng::genProbability(Genom::getConfig().addConnectionMutationChance))
@@ -688,7 +685,7 @@ std::size_t Genom::getNodeCount(const Genom::NodeType filter) const
     }
     if(filter & NodeType::Hidden)
     {
-        result += mGenes.size();
+        result += mNodes.size();
     }
 
     return result;
@@ -801,13 +798,23 @@ void Genom::disconnect(const NodeId src, const NodeId dst)
     auto srcpos = std::find_if(mNodes.begin(), mNodes.end(), [=](auto n){return n.id == src;});
     if(srcpos != mNodes.end())
     {
-        srcpos->numConnections++;
+        srcpos->numConnections--;
+
+        if(srcpos->numConnections == 0)
+        {
+            mNodes.erase(srcpos);
+        }
     }
 
     auto dstpos = std::find_if(mNodes.begin(), mNodes.end(), [=](auto n){return n.id == dst;});
     if(dstpos != mNodes.end())
     {
-        dstpos->numConnections++;
+        dstpos->numConnections--;
+
+        if(dstpos->numConnections == 0)
+        {
+            mNodes.erase(dstpos);
+        }
     }
 
     mGenes.erase(std::find_if(begin(), end(), [=](auto n){return n.dstNodeId == dst && n.srcNodeId == src;}));
@@ -872,17 +879,27 @@ void Genom::mutateRemoveNode(InnovationHistory& history)
         {
             disconnect(nodeId, dst);
         }
+
+        auto nodePos = std::find_if(mNodes.begin(), mNodes.end(), [=](auto n){return n.id == nodeId;});
+        //If node is still there -> erase it
+        if(nodePos != mNodes.end())
+        {
+            mNodes.erase(nodePos);
+        }
     }
 }
 
 void Genom::mutateAddNode(InnovationHistory& history)
 {
-    auto randomConnection = mGenes[Rng::genChoise(mGenes.size())];
+    auto pos = Rng::genChoise(mGenes.size());
+    auto randomConnection = mGenes[pos];
 
     auto srcId = randomConnection.srcNodeId;
     auto dstId = randomConnection.dstNodeId;
     auto oldWeight = randomConnection.weight;
     auto newNodeId = randomConnection.innovationNumber + mNumInputs + mNumOutputs + mNumBiasNodes;
+
+    mGenes.erase(mGenes.begin() + pos);
 
     mGenes.push_back({srcId, newNodeId, history.get(srcId, newNodeId), 1.0});
     mGenes.push_back({newNodeId, dstId, history.get(newNodeId, dstId), oldWeight});
@@ -963,12 +980,16 @@ Genom::NodesIterator::NodesIterator(const Genom& genom, const NodeType type, con
     }
 }
 
+bool Genom::NodesIterator::operator == (const Genom::NodesIterator& other) const
+{
+    return (mGenom == other.mGenom &&
+        mElementIndex == other.mElementIndex &&
+        mCurType == other.mCurType && mIsEnd == other.mIsEnd) || (mIsEnd && other.mIsEnd);
+}
+
 bool Genom::NodesIterator::operator != (const Genom::NodesIterator& other) const
 {
-    return mGenom == other.mGenom &&
-        mElementIndex == other.mElementIndex &&
-        mIsEnd == other.mIsEnd &&
-        mCurType == other.mCurType;
+    return ! operator ==(other);
 }
 
 Genom::NodesIterator& Genom::NodesIterator::operator ++()
@@ -1006,6 +1027,16 @@ bool Genom::isConnected(const NodeId src, const NodeId dst) const
 const ConnectionGene& Genom::operator[] (const std::size_t index) const
 {
     return mGenes[index];
+}
+
+void Genom::setWeight(const std::size_t index, const double weight)
+{
+    mGenes[index].weight = weight;
+}
+
+void Genom::disconnectAll()
+{
+    mGenes.clear();
 }
 
 }

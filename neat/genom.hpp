@@ -165,6 +165,7 @@ public:
         NodesIterator(const Genom& genom, const NodeType type, const bool isEnd);
 
         bool operator != (const NodesIterator& other) const;
+        bool operator == (const NodesIterator& other) const;
         NodesIterator& operator ++();
         const NodeGene* operator -> () const;
 
@@ -192,6 +193,7 @@ public:
     std::size_t getComplexity() const;
 
     const ConnectionGene& operator[] (const std::size_t index) const;
+    void setWeight(const std::size_t index, const double weight);
 
     ConstConnectionsIterator begin() const;
     ConstConnectionsIterator end() const;
@@ -202,16 +204,17 @@ public:
 
     void mutate(const MutationConfig& config, InnovationHistory& history);
 
+    bool isConnected(const NodeId src, const NodeId dst) const;
+    void connect(const NodeId src, const NodeId dst, InnovationHistory& history);
+    void disconnect(const NodeId src, const NodeId dst);
+    void disconnectAll(); //All unconnected elements will remain!
+
 private:
     void mutateWeights(const double perturbationChance);
     bool mutateAddConnection(InnovationHistory& history);
     void mutateRemoveConnection();
     void mutateAddNode(InnovationHistory& history);
     void mutateRemoveNode(InnovationHistory& history);
-
-    bool isConnected(const NodeId src, const NodeId dst) const;
-    void connect(const NodeId src, const NodeId dst, InnovationHistory& history);
-    void disconnect(const NodeId src, const NodeId dst);
 
     const NodeId mNumBiasNodes;
     const NodeId mNumInputs;

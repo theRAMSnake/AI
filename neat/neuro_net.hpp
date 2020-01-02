@@ -69,6 +69,7 @@ public:
    };
 
    NeuroNet(const Genom& genotype);
+   NeuroNet(const neat::v2::Genom& genotype);
 
    void activate();
    
@@ -90,7 +91,7 @@ private:
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
    };
 
-   const Genom& mGenotype;
+   //const Genom& mGenotype;
    std::vector<Node> mNodes;
 
    std::vector<Node*> mHiddenNodes;

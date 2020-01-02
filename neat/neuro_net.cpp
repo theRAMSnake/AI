@@ -23,9 +23,8 @@ double activationFunction (const double val)
 }
 
 NeuroNet::NeuroNet(const Genom& genotype)
-: mGenotype(genotype)
 {
-   auto totalNodes = mGenotype.getTotalNodeCount();
+   auto totalNodes = genotype.getTotalNodeCount();
    
    mNodes.reserve(totalNodes);
    mInputNodes.reserve(genotype.getInputNodeCount());
@@ -36,26 +35,26 @@ NeuroNet::NeuroNet(const Genom& genotype)
    {
       mNodes.push_back(Node{i, 0.0, -1});
 
-      if(mGenotype.isHiddenNode(i))
+      if(genotype.isHiddenNode(i))
       {
          mHiddenNodes.push_back(&mNodes.back());
       }
-      else if(mGenotype.isInputNode(i))
+      else if(genotype.isInputNode(i))
       {
          mInputNodes.push_back(&mNodes.back());
       }
-      else if(mGenotype.isOutputNode(i))
+      else if(genotype.isOutputNode(i))
       {
          mOutputNodes.push_back(&mNodes.back());
       }
    }
 
-   for(NodeId i : mGenotype.getInputNodes())
+   for(NodeId i : genotype.getInputNodes())
    {
       mNodes[i].depth = 0;
    }
 
-   mNodes[mGenotype.getBiasNodeId()].value = 1.0;
+   mNodes[genotype.getBiasNodeId()].value = 1.0;
    
    for(auto& c : genotype)
    {
@@ -71,6 +70,61 @@ NeuroNet::NeuroNet(const Genom& genotype)
             int newDepth = src.depth + 1;
             dst.depth = std::max(newDepth, dst.depth);
          }
+      }
+   }
+   
+   std::sort(mHiddenNodes.begin(), mHiddenNodes.end(), [&](auto x, auto y)
+   {
+      return x->depth < y->depth;
+   });
+}
+
+NeuroNet::NeuroNet(const neat::v2::Genom& genotype)
+{
+   mNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::All));
+   mInputNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::Input));
+   mOutputNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::Output));
+   mHiddenNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::Hidden));
+
+   std::map<NodeId, NodeId> idToIdxMap;
+   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Bias); iter != genotype.endNodes(v2::Genom::NodeType::Bias); ++iter)
+   {
+      idToIdxMap[iter->id] = mNodes.size();
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 1.0, -1});
+   }
+
+   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Input); iter != genotype.endNodes(v2::Genom::NodeType::Input); ++iter)
+   {
+      idToIdxMap[iter->id] = mNodes.size();
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0});
+      mInputNodes.push_back(&mNodes.back());
+   }
+
+   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Output); iter != genotype.endNodes(v2::Genom::NodeType::Output); ++iter)
+   {
+      idToIdxMap[iter->id] = mNodes.size();
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1});
+      mOutputNodes.push_back(&mNodes.back());
+   }
+
+   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Hidden); iter != genotype.endNodes(v2::Genom::NodeType::Hidden); ++iter)
+   {
+      idToIdxMap[iter->id] = mNodes.size();
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1});
+      mHiddenNodes.push_back(&mNodes.back());
+   }
+   
+   for(auto& c : genotype)
+   {
+      auto& src = mNodes[idToIdxMap[c.srcNodeId]];
+      auto& dst = mNodes[idToIdxMap[c.dstNodeId]];
+
+      dst.inputs.push_back({src.id, c.weight});
+
+      if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
+      {
+         int newDepth = src.depth + 1;
+         dst.depth = std::max(newDepth, dst.depth);
       }
    }
    
@@ -181,7 +235,7 @@ NetworkTopology NeuroNet::createTopology() const
 
    for(auto &n: mNodes)
    {
-      if(mGenotype.isOutputNode(n.id))
+      if(std::find_if(mOutputNodes.begin(), mOutputNodes.end(), [&](auto x) {return x->id == n.id;}) != mOutputNodes.end())
       {
          result.add(maxDepth, n.id, n.inputs);
       }
