@@ -185,6 +185,9 @@ public:
 
     Genom(const NodeId numInputs, const NodeId numOutputs);
     Genom(const neat::Genom& older);
+    //Genom(const Genom&& other);
+
+    Genom& operator= (const Genom& other);
 
     static Genom createMinimal(const NodeId numInputs, const NodeId numOutputs, InnovationHistory& history, const bool connected);
     static Genom crossover(const Genom& a, const Genom& b, const Fitness fitA, const Fitness fitB);
@@ -223,6 +226,9 @@ private:
     std::vector<NodeGene> mNodes;
     std::vector<ConnectionGene> mGenes;
 };
+
+void mutateAddNode(Genom& a, InnovationHistory& history);
+void mutateAddConnection(Genom& a, InnovationHistory& history);
     
 }
 

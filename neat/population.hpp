@@ -18,7 +18,7 @@ public:
 struct Pop
 {
    Fitness fitness;
-   Genom genotype;
+   v2::Genom genotype;
 };
 
 struct Specie
@@ -32,8 +32,8 @@ struct Specie
       const unsigned int amount, 
       InnovationHistory& history, 
       const bool isCrossoverAllowed,
-      const Mutation allowedMutations,
-      std::vector<Genom>& out
+      const v2::MutationConfig mutationCfg,
+      std::vector<v2::Genom>& out
       );
    bool isStagnant() const;
 
@@ -50,7 +50,13 @@ struct Specie
 class Speciation
 {
 public:
-   static void respeciate(std::vector<Specie>& species, const std::vector<Genom>& genoms, const double compatibilityFactor);
+   static void respeciate(
+      std::vector<Specie>& species, 
+      const std::vector<v2::Genom>& genoms, 
+      const double compatibilityFactor,
+      const double C1_C2,
+      const double C3
+      );
 
 private:
    static unsigned int genNewSpecieId(const std::vector<Specie>& species);
@@ -59,16 +65,28 @@ private:
 class Population
 {
 public:
+   struct Config
+   {
+      double mCompatibilityFactor;
+      double minterspecieCrossoverPercentage;
+      double mC1_C2;
+      double mC3;
+   };
+
    Population(
       const unsigned int optimalSize, 
       const double compatibilityFactor, 
-      const double interspecieCrossoverPercentage
+      const double interspecieCrossoverPercentage,
+      const double C1_C2,
+      const double C3
       );
 
    void reconfigure(
       const unsigned int optimalSize, 
       const double compatibilityFactor, 
-      const double interspecieCrossoverPercentage
+      const double interspecieCrossoverPercentage,
+      const double C1_C2,
+      const double C3
       );
 
    using Iterator = std::vector<Specie>::iterator;
@@ -100,8 +118,7 @@ public:
       const NodeId numInputs, 
       const NodeId numOutputs, 
       const unsigned int size,
-      const double compatibilityFactor,
-      const double interspecieCrossoverPercentage,
+      const Config& config,
       InnovationHistory& history
       );
 
@@ -111,10 +128,10 @@ private:
    std::vector<unsigned int> getSpeciesOffspringQuotas();
 
    unsigned int mOptimalSize;
-   double mCompatibilityFactor;
-   double minterspecieCrossoverPercentage;
    double mAverageComplexity = 0.0;
    std::vector<Specie> mSpecies;
+
+   Config mCfg;
 
    double mBestFitness = 0.0;
    double mMaxComplexity = 0.0;

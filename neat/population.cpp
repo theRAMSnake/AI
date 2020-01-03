@@ -155,8 +155,8 @@ void Specie::produceOffsprings(
    const unsigned int amount, 
    InnovationHistory& history, 
    const bool isCrossoverAllowed,
-   const Mutation allowedMutations,
-   std::vector<Genom>& out
+   const v2::MutationConfig mutationCfg,
+   std::vector<v2::Genom>& out
    )
 {
    if(population.empty() || amount == 0)
@@ -185,7 +185,7 @@ void Specie::produceOffsprings(
       if(!isCrossoverAllowed || Rng::genProbability(0.5) || population.size() == 1)
       {
             auto genom = pop1.genotype;
-            mutate(genom, history, static_cast<int>(allowedMutations));
+            genom.mutate(mutationCfg, history);
             out.push_back(genom);
       }
       else
@@ -196,8 +196,8 @@ void Specie::produceOffsprings(
                pop2 = &randomPop();
             }
             
-            auto genom = Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
-            mutate(genom, history, static_cast<int>(allowedMutations));
+            auto genom = v2::Genom::crossover(pop1.genotype, pop2->genotype, pop1.fitness, pop2->fitness);
+            genom.mutate(mutationCfg, history);
             out.push_back(genom);
       }
    }
@@ -220,7 +220,13 @@ void Population::reconfigure(const unsigned int optimalSize, const double compat
    minterspecieCrossoverPercentage = interspecieCrossoverPercentage;
 }
 
-void Speciation::respeciate(std::vector<Specie>& species, const std::vector<Genom>& genoms, const double compatibilityFactor)
+void Speciation::respeciate(
+   std::vector<Specie>& species, 
+   const std::vector<v2::Genom>& genoms, 
+   const double compatibilityFactor,
+   const double C1_C2,
+   const double C3
+   )
 {
    for(auto& s : species)
    {
@@ -233,7 +239,7 @@ void Speciation::respeciate(std::vector<Specie>& species, const std::vector<Geno
       double bestDistance = compatibilityFactor;
       for(auto& s : species)
       {
-         auto distance = Genom::calculateDivergence(g, s.representor->genotype);
+         auto distance = v2::Genom::calculateDivergence(g, s.representor->genotype, C1_C2, C3);
          if(distance < bestDistance)
          {
             mostCompatibleSpecie = &s;
@@ -263,7 +269,7 @@ void Speciation::respeciate(std::vector<Specie>& species, const std::vector<Geno
 
 void Population::nextGeneration(InnovationHistory& history)
 {
-   std::vector<Genom> newGenoms;
+   std::vector<v2::Genom> newGenoms;
 
    double bestFitnessThisGeneration = 0.0;
    for(auto& s : mSpecies)
@@ -303,8 +309,6 @@ void Population::nextGeneration(InnovationHistory& history)
 
    newGenoms.reserve(mOptimalSize);
 
-   //std::cout << ("Allowed_m:" + std::to_string(static_cast<int>(mEs->getAllowedMutations())));
-
    int specieNum = 0;
    for(auto& s : mSpecies)
    {
@@ -322,7 +326,7 @@ void Population::nextGeneration(InnovationHistory& history)
          auto& p1 = s1.randomPop();
          auto& p2 = s2.randomPop();
 
-         newGenoms.push_back(Genom::crossover(p1.genotype, p2.genotype, p1.fitness, p2.fitness));
+         newGenoms.push_back(v2::Genom::crossover(p1.genotype, p2.genotype, p1.fitness, p2.fitness));
       }
    }
    
@@ -336,7 +340,7 @@ void Population::nextGeneration(InnovationHistory& history)
        newGenoms.push_back(p1.genotype);
    }
 
-   Speciation::respeciate(mSpecies, newGenoms, mCompatibilityFactor);
+   Speciation::respeciate(mSpecies, newGenoms, mCompatibilityFactor, mC1_C2, mC3);
 }
 
 const Specie& Population::operator[] (const std::size_t index) const

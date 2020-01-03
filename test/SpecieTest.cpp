@@ -22,13 +22,13 @@ public:
       c.C1_C2 = 1.0;
       c.C3 = 2.0;
 
-      neat::Genom::setConfig(c);
+      neat::v2::Genom::setConfig(c);
    }
 
 protected:
-   neat::Genom createSampleGenom()
+   neat::v2::Genom createSampleGenom()
    {
-       return neat::Genom::createMinimal(3, 2, mHistory, true);
+       return neat::v2::Genom::createMinimal(3, 2, mHistory, true);
    }
 
    neat::InnovationHistory mHistory;
@@ -77,13 +77,13 @@ BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest )
 
    s.updateFitness();
 
-   std::vector<neat::Genom> out;
+   std::vector<neat::v2::Genom> out;
    s.produceOffsprings(10, mHistory, true, neat::Mutation::All, out);
 
    BOOST_CHECK_EQUAL(10, out.size());
 
    //make sure champion is there
-   BOOST_CHECK(neat::Genom::calculateDivergence(champ, out[0]) == 0);
+   BOOST_CHECK(neat::v2::Genom::calculateDivergence(champ, out[0]) == 0);
 
    //Check that we do not have offsprings of worst half
    for(auto g : out)

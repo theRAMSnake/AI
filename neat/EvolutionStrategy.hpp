@@ -10,7 +10,7 @@ public:
    virtual void setGenerationResults(const double fitness, const double averageComplexity) = 0;
    virtual bool isCrossoverAllowed() const = 0;
    virtual bool enableDoomsday() const = 0;
-   virtual Mutation getAllowedMutations() const = 0;
+   virtual v2::MutationConfig getAllowedMutations() const = 0;
    virtual std::string getInfo() const = 0;
 
    ~IEvolutionStrategy()
@@ -22,6 +22,12 @@ public:
 class BlendEvolutionStrategy : public IEvolutionStrategy
 {
 public:
+   BlendEvolutionStrategy(const v2::MutationConfig& cfg)
+   : mCfg(cfg)
+   {
+
+   }
+   
    void setGenerationResults(const double fitness, const double averageComplexity) override
    {
 
@@ -32,9 +38,9 @@ public:
       return true;
    }
 
-   Mutation getAllowedMutations() const override
+   v2::MutationConfig getAllowedMutations() const override
    {
-      return Mutation::All;
+      return mCfg;
    }
 
    std::string getInfo() const override
@@ -46,11 +52,25 @@ public:
    {
        return false;
    }
+
+private:
+   const v2::MutationConfig& mCfg;
 };
 
 class PhasingEvolutionStrategy : public IEvolutionStrategy
 {
 public:
+   PhasingEvolutionStrategy(const v2::MutationConfig& cfg)
+   {
+      mGrowingCfg = cfg;
+      mGrowingCfg.removeConnectionMutationChance = 0;
+      mGrowingCfg.removeNodeMutationChance = 0;
+
+      mShrinkingCfg = cfg;
+      mShrinkingCfg.addConnectionMutationChance = 0;
+      mShrinkingCfg.addNodeMutationChance = 0;
+   }
+
    void setGenerationResults(const double fitness, const double averageComplexity) override
    {
       if(mGrowing)
@@ -100,9 +120,9 @@ public:
       return mGrowing;
    }
 
-   Mutation getAllowedMutations() const override
+   v2::MutationConfig getAllowedMutations() const override
    {
-      return mGrowing ? Mutation::Complexifying : Mutation::Simplifying;
+      return mGrowing ? mGrowingCfg : mShrinkingCfg;
    }
 
    std::string getInfo() const override
@@ -123,6 +143,9 @@ private:
    unsigned int mComplexityTreshold = 0;
    unsigned int mGrowingLimit = 25;
    const unsigned int SHRINKING_LIMIT = 15;
+
+   v2::MutationConfig mGrowingCfg;
+   v2::MutationConfig mShrinkingCfg;
 };
 
 }

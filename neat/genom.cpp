@@ -1039,6 +1039,22 @@ void Genom::disconnectAll()
     mGenes.clear();
 }
 
+void mutateAddNode(Genom& a, InnovationHistory& history)
+{
+    MutationConfig cfg;
+    cfg.addNodeMutationChance = 1.0;
+
+    a.mutate(cfg, history);
+}
+
+void mutateAddConnection(Genom& a, InnovationHistory& history)
+{
+    MutationConfig cfg;
+    cfg.addConnectionMutationChance = 1.0;
+
+    a.mutate(cfg, history);
+}
+
 }
 
 }
