@@ -193,7 +193,7 @@ public:
        mSeed = neat::Rng::gen32();
    }
 
-   neat::Fitness evaluate(const neat::Genom& g) override
+   neat::Fitness evaluate(const neat::v2::Genom& g) override
    {
     FakeIO io;
 
@@ -246,7 +246,7 @@ void TetrisPG::step()
    mFitnessEvaluator->step();
 }
 
-void TetrisPG::play(const neat::Genom& g)
+void TetrisPG::play(const neat::v2::Genom& g)
 {  
    RealIO* io = new RealIO();
 

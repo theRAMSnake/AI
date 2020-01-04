@@ -47,7 +47,7 @@ public:
       
    }
 
-   std::string play(const neat::Genom& g)
+   std::string play(const neat::v2::Genom& g)
    {
       std::string result;
       int numSolved = 0;
@@ -90,7 +90,7 @@ public:
       return result;
    }
 
-   neat::Fitness evaluate(const neat::Genom& g) override
+   neat::Fitness evaluate(const neat::v2::Genom& g) override
    {
       neat::Fitness result = 0;
 
@@ -238,7 +238,7 @@ void CheckpointPG::step()
    mFitnessEvaluator->step();
 }
 
-void CheckpointPG::play(const neat::Genom& g)
+void CheckpointPG::play(const neat::v2::Genom& g)
 {
    nana::form frm(nana::API::make_center(500, 800));
    frm.caption("Checkpoint output");

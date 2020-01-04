@@ -30,6 +30,7 @@ BOOST_FIXTURE_TEST_CASE( CalculateDivergence, SpeciationTest )
     neat::v2::mutateAddNode(b, mHistory);
 
     auto diff = neat::v2::Genom::calculateDivergence(a, b, 1.0, 2.0);
+    std::cout << diff;
     BOOST_CHECK(diff > 2);
 
     neat::v2::mutateAddConnection(b, mHistory);
@@ -64,15 +65,20 @@ BOOST_FIXTURE_TEST_CASE( Respeciate, SpeciationTest )
    genoms.push_back(g4);
    genoms.push_back(g2);
 
-   neat::v2::mutateWeights(g2);
+   neat::v2::MutationConfig cfg;
+   cfg.weightsMutationChance = 1.0;
+   cfg.perturbationChance = 0.8;
+
+   g2.mutate(cfg, mHistory);
+
    genoms.push_back(g2);
 
    genoms.push_back(g5);
    genoms.push_back(g5);
 
-   neat::Speciation::respeciate(species, genoms, 1.05);
+   neat::Speciation::respeciate(species, genoms, 1.05, 1.0, 2.0);
 
-   BOOST_CHECK_EQUAL(3, species.size());
+   BOOST_CHECK_EQUAL(4, species.size());
    
    for(auto &s: species)
    {

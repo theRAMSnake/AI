@@ -12,12 +12,20 @@ enum class EvolutionStrategyType
     Phasing
 };
 
+struct Config
+{
+    unsigned int numInputs;
+    unsigned int numOutputs;
+    unsigned int numThreads; 
+    v2::MutationConfig mutationCfg;
+    Population::Config populationCfg;
+};
+
 class Neat
 {
 public:
     Neat(const Config& cfg, const EvolutionStrategyType esType, IFitnessEvaluator& fitnessEvaluator);
     void step();
-    void rebase();
     void reconfigure(const Config& cfg, const EvolutionStrategyType esType);
 
     const Population& getPopulation() const;

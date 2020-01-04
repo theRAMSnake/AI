@@ -10,7 +10,7 @@ namespace neat
 class IFitnessEvaluator
 {
 public:
-    virtual Fitness evaluate(const Genom& g) = 0;
+    virtual Fitness evaluate(const v2::Genom& g) = 0;
 
     virtual ~IFitnessEvaluator(){}
 };
@@ -67,26 +67,19 @@ class Population
 public:
    struct Config
    {
+      unsigned int size;
       double mCompatibilityFactor;
       double minterspecieCrossoverPercentage;
       double mC1_C2;
       double mC3;
    };
 
-   Population(
-      const unsigned int optimalSize, 
-      const double compatibilityFactor, 
-      const double interspecieCrossoverPercentage,
-      const double C1_C2,
-      const double C3
+   Population( 
+      const Config& config
       );
 
    void reconfigure(
-      const unsigned int optimalSize, 
-      const double compatibilityFactor, 
-      const double interspecieCrossoverPercentage,
-      const double C1_C2,
-      const double C3
+      const Config& config
       );
 
    using Iterator = std::vector<Specie>::iterator;
@@ -117,7 +110,6 @@ public:
    static Population createInitialPopulation(
       const NodeId numInputs, 
       const NodeId numOutputs, 
-      const unsigned int size,
       const Config& config,
       InnovationHistory& history
       );
@@ -127,7 +119,6 @@ public:
 private:
    std::vector<unsigned int> getSpeciesOffspringQuotas();
 
-   unsigned int mOptimalSize;
    double mAverageComplexity = 0.0;
    std::vector<Specie> mSpecies;
 

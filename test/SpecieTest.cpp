@@ -7,22 +7,7 @@ class SpecieTest
 public:
    SpecieTest()
    {
-      neat::Config c;
 
-      c.numInputs = 3;
-      c.numOutputs = 2;
-      c.population = 100;
-      c.compatibilityFactor = 3.0;
-      c.inheritDisabledChance = 0.75;
-      c.perturbationChance = 0.9;
-      c.addNodeMutationChance = 0.05;
-      c.addConnectionMutationChance = 0.05;
-      c.removeConnectionMutationChance = 0.05;
-      c.weightsMutationChance = 0.8;
-      c.C1_C2 = 1.0;
-      c.C3 = 2.0;
-
-      neat::v2::Genom::setConfig(c);
    }
 
 protected:
@@ -59,7 +44,7 @@ BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest )
    neat::Specie s;
 
    auto winner = createSampleGenom();
-   neat::mutateAddNode(winner, mHistory);
+   neat::v2::mutateAddNode(winner, mHistory);
 
    s.population.push_back({5, createSampleGenom()});
    s.population.push_back({5, createSampleGenom()});
@@ -72,22 +57,22 @@ BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest )
    s.population.push_back({0, createSampleGenom()});
 
    auto champ = winner;
-   neat::mutateAddConnection(champ, mHistory);
+   neat::v2::mutateAddConnection(champ, mHistory);
    s.population.push_back({100, champ});
 
    s.updateFitness();
 
    std::vector<neat::v2::Genom> out;
-   s.produceOffsprings(10, mHistory, true, neat::Mutation::All, out);
+   s.produceOffsprings(10, mHistory, true, {}, out);
 
    BOOST_CHECK_EQUAL(10, out.size());
 
    //make sure champion is there
-   BOOST_CHECK(neat::v2::Genom::calculateDivergence(champ, out[0]) == 0);
+   BOOST_CHECK(neat::v2::Genom::calculateDivergence(champ, out[0], 1.0, 2.0) == 0);
 
    //Check that we do not have offsprings of worst half
    for(auto g : out)
    {
-      BOOST_CHECK(g.getHiddenNodeCount() != 0);
+      BOOST_CHECK(g.getNodeCount(neat::v2::Genom::NodeType::Hidden) != 0);
    }
 }

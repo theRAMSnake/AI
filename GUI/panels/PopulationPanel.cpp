@@ -28,7 +28,7 @@ void PopulationPanel::refresh()
       popStrings.reserve(s.population.size());
       for(auto& p: s.population)
       {
-         auto str = std::to_string(p.fitness) + " - H:" + std::to_string(p.genotype.getNumConnectedHiddenNodes()) +
+         auto str = std::to_string(p.fitness) + " - H:" + std::to_string(p.genotype.getNodeCount(neat::v2::Genom::NodeType::Hidden)) +
                " C:" + std::to_string(p.genotype.getComplexity());
          popStrings.push_back(std::make_pair(p.fitness, str));
       }
@@ -82,12 +82,8 @@ void PopulationPanel::exportGenomFromTree()
          auto file = items[0];
         
          std::ofstream f;
-         f.open(file, std::ios_base::out | std::ios_base::trunc);
-         for(auto& x : organism.genotype)
-         {
-            f << x.innovationNumber << ":" << (x.enabled ? "+" : "-") << " " << x.srcNodeId << "->" << x.dstNodeId << " " << x.weight << std::endl;
-         }
-         
+         f.open(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+         organism.genotype.write(f);
          f.close();
       }
    }

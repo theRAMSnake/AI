@@ -18,15 +18,14 @@ Neat::Neat(const Config& cfg, const EvolutionStrategyType esType, IFitnessEvalua
 {
     if(esType == EvolutionStrategyType::Blend)
     {
-        mEs = std::make_shared<BlendEvolutionStrategy>();
+        mEs = std::make_shared<BlendEvolutionStrategy>(mCfg.mutationCfg);
     }
     else if(esType == EvolutionStrategyType::Phasing)
     {
-        mEs = std::make_shared<PhasingEvolutionStrategy>();
+        mEs = std::make_shared<PhasingEvolutionStrategy>(mCfg.mutationCfg);
     }
     
     Rng::seed(static_cast<unsigned int>(std::time(0)));
-    Genom::setConfig(cfg);
 }
 
 std::string Neat::getEsInfo() const
@@ -40,11 +39,10 @@ void Neat::step()
     {
         mPopulation.emplace(Population::createInitialPopulation(
             mCfg.numInputs, 
-            mCfg.numOutputs, 
-            mCfg.population,
-            mCfg.compatibilityFactor,
-            mCfg.interspecieCrossoverPercentage,
-            mHistory));
+            mCfg.numOutputs,
+            mCfg.populationCfg,
+            mHistory
+            ));
 
         mPopulation->setEvolutionStrategy(mEs);
     }
@@ -103,7 +101,7 @@ void Neat::updateFitness()
     if(mCfg.numThreads != 1)
     {
         std::vector<std::vector<Pop>::iterator> popPtrs;
-        popPtrs.reserve(mCfg.population * 2); //x2 is not to reallocate overpopulation
+        popPtrs.reserve(mCfg.populationCfg.size * 2); //x2 is not to reallocate overpopulation
 
         for(auto& s: (*mPopulation))
         {
@@ -169,7 +167,7 @@ void Neat::loadState(const std::string& fileName)
 
     mHistory.loadState(ifile);
     mHistory.buildCache();
-    mPopulation.emplace(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
+    mPopulation.emplace(mCfg.populationCfg);
     mPopulation->setEvolutionStrategy(mEs);
     mPopulation->loadState(ifile, mHistory, mCfg.numInputs, mCfg.numOutputs);
     mHistory.clearCache();
@@ -179,11 +177,11 @@ void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
 {
     if(esType == EvolutionStrategyType::Blend)
     {
-        mEs = std::make_shared<BlendEvolutionStrategy>();
+        mEs = std::make_shared<BlendEvolutionStrategy>(cfg.mutationCfg);
     }
     else if(esType == EvolutionStrategyType::Phasing)
     {
-        mEs = std::make_shared<PhasingEvolutionStrategy>();
+        mEs = std::make_shared<PhasingEvolutionStrategy>(cfg.mutationCfg);
     }
 
     auto oldNumInputs = mCfg.numInputs;
@@ -194,54 +192,10 @@ void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
     mCfg.numInputs = oldNumInputs;
     mCfg.numOutputs = oldNumOutputs;
 
-    Genom::setConfig(mCfg);
     if(mPopulation)
     {
-        mPopulation->reconfigure(mCfg.population, mCfg.compatibilityFactor, mCfg.interspecieCrossoverPercentage);
+        mPopulation->reconfigure(mCfg.populationCfg);
         mPopulation->setEvolutionStrategy(mEs);
-    }
-}
-
-void Neat::rebase()
-{
-    //1. Collect all innovations which are enabled in at least one genom
-    std::set<InnovationNumber> allInnovations;
-
-    for(auto &s: (*mPopulation))
-    {
-        for(auto &p: s.population)
-        {
-            for(auto &g : p.genotype)
-            {
-                if(g.enabled)
-                {
-                    allInnovations.insert(g.innovationNumber);
-                }
-            }
-        }
-    }
-
-    mHistory = InnovationHistory();
-
-    //2. Rebuild genoms with clean history, skipping outdated innovations
-    for(auto &s: (*mPopulation))
-    {
-        for(auto &p: s.population)
-        {
-            auto newGenom = Genom(p.genotype.getInputNodeCount(), p.genotype.getOutputNodeCount());
-
-            for(auto &g : p.genotype)
-            {
-                if(allInnovations.find(g.innovationNumber) != allInnovations.end())
-                {
-                    newGenom += {g.srcNodeId, g.dstNodeId, g.enabled, mHistory.get(g.srcNodeId, g.dstNodeId), g.weight};
-                }
-            }
-
-            LOG("Old genom size: " + std::to_string(p.genotype.length()));
-            p.genotype = newGenom;
-            LOG("New genom size: " + std::to_string(p.genotype.length()));
-        }
     }
 }
 

@@ -49,41 +49,22 @@ void MainMenuCtrl::play()
    {
       auto file = items[0];
 
-      //Should it be exposed here?
-      auto& firstGenom = mPm.getProject().getPopulation().begin()->population[0].genotype;
-
-      neat::Genom result( firstGenom.getInputNodeCount(), firstGenom.getOutputNodeCount());
+      neat::v2::Genom result(  );
 
       std::ifstream f;
-      f.open(file, std::ios_base::in);
+      f.open(file, std::ios_base::in | std::ios_base::binary);
       if (f.is_open())
       {
-         std::string str;
-         while ( std::getline (f, str) )
-         {
-            std::istringstream s(str);
-            char spare;
-            neat::Gene g;
-
-            s >> g.innovationNumber;
-            s >> spare;
-            s >> spare;
-
-            g.enabled = spare == '+';
-
-            s >> g.srcNodeId;
-            s >> spare;
-            s >> spare;
-            s >> g.dstNodeId;
-            s >> g.weight;
-
-            result += g;
-         }
+         neat::InnovationHistory h;
+         mPm.getProject().play(neat::v2::Genom::read(
+            f,
+            mPm.getProject().getPlayground().getNumInputs(), 
+            mPm.getProject().getPlayground().getNumOutputs(),
+            h
+         ));
 
          f.close();
       }
-
-      mPm.getProject().play(result);
    }
 }
 
@@ -136,7 +117,6 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
 
    auto& t = parent.push_back("Tools");
    t.append("Play", std::bind(&MainMenuCtrl::play, this));
-   t.append("Rebase", std::bind(&MainMenuCtrl::rebase, this));
 
    trainer.signalStarted.connect([&](){
       p.enabled(false);
@@ -145,9 +125,4 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
    trainer.signalStopped.connect([&](){
       p.enabled(true);
    });
-}
-
-void MainMenuCtrl::rebase()
-{
-   mPm.getProject().rebase();
 }

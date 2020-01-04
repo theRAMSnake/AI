@@ -68,7 +68,6 @@ public:
       Node** mNodePtr;
    };
 
-   NeuroNet(const Genom& genotype);
    NeuroNet(const neat::v2::Genom& genotype);
 
    void activate();

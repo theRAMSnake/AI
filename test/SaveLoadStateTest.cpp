@@ -11,16 +11,11 @@ public:
 
       c.numInputs = 3;
       c.numOutputs = 2;
-      c.population = 100;
-      c.compatibilityFactor = 3.0;
-      c.inheritDisabledChance = 0.75;
-      c.perturbationChance = 0.9;
-      c.addNodeMutationChance = 0.05;
-      c.addConnectionMutationChance = 0.05;
-      c.removeConnectionMutationChance = 0.05;
-      c.weightsMutationChance = 0.8;
-      c.C1_C2 = 1.0;
-      c.C3 = 2.0;
+      c.numThreads = 1;
+      c.populationCfg.size = 100;
+      c.populationCfg.mCompatibilityFactor = 3.0;
+      c.populationCfg.mC1_C2 = 1.0;
+      c.populationCfg.mC3 = 2.0;
 
       mCfg = c;
    }
@@ -32,7 +27,7 @@ protected:
 class SimpleFitnessEvaluator : public neat::IFitnessEvaluator
 {
 public:
-    virtual neat::Fitness evaluate(const neat::Genom& g)
+    virtual neat::Fitness evaluate(const neat::v2::Genom& g)
     {
         return mCurrent++;
     }
@@ -71,7 +66,7 @@ bool isNeatSame(neat::Neat& a, neat::Neat& b)
 
         for(; p1 != s1->population.end(); ++p1, ++p2)
         {
-            if(neat::Genom::calculateDivergence(p1->genotype, p2->genotype) != 0 ||
+            if(neat::v2::Genom::calculateDivergence(p1->genotype, p2->genotype, 1.0, 2.0) != 0 ||
             p1->fitness != p2->fitness)
             {
                 return false;

@@ -4,30 +4,27 @@
 #include <numeric>
 #include <nana/gui/place.hpp>
 
-void printGenom(const neat::Genom& g, std::stringstream& out, const bool includeWeights = false)
+void printGenom(const neat::v2::Genom& g, std::stringstream& out, const bool includeWeights = false)
 {
    out << "         (";
 
-   if(g.length() < 20)
+   if(g.getComplexity() < 20)
    {
       for(auto& x : g)
       {
-         if(x.enabled)
+         if(includeWeights)
          {
-            if(includeWeights)
-            {
-               out << x.srcNodeId << "->" << x.dstNodeId << ":" << std::setprecision(2) << x.weight << " ";
-            }
-            else
-            {
-               out << x.srcNodeId << "->" << x.dstNodeId << " ";
-            }
+            out << x.srcNodeId << "->" << x.dstNodeId << ":" << std::setprecision(2) << x.weight << " ";
+         }
+         else
+         {
+            out << x.srcNodeId << "->" << x.dstNodeId << " ";
          }
       }
    }
    else
    {
-      out << "H:" << g.getNumConnectedHiddenNodes() << " C:" << g.getComplexity();
+      out << "H:" << g.getNodeCount(neat::v2::Genom::NodeType::Hidden) << " C:" << g.getComplexity();
    }
 
    out << ")" << std::endl;

@@ -12,14 +12,14 @@ public:
    void saveState(const std::string& filename);
    void loadState(const std::string& filename);
    void setGeneration(const unsigned int generation);
-   void play(const neat::Genom& g);
-   void rebase();
+   void play(const neat::v2::Genom& g);
 
    const neat::Population& getPopulation() const;
    const unsigned int getGeneration() const;
    const boost::property_tree::ptree& getConfig();
    const unsigned int getAutosavePeriod() const;
    std::string getEsInfo() const;
+   IPlayground& getPlayground();
 
    void updateConfig(const boost::property_tree::ptree& newCfg);
 

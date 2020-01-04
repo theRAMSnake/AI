@@ -13,7 +13,7 @@ public:
       
    }
 
-   neat::Fitness evaluate(const neat::Genom& g) override
+   neat::Fitness evaluate(const neat::v2::Genom& g) override
    {
       return 0;
    }
@@ -35,7 +35,7 @@ void EmptyPG::step()
    
 }
 
-void EmptyPG::play(const neat::Genom& g)
+void EmptyPG::play(const neat::v2::Genom& g)
 {
    
 }

@@ -11,7 +11,7 @@ public:
    neat::IFitnessEvaluator& getFitnessEvaluator() override;
 
    void step() override;
-   void play(const neat::Genom& g) override;
+   void play(const neat::v2::Genom& g) override;
    std::string getName() const override;
 
    unsigned int getNumInputs() const override;

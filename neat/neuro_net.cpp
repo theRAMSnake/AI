@@ -22,63 +22,6 @@ double activationFunction (const double val)
    }
 }
 
-NeuroNet::NeuroNet(const Genom& genotype)
-{
-   auto totalNodes = genotype.getTotalNodeCount();
-   
-   mNodes.reserve(totalNodes);
-   mInputNodes.reserve(genotype.getInputNodeCount());
-   mOutputNodes.reserve(genotype.getOutputNodeCount());
-   mHiddenNodes.reserve(genotype.getHiddenNodeCount());
-
-   for(NodeId i = 0; i < totalNodes; ++i)
-   {
-      mNodes.push_back(Node{i, 0.0, -1});
-
-      if(genotype.isHiddenNode(i))
-      {
-         mHiddenNodes.push_back(&mNodes.back());
-      }
-      else if(genotype.isInputNode(i))
-      {
-         mInputNodes.push_back(&mNodes.back());
-      }
-      else if(genotype.isOutputNode(i))
-      {
-         mOutputNodes.push_back(&mNodes.back());
-      }
-   }
-
-   for(NodeId i : genotype.getInputNodes())
-   {
-      mNodes[i].depth = 0;
-   }
-
-   mNodes[genotype.getBiasNodeId()].value = 1.0;
-   
-   for(auto& c : genotype)
-   {
-      if(c.enabled)
-      {
-         auto& src = mNodes[c.srcNodeId];
-         auto& dst = mNodes[c.dstNodeId];
-
-         dst.inputs.push_back({src.id, c.weight});
-
-         if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
-         {
-            int newDepth = src.depth + 1;
-            dst.depth = std::max(newDepth, dst.depth);
-         }
-      }
-   }
-   
-   std::sort(mHiddenNodes.begin(), mHiddenNodes.end(), [&](auto x, auto y)
-   {
-      return x->depth < y->depth;
-   });
-}
-
 NeuroNet::NeuroNet(const neat::v2::Genom& genotype)
 {
    mNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::All));

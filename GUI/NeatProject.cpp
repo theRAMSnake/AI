@@ -6,19 +6,18 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
 
     result.numInputs = numInputs;
     result.numOutputs = numOutputs;
-    result.addConnectionMutationChance = cfg.get<double>("Mutation.Add Connection");
-    result.addNodeMutationChance = cfg.get<double>("Mutation.Add Node");
-    result.removeNodeMutationChance = cfg.get<double>("Mutation.Remove Node");
-    result.C1_C2 = cfg.get<double>("Speciation.C1/C2");
-    result.C3 = cfg.get<double>("Speciation.C3");
-    result.compatibilityFactor = cfg.get<double>("Speciation.Compatibility Factor");
-    result.inheritDisabledChance = cfg.get<double>("Mutation.Inherit Disabled");
-    result.population = cfg.get<unsigned int>("Basic.Population");
-    result.interspecieCrossoverPercentage = cfg.get<double>("Speciation.Interspecie Crossover");
+    result.mutationCfg.addConnectionMutationChance = cfg.get<double>("Mutation.Add Connection");
+    result.mutationCfg.addNodeMutationChance = cfg.get<double>("Mutation.Add Node");
+    result.mutationCfg.removeNodeMutationChance = cfg.get<double>("Mutation.Remove Node");
+    result.populationCfg.mC1_C2 = cfg.get<double>("Speciation.C1/C2");
+    result.populationCfg.mC3 = cfg.get<double>("Speciation.C3");
+    result.populationCfg.mCompatibilityFactor = cfg.get<double>("Speciation.Compatibility Factor");
+    result.populationCfg.size = cfg.get<unsigned int>("Basic.Population");
+    result.populationCfg.minterspecieCrossoverPercentage = cfg.get<double>("Speciation.Interspecie Crossover");
     result.numThreads = cfg.get<unsigned int>("Basic.Threads");
-    result.perturbationChance = cfg.get<double>("Mutation.Perturbation");
-    result.removeConnectionMutationChance = cfg.get<double>("Mutation.Remove Connection");
-    result.weightsMutationChance = cfg.get<double>("Mutation.Weights");
+    result.mutationCfg.perturbationChance = cfg.get<double>("Mutation.Perturbation");
+    result.mutationCfg.removeConnectionMutationChance = cfg.get<double>("Mutation.Remove Connection");
+    result.mutationCfg.weightsMutationChance = cfg.get<double>("Mutation.Weights");
 
     return result;
 }
@@ -42,7 +41,7 @@ void NeatProject::step()
 
 const neat::Population& NeatProject::getPopulation() const
 {
-   static neat::Population empty(0, 0, 0);
+   static neat::Population empty({});
    return mNeat.hasPopulation() ? mNeat.getPopulation() : empty;
 }
 
@@ -83,7 +82,7 @@ const unsigned int NeatProject::getAutosavePeriod() const
    return mConfig.get<unsigned int>("Basic.Autosave Period");
 }
 
-void NeatProject::play(const neat::Genom& g)
+void NeatProject::play(const neat::v2::Genom& g)
 {
    mPlayground.play(g);
 }
@@ -93,7 +92,7 @@ std::string NeatProject::getEsInfo() const
    return mNeat.getEsInfo();
 }
 
-void NeatProject::rebase()
+IPlayground& NeatProject::getPlayground()
 {
-   mNeat.rebase();
+   return mPlayground;
 }
