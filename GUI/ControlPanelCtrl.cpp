@@ -4,6 +4,8 @@
 #include <nana/gui/widgets/button.hpp>
 #include "widgets/pgitems.hpp"
 
+#include <boost/property_tree/json_parser.hpp>
+
 std::string formatCfgStr(const std::string& input)
 {
    //For now strings containg '.' is considered to be double values.
@@ -67,14 +69,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
          }
       }
 
-      try
-      {
-         mPm.getProject().updateConfig(cfg);
-      }
-      catch(const std::exception& e)
-      {
-         nana::msgbox(parent, e.what());
-      }
+      mPm.getProject().updateConfig(cfg);
    });
 
    trainer.signalStopped.connect([&](){

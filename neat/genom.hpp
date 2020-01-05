@@ -104,7 +104,7 @@ public:
     void mutate(const MutationConfig& config, InnovationHistory& history);
 
     bool isConnected(const NodeId src, const NodeId dst) const;
-    void connect(const NodeId src, const NodeId dst, InnovationHistory& history);
+    void connect(const NodeId src, const NodeId dst, InnovationHistory& history, double weight);
     void disconnect(const NodeId src, const NodeId dst);
     void disconnectAll(); //All unconnected elements will remain!
 

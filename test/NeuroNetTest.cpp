@@ -78,9 +78,7 @@ BOOST_FIXTURE_TEST_CASE( TestOneHiddenNode, NeuroNetTest )
       a.setWeight(1, 0.5);
       a.setWeight(2, 0.5);
 
-      a.connect(3, a.beginNodes(neat::v2::Genom::NodeType::Hidden)->id, mHistory);
-
-      a.setWeight(3, 1.0);
+      a.connect(3, a.beginNodes(neat::v2::Genom::NodeType::Hidden)->id, mHistory, 1.0);
 
       neat::NeuroNet n(a);
 
@@ -106,15 +104,15 @@ BOOST_FIXTURE_TEST_CASE( TestTriangleNode, NeuroNetTest )
    auto newNodeId2 = iter->id; ++iter;
    auto newNodeId3 = iter->id; ++iter;
 
-   a.connect(0, newNodeId2, mHistory); a.setWeight(a.getComplexity() - 1, 0.0);
-   a.connect(1, newNodeId2, mHistory); a.setWeight(a.getComplexity() - 1, 0.0);
-   a.connect(1, newNodeId3, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
-   a.connect(2, newNodeId2, mHistory); a.setWeight(a.getComplexity() - 1, 0.0);
-   a.connect(2, newNodeId3, mHistory); a.setWeight(a.getComplexity() - 1, 0.25);
-   a.connect(newNodeId2, newNodeId1, mHistory); a.setWeight(a.getComplexity() - 1, 0.5);
-   a.connect(newNodeId1, newNodeId3, mHistory); a.setWeight(a.getComplexity() - 1, 0.5);
-   a.connect(newNodeId3, newNodeId2, mHistory); a.setWeight(a.getComplexity() - 1, 0.5);
-   a.connect(newNodeId1, 3, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
+   a.connect(0, newNodeId2, mHistory, 0.0);
+   a.connect(1, newNodeId2, mHistory, 0.0);
+   a.connect(1, newNodeId3, mHistory, 1.0);
+   a.connect(2, newNodeId2, mHistory, 0.0);
+   a.connect(2, newNodeId3, mHistory, 0.25);
+   a.connect(newNodeId2, newNodeId1, mHistory, 0.5);
+   a.connect(newNodeId1, newNodeId3, mHistory, 0.5);
+   a.connect(newNodeId3, newNodeId2, mHistory, 0.5);
+   a.connect(newNodeId1, 3, mHistory, 1.0);
 
    neat::NeuroNet n(a);
    BOOST_CHECK_EQUAL(0.5, neat::activate(n, {10, 10})[0]);

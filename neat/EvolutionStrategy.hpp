@@ -54,7 +54,7 @@ public:
    }
 
 private:
-   const v2::MutationConfig& mCfg;
+   const v2::MutationConfig mCfg;
 };
 
 class PhasingEvolutionStrategy : public IEvolutionStrategy

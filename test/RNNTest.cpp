@@ -33,11 +33,11 @@ BOOST_FIXTURE_TEST_CASE( TestRNN, RNNTest )
 
    a.disconnectAll();
 
-   a.connect(1, newNodeId1, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
-   a.connect(2, newNodeId2, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
-   a.connect(newNodeId2, newNodeId1, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
-   a.connect(newNodeId1, 3, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
-   a.connect(3, 3, mHistory); a.setWeight(a.getComplexity() - 1, 1.0);
+   a.connect(1, newNodeId1, mHistory, 1.0);
+   a.connect(2, newNodeId2, mHistory, 1.0);
+   a.connect(newNodeId2, newNodeId1, mHistory, 1.0);
+   a.connect(newNodeId1, 3, mHistory, 1.0);
+   a.connect(3, 3, mHistory, 1.0);
 
    neat::NeuroNet n(a);
    BOOST_CHECK_EQUAL(0.92414181997875655, neat::activate(n, {0, 0})[0]);

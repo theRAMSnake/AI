@@ -1,4 +1,5 @@
 #include "NeatProject.hpp"
+#include <boost/property_tree/json_parser.hpp>
 
 neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned int numInputs, const unsigned int numOutputs)
 {
@@ -9,16 +10,21 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
     result.mutationCfg.addConnectionMutationChance = cfg.get<double>("Mutation.Add Connection");
     result.mutationCfg.addNodeMutationChance = cfg.get<double>("Mutation.Add Node");
     result.mutationCfg.removeNodeMutationChance = cfg.get<double>("Mutation.Remove Node");
+    result.mutationCfg.perturbationChance = cfg.get<double>("Mutation.Perturbation");
+    result.mutationCfg.removeConnectionMutationChance = cfg.get<double>("Mutation.Remove Connection");
+    result.mutationCfg.weightsMutationChance = cfg.get<double>("Mutation.Weights");
     result.populationCfg.mC1_C2 = cfg.get<double>("Speciation.C1/C2");
     result.populationCfg.mC3 = cfg.get<double>("Speciation.C3");
     result.populationCfg.mCompatibilityFactor = cfg.get<double>("Speciation.Compatibility Factor");
     result.populationCfg.size = cfg.get<unsigned int>("Basic.Population");
     result.populationCfg.minterspecieCrossoverPercentage = cfg.get<double>("Speciation.Interspecie Crossover");
     result.numThreads = cfg.get<unsigned int>("Basic.Threads");
-    result.mutationCfg.perturbationChance = cfg.get<double>("Mutation.Perturbation");
-    result.mutationCfg.removeConnectionMutationChance = cfg.get<double>("Mutation.Remove Connection");
-    result.mutationCfg.weightsMutationChance = cfg.get<double>("Mutation.Weights");
 
+    if(result.mutationCfg.addNodeMutationChance != 0.05)
+    {
+       boost::property_tree::write_json("dbg.out", cfg);
+    }
+    
     return result;
 }
 

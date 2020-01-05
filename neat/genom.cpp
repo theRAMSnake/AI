@@ -233,7 +233,7 @@ bool Genom::mutateAddConnection(InnovationHistory& history)
         //choose one at random
         auto& newConnection = possibleConnections[Rng::genChoise(possibleConnections.size())];
 
-        connect(newConnection.first, newConnection.second, history);
+        connect(newConnection.first, newConnection.second, history, Rng::genWeight());
         
         return true;
     }
@@ -250,7 +250,7 @@ void Genom::mutateRemoveConnection()
     }
 }
 
-void Genom::connect(const NodeId src, const NodeId dst, InnovationHistory& history)
+void Genom::connect(const NodeId src, const NodeId dst, InnovationHistory& history, double weight)
 {
     auto srcpos = std::find_if(mNodes.begin(), mNodes.end(), [=](auto n){return n.id == src;});
     if(srcpos != mNodes.end())
@@ -264,7 +264,9 @@ void Genom::connect(const NodeId src, const NodeId dst, InnovationHistory& histo
         dstpos->numConnections++;
     }
 
-    mGenes.push_back({src, dst, history.get(src, dst), Rng::genWeight()});
+    auto g = ConnectionGene{src, dst, history.get(src, dst), weight};
+    mGenes.insert(std::lower_bound(mGenes.begin(), mGenes.end(), g, [](auto x, auto y){return x.innovationNumber < y.innovationNumber;}),
+        g);
 }
 
 void Genom::disconnect(const NodeId src, const NodeId dst)
@@ -341,7 +343,7 @@ void Genom::mutateRemoveNode(InnovationHistory& history)
         {
             for(auto dst : dstIds)
             {
-                connect(src, dst, history);
+                connect(src, dst, history, Rng::genWeight());
             }
         }
 
@@ -375,9 +377,10 @@ void Genom::mutateAddNode(InnovationHistory& history)
 
     mGenes.erase(mGenes.begin() + pos);
 
-    mGenes.push_back({srcId, newNodeId, history.get(srcId, newNodeId), 1.0});
-    mGenes.push_back({newNodeId, dstId, history.get(newNodeId, dstId), oldWeight});
     mNodes.push_back({newNodeId, ActivationFunctionType::SIGMOID, 2});
+    
+    connect(srcId, newNodeId, history, 1.0);
+    connect(newNodeId, dstId, history, oldWeight);
 }
 
 void Genom::NodesIterator::selectNextType()
