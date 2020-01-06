@@ -88,6 +88,7 @@ private:
       double value;
       int depth = -1;
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
+      ActivationFunction func = nullptr;
    };
 
    //const Genom& mGenotype;

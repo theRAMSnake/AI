@@ -2,25 +2,10 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include "activation.hpp"
 
 namespace neat
 {
-
-double activationFunction (const double val)
-{
-   if(val > 1.5)
-   {
-      return 1.0;
-   }
-   else if(val < -1.5)
-   {
-      return 0;
-   }
-   else
-   {
-      return 1.0 / (1 + std::exp(-5.0 * val));
-   }
-}
 
 NeuroNet::NeuroNet(const neat::v2::Genom& genotype)
 {
@@ -53,7 +38,7 @@ NeuroNet::NeuroNet(const neat::v2::Genom& genotype)
    for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Hidden); iter != genotype.endNodes(v2::Genom::NodeType::Hidden); ++iter)
    {
       idToIdxMap[iter->id] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1});
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1, {}, getPtr(iter->acType)});
       mHiddenNodes.push_back(&mNodes.back());
    }
    
@@ -79,16 +64,6 @@ NeuroNet::NeuroNet(const neat::v2::Genom& genotype)
 
 void NeuroNet::activate()
 {
-   /*
-   struct Node
-   {
-      NodeId id;
-      double value;
-      int depth = -1;
-      boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
-   };
-   */
-
    //Walk over ordered hidden nodes
    for(auto node : mHiddenNodes)
    {      
@@ -99,7 +74,7 @@ void NeuroNet::activate()
          totalInput += c.second * input.value;
       }
 
-      node->value = activationFunction(totalInput);
+      node->value = node->func(totalInput);
    }
 
    //Walk over ordered output nodes

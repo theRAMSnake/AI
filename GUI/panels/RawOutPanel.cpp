@@ -4,32 +4,6 @@
 #include <numeric>
 #include <nana/gui/place.hpp>
 
-void printGenom(const neat::v2::Genom& g, std::stringstream& out, const bool includeWeights = false)
-{
-   out << "         (";
-
-   if(g.getComplexity() < 20)
-   {
-      for(auto& x : g)
-      {
-         if(includeWeights)
-         {
-            out << x.srcNodeId << "->" << x.dstNodeId << ":" << std::setprecision(2) << x.weight << " ";
-         }
-         else
-         {
-            out << x.srcNodeId << "->" << x.dstNodeId << " ";
-         }
-      }
-   }
-   else
-   {
-      out << "H:" << g.getNodeCount(neat::v2::Genom::NodeType::Hidden) << " C:" << g.getComplexity();
-   }
-
-   out << ")" << std::endl;
-}
-
 void printState(NeatProject& c, std::stringstream& out)
 {
    auto& pops = c.getPopulation();
@@ -39,35 +13,30 @@ void printState(NeatProject& c, std::stringstream& out)
    out << "Num species: " << pops.numSpecies() << std::endl;
    out << "Average fitness: " << pops.getAverageFitness() << std::endl;
 
-   std::vector<std::pair<int, const neat::Pop*>> bestPops;
+   std::map<ActivationFunctionType, int> numActivations;
+   int totalNodes = 0;
+
    for(auto& s : pops)
    {
       for(auto& p : s.population)
       {
-         if(bestPops.size() == 10)
-         {
-            auto worst = std::min_element(bestPops.begin(), bestPops.end(), [](auto x, auto y){return x.second->fitness < y.second->fitness;});
-            if(worst->second->fitness < p.fitness)
+         for(auto n = p.genotype.beginNodes(neat::v2::Genom::NodeType::Hidden);
+            n != p.genotype.endNodes(neat::v2::Genom::NodeType::Hidden);
+            ++n)
             {
-               (*worst) = std::make_pair(s.id, &p);
+               numActivations[n->acType]++;
+               totalNodes++;
             }
-         }
-         else
-         {
-            bestPops.push_back(std::make_pair(s.id, &p));
-         }
       }
    }
 
-   std::sort(bestPops.begin(), bestPops.end(), [](auto& x, auto& y){return x.second->fitness > y.second->fitness;});
-
-   out << "Top 10 fitness: " << std::accumulate(bestPops.begin(), bestPops.end(), 0, [](auto& x, auto& y){return x + y.second->fitness;}) << std::endl;
-   out << "Top 10: " << std::endl;
-
-   for(auto &b : bestPops)
+   if(totalNodes != 0)
    {
-      out << b.first << ": Fitness: " << b.second->fitness << std::endl;
-      printGenom(b.second->genotype, out);
+      for(int i = 0; i < NUM_ACTIVATION_FUNCTION_TYPES; ++i)
+      {
+         out << "ActivationFunction[" << i << "] = " << 
+            (double)numActivations[static_cast<ActivationFunctionType>(i)] * 100 / totalNodes << "%" << std::endl;
+      }
    }
 }
 
