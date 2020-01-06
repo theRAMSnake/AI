@@ -7,14 +7,6 @@
 namespace neat
 {
 
-class IFitnessEvaluator
-{
-public:
-    virtual Fitness evaluate(const v2::Genom& g) = 0;
-
-    virtual ~IFitnessEvaluator(){}
-};
-
 struct Pop
 {
    Fitness fitness;

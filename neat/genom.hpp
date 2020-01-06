@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "InnovationHistory.hpp"
-#include "activation.hpp"
+#include "../neuroevolution/activation.hpp"
 
 namespace neat
 {

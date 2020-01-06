@@ -1,6 +1,6 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include "neat/neuro_net.hpp"
+#include "neuronet/neuro_net.hpp"
 
 class NeuroNetTest
 {
