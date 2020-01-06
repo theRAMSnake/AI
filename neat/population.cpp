@@ -144,7 +144,7 @@ Fitness Specie::getTotalFitness() const
 
 bool Specie::isStagnant() const
 {
-    return numStagnant > 50;
+    return false;
 }
 
 void Specie::produceOffsprings(
@@ -472,6 +472,8 @@ void Population::loadState(
 void Population::setEvolutionStrategy(std::shared_ptr<IEvolutionStrategy>& es)
 {
    mEs = es;
+
+   std::cout << mEs->getAllowedMutations().addNodeMutationChance << " " << mEs->getAllowedMutations().addConnectionMutationChance;
 }
 
 double Population::getAverageComplexity() const
