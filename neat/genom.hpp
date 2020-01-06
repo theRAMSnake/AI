@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "InnovationHistory.hpp"
+#include "activation.hpp"
 
 namespace neat
 {
@@ -9,11 +10,6 @@ using Fitness = int;
 
 namespace v2
 {
-
-enum class ActivationFunctionType
-{
-    SIGMOID
-};
 
 struct ConnectionGene
 {
@@ -34,6 +30,7 @@ struct MutationConfig
 {
     double perturbationChance = 0.0;
     double addNodeMutationChance = 0.0;
+    double changeNodeMutationChance = 0.0;
     double addConnectionMutationChance = 0.0;
     double removeConnectionMutationChance = 0.0;
     double removeNodeMutationChance = 0.0;
@@ -113,6 +110,7 @@ private:
     bool mutateAddConnection(InnovationHistory& history);
     void mutateRemoveConnection();
     void mutateAddNode(InnovationHistory& history);
+    void mutateChangeNode();
     void mutateRemoveNode(InnovationHistory& history);
 
     const NodeId mNumBiasNodes;

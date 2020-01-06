@@ -31,6 +31,7 @@ void initiatializeConfig(boost::property_tree::ptree& cfg)
    cfg.put("Speciation.Interspecie Crossover", 1);
    cfg.put("Mutation.Perturbation", 0.9);
    cfg.put("Mutation.Add Node", 0.05);
+   cfg.put("Mutation.Change Node", 0.2);
    cfg.put("Mutation.Remove Node", 0.05);
    cfg.put("Mutation.Add Connection", 0.1);
    cfg.put("Mutation.Remove Connection", 0.1);
@@ -44,6 +45,11 @@ void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
    if(!cfg.get_optional<unsigned int>("Basic.Population"))
    {
       initiatializeConfig(cfg);
+   }
+
+   if(!cfg.get_optional<double>("Mutation.Change Node"))
+   {
+      cfg.put("Mutation.Change Node", 0.2);
    }
 
    if(!cfg.get_optional<double>("Mutation.Remove Node"))

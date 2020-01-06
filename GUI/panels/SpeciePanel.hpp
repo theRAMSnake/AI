@@ -26,6 +26,7 @@ private:
    unsigned int mSpecieId = 0;
    unsigned int mTopFitness = 0;
    unsigned int mComplexity = 0;
+   unsigned int mNumNodes = 0;
 };
 
 class SpeciePanel

@@ -187,6 +187,17 @@ void Genom::mutate(const MutationConfig& config, InnovationHistory& history)
     {
         mutateRemoveNode(history);
     }
+    if(config.changeNodeMutationChance != 0.0 && Rng::genProbability(config.changeNodeMutationChance) && !mNodes.empty())
+    {
+        mutateChangeNode();
+    }
+}
+
+void Genom::mutateChangeNode()
+{
+    auto& node = mNodes[Rng::genChoise(mNodes.size())];
+
+    node.acType = static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES));
 }
 
 void Genom::mutateWeights(const double perturbationChance)
@@ -378,7 +389,7 @@ void Genom::mutateAddNode(InnovationHistory& history)
     mGenes.erase(mGenes.begin() + pos);
 
     mNodes.push_back({newNodeId, ActivationFunctionType::SIGMOID, 2});
-    
+
     connect(srcId, newNodeId, history, 1.0);
     connect(newNodeId, dstId, history, oldWeight);
 }

@@ -260,7 +260,7 @@ SpecieOverview::SpecieOverview(std::shared_ptr<nana::group> impl)
          nana::colors::blue
          );
 
-      auto bottomText = std::to_string(mSpecieId) + ": " + std::to_string(mComplexity);
+      auto bottomText = std::to_string(mSpecieId) + ": " + std::to_string(mNumNodes) + "/" + std::to_string(mComplexity);
       sz = graph.text_extent_size(bottomText);
       graph.string({static_cast<int>(graph.width() / 2 - sz.width / 2), static_cast<int>(graph.height() - sz.height - 5)}, 
          bottomText, 
@@ -276,6 +276,7 @@ void SpecieOverview::update(const neat::Specie& specie, const unsigned int total
    mSpecieId = specie.id;
    mTopFitness = specie.maxFitness;
    mComplexity = specie.population[0].genotype.getComplexity();
+   mNumNodes = specie.population[0].genotype.getNodeCount(neat::v2::Genom::NodeType::Hidden);
 
    mDrawer.update();
 }
