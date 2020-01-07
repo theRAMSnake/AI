@@ -17,6 +17,7 @@ public:
    void createProject(const std::string& playgroundName, const std::string& engine, const std::string& fileName);
    IProject& getProject();
    std::vector<std::string> getPlaygroundList() const;
+   std::vector<std::string> getEngineList() const;
 
 private:
    neuroevolution::IPlayground& createPlayground(const std::string& name);

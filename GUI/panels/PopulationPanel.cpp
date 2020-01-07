@@ -13,7 +13,7 @@
 #include "../Trainer.hpp"
 #include "../ProjectManager.hpp"
 
-#include "neat/neuro_net.hpp"
+#include "neuroevolution/neuro_net.hpp"
 #include <iostream>
 
 void PopulationPanel::refresh()

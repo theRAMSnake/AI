@@ -54,7 +54,8 @@ void MainMenuCtrl::play()
       f.open(file, std::ios_base::in | std::ios_base::binary);
       if (f.is_open())
       {
-         mPm.getProject().play(neuroevolution::NeuroNet::fromBinaryStream(f));
+         auto ann = neuroevolution::NeuroNet::fromBinaryStream(f);
+         mPm.getProject().play(ann);
 
          f.close();
       }
@@ -66,23 +67,30 @@ void MainMenuCtrl::newProject()
    std::string prjname;
 
    auto pgs = mPm.getPlaygroundList();
+   auto engs = mPm.getEngineList();
 
    nana::form dlg(mWnd, {250, 160});
    dlg.caption("Choose playground");
 
-   nana::combox cmb(dlg);
+   nana::combox cmbPg(dlg);
+   nana::combox cmbEng(dlg);
    nana::textbox filename(dlg);
    nana::button btn(dlg);
    btn.caption("OK");
 
    nana::place layout(dlg);
-   layout.div("<vert a arrange=[28, 28, 28] margin=10 gap=5>");
-   layout.field("a") << cmb << filename << btn;
+   layout.div("<vert a arrange=[28, 28, 28, 28] margin=10 gap=5>");
+   layout.field("a") << cmbPg << cmbEng << filename << btn;
    layout.collocate();
 
    for(auto x : pgs)
    {
-      cmb.push_back(x);
+      cmbPg.push_back(x);
+   }
+
+   for(auto x : engs)
+   {
+      cmbEng.push_back(x);
    }
 
    btn.events().click.connect([&](){
@@ -93,10 +101,11 @@ void MainMenuCtrl::newProject()
       prjname = filename.text();
    });
 
-   cmb.option(0);
+   cmbPg.option(0);
+   cmbEng.option(0);
    dlg.modality();
 
-   mPm.createProject(pgs[cmb.option()], prjname + ".saprj");
+   mPm.createProject(pgs[cmbPg.option()], engs[cmbEng.option()], prjname + ".saprj");
 }
 
 MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& trainer)

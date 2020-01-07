@@ -97,6 +97,8 @@ public:
 
    NetworkTopology createTopology() const;
 
+   static NeuroNet fromBinaryStream(std::ifstream& stream);
+
 private:
    struct Node
    {

@@ -2,9 +2,20 @@
 #include "EmptyPG.hpp"
 #include "TetrisPG.hpp"
 #include "CheckpointPG.hpp"
+#include "projects/NeatProject.hpp"
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+
+IProject* instantiateProject(const boost::property_tree::ptree& cfg, const std::string& engine, neuroevolution::IPlayground& pg)
+{
+   if(engine == "Neat")
+   {
+      return new NeatProject(cfg, pg);
+   }
+
+   throw -1;
+}
 
 void ProjectManager::save(const std::string& fileName)
 {

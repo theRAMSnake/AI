@@ -9,9 +9,9 @@ class NeatProject : public IProject
 public:
    NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg);
 
-   void step();
-   void saveState(const std::string& filename);
-   void loadState(const std::string& filename);
+   void step() override;
+   void saveState(const std::string& filename) override;
+   void loadState(const std::string& filename) override;
    void setGeneration(const unsigned int generation);
    void play(neuroevolution::NeuroNet& ann) override;
 
@@ -19,8 +19,9 @@ public:
    const unsigned int getGeneration() const override;
    const boost::property_tree::ptree& getConfig() const override;
    std::string getEngine() const override;
+   void getRawOut(std::stringstream& out) const override;
+
    const unsigned int getAutosavePeriod() const;
-   std::string getEsInfo() const;
    IPlayground& getPlayground();
 
    void updateConfig(const boost::property_tree::ptree& newCfg);

@@ -102,3 +102,39 @@ std::string NeatProject::getEngine() const
 {
    return "Neat";
 }
+
+void NeatProject::getRawOut(std::stringstream& out) const
+{
+   auto& pops = c.getPopulation();
+
+   out << "Generation: " << c.getGeneration() << std::endl;
+   out << "Total population: " << pops.size() << std::endl;
+   out << "Num species: " << pops.numSpecies() << std::endl;
+   out << "Average fitness: " << pops.getAverageFitness() << std::endl;
+
+   std::map<ActivationFunctionType, int> numActivations;
+   int totalNodes = 0;
+
+   for(auto& s : pops)
+   {
+      for(auto& p : s.population)
+      {
+         for(auto n = p.genotype.beginNodes(neat::v2::Genom::NodeType::Hidden);
+            n != p.genotype.endNodes(neat::v2::Genom::NodeType::Hidden);
+            ++n)
+            {
+               numActivations[n->acType]++;
+               totalNodes++;
+            }
+      }
+   }
+
+   if(totalNodes != 0)
+   {
+      for(int i = 0; i < NUM_ACTIVATION_FUNCTION_TYPES; ++i)
+      {
+         out << "ActivationFunction[" << i << "] = " << 
+            (double)numActivations[static_cast<ActivationFunctionType>(i)] * 100 / totalNodes << "%" << std::endl;
+      }
+   }
+}
