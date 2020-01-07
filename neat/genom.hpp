@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
+#include <memory>
 #include "InnovationHistory.hpp"
-#include "../neuroevolution/activation.hpp"
+#include "neuroevolution/activation.hpp"
+#include "neuroevolution/neuro_net.hpp"
 
 namespace neat
 {
@@ -60,6 +62,7 @@ public:
         bool operator == (const NodesIterator& other) const;
         NodesIterator& operator ++();
         const NodeGene* operator -> () const;
+        const NodeGene& operator *() const;
 
     private:
         void selectNextType();
@@ -123,6 +126,8 @@ private:
 
 void mutateAddNode(Genom& a, InnovationHistory& history);
 void mutateAddConnection(Genom& a, InnovationHistory& history);
+
+std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g);
     
 }
 

@@ -100,7 +100,7 @@ void PopulationPanel::visualizeGenom()
 {
    auto& organism = extractPopFromSelected();
 
-   mNnView.reset(new Nn_view(std::move(std::make_unique<neat::NeuroNet>(organism.genotype))));
+   mNnView.reset(new Nn_view(std::move(std::make_unique<neuroevolution::NeuroNet>(organism.genotype))));
 }
 
 const neat::Pop& PopulationPanel::extractPopFromSelected()

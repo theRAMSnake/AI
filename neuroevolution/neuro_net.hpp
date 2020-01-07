@@ -83,10 +83,11 @@ public:
       const std::vector<NodeId>& biasNodes,
       const std::vector<NodeId>& outputNodes,
       const std::vector<std::pair<NodeId, ActivationFunctionType>>& hiddenNodes,
-      const std::vector<ConnectionDef> connections
+      const std::vector<ConnectionDef>& connections
       );
 
    void activate();
+   void reset();
    
    NodeIterator begin_input();
    NodeIterator end_input();

@@ -1,9 +1,10 @@
 #pragma once
 #include "neat/neat.hpp"
-#include "IPlayground.hpp"
+#include "neuroevolution/IPlayground.hpp"
+#include "../IProject.hpp"
 #include <boost/property_tree/ptree.hpp>
 
-class NeatProject
+class NeatProject : public IProject
 {
 public:
    NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg);
@@ -12,11 +13,12 @@ public:
    void saveState(const std::string& filename);
    void loadState(const std::string& filename);
    void setGeneration(const unsigned int generation);
-   void play(const neat::v2::Genom& g);
+   void play(neuroevolution::NeuroNet& ann) override;
 
-   const neat::Population& getPopulation() const;
-   const unsigned int getGeneration() const;
-   const boost::property_tree::ptree& getConfig();
+   const IPopulation& getPopulation() const override;
+   const unsigned int getGeneration() const override;
+   const boost::property_tree::ptree& getConfig() const override;
+   std::string getEngine() const override;
    const unsigned int getAutosavePeriod() const;
    std::string getEsInfo() const;
    IPlayground& getPlayground();
@@ -28,4 +30,5 @@ private:
    neat::Neat mNeat;
    boost::property_tree::ptree mConfig;
    IPlayground& mPlayground;
+   NeatPopulation mPops;
 };

@@ -15,7 +15,7 @@ nana::colors colorByWeight(const double weight)
    return nana::colors::blue;
 }
 
-Nn_view::Nn_view(std::unique_ptr<neat::NeuroNet>&& ann)
+Nn_view::Nn_view(std::unique_ptr<neuroevolution::NeuroNet>&& ann)
 : mForm(nana::API::make_center(1000, 800))
 , mDraw(mForm)
 , mAnn(std::move(ann))

@@ -10,6 +10,7 @@
 #endif
 #include <nana/gui/filebox.hpp>
 #include <iostream>
+#include <fstream>
 
 void MainMenuCtrl::saveProject()
 {
@@ -41,7 +42,7 @@ void MainMenuCtrl::loadProject()
 void MainMenuCtrl::play()
 {
    nana::filebox fb(mWnd, true);
-   fb.add_filter("Genom file", "*.genom");
+   fb.add_filter("ANN", "*.ann");
    fb.add_filter("All Files", "*.*");
 
    auto items = fb();
@@ -49,19 +50,11 @@ void MainMenuCtrl::play()
    {
       auto file = items[0];
 
-      neat::v2::Genom result(  );
-
       std::ifstream f;
       f.open(file, std::ios_base::in | std::ios_base::binary);
       if (f.is_open())
       {
-         neat::InnovationHistory h;
-         mPm.getProject().play(neat::v2::Genom::read(
-            f,
-            mPm.getProject().getPlayground().getNumInputs(), 
-            mPm.getProject().getPlayground().getNumOutputs(),
-            h
-         ));
+         mPm.getProject().play(neuroevolution::NeuroNet::fromBinaryStream(f));
 
          f.close();
       }

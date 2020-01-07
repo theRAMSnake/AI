@@ -1,6 +1,6 @@
 #include "EmptyPG.hpp"
 
-class EmptyFitnessEvaluator : public neat::IFitnessEvaluator
+class EmptyFitnessEvaluator : public neuroevolution::IFitnessEvaluator
 {
 public:
    EmptyFitnessEvaluator()
@@ -13,13 +13,13 @@ public:
       
    }
 
-   neat::Fitness evaluate(const neat::v2::Genom& g) override
+   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
    {
       return 0;
    }
 };
 
-neat::IFitnessEvaluator& EmptyPG::getFitnessEvaluator()
+neuroevolution::IFitnessEvaluator& EmptyPG::getFitnessEvaluator()
 {
    return *mFitnessEvaluator;
 }
@@ -35,7 +35,7 @@ void EmptyPG::step()
    
 }
 
-void EmptyPG::play(const neat::v2::Genom& g)
+void EmptyPG::play(neuroevolution::NeuroNet& ann)
 {
    
 }

@@ -2,6 +2,7 @@
 #include "population.hpp"
 #include "genom.hpp"
 #include <optional>
+#include "neuroevolution/IPlayground.hpp"
 
 namespace neat
 {
@@ -24,7 +25,7 @@ struct Config
 class Neat
 {
 public:
-    Neat(const Config& cfg, const EvolutionStrategyType esType, IFitnessEvaluator& fitnessEvaluator);
+    Neat(const Config& cfg, const EvolutionStrategyType esType, neuroevolution::IFitnessEvaluator& fitnessEvaluator);
     void step();
     void reconfigure(const Config& cfg, const EvolutionStrategyType esType);
 
@@ -41,7 +42,7 @@ private:
     void updateFitness();
 
     Config mCfg;
-    IFitnessEvaluator& mFitnessEvaluator;
+    neuroevolution::IFitnessEvaluator& mFitnessEvaluator;
 
     std::shared_ptr<IEvolutionStrategy> mEs;
     std::optional<Population> mPopulation;

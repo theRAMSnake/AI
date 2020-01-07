@@ -4,70 +4,18 @@
 #include <algorithm>
 #include "activation.hpp"
 
-/*NeuroNet::NeuroNet(const neat::v2::Genom& genotype)
+namespace neuroevolution
 {
-   mNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::All));
-   mInputNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::Input));
-   mOutputNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::Output));
-   mHiddenNodes.reserve(genotype.getNodeCount(v2::Genom::NodeType::Hidden));
-
-   std::map<NodeId, NodeId> idToIdxMap;
-   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Bias); iter != genotype.endNodes(v2::Genom::NodeType::Bias); ++iter)
-   {
-      idToIdxMap[iter->id] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 1.0, -1});
-   }
-
-   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Input); iter != genotype.endNodes(v2::Genom::NodeType::Input); ++iter)
-   {
-      idToIdxMap[iter->id] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0});
-      mInputNodes.push_back(&mNodes.back());
-   }
-
-   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Output); iter != genotype.endNodes(v2::Genom::NodeType::Output); ++iter)
-   {
-      idToIdxMap[iter->id] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1});
-      mOutputNodes.push_back(&mNodes.back());
-   }
-
-   for(auto iter = genotype.beginNodes(v2::Genom::NodeType::Hidden); iter != genotype.endNodes(v2::Genom::NodeType::Hidden); ++iter)
-   {
-      idToIdxMap[iter->id] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1, {}, getPtr(iter->acType)});
-      mHiddenNodes.push_back(&mNodes.back());
-   }
-   
-   for(auto& c : genotype)
-   {
-      auto& src = mNodes[idToIdxMap[c.srcNodeId]];
-      auto& dst = mNodes[idToIdxMap[c.dstNodeId]];
-
-      dst.inputs.push_back({src.id, c.weight});
-
-      if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
-      {
-         int newDepth = src.depth + 1;
-         dst.depth = std::max(newDepth, dst.depth);
-      }
-   }
-   
-   std::sort(mHiddenNodes.begin(), mHiddenNodes.end(), [&](auto x, auto y)
-   {
-      return x->depth < y->depth;
-   });
-}*/
 
 NeuroNet::NeuroNet(
    const std::vector<NodeId>& inputNodes, 
    const std::vector<NodeId>& biasNodes,
    const std::vector<NodeId>& outputNodes,
    const std::vector<std::pair<NodeId, ActivationFunctionType>>& hiddenNodes,
-   const std::vector<ConnectionDef> connections
+   const std::vector<ConnectionDef>& connections
    )
 {
-   mNodes.reserve(inputNodes.size() + biasNodes.size() + outputNodes.size(), hiddenNodes.size());
+   mNodes.reserve(inputNodes.size() + biasNodes.size() + outputNodes.size() + hiddenNodes.size());
    mInputNodes.reserve(inputNodes.size());
    mOutputNodes.reserve(outputNodes.size());
    mHiddenNodes.reserve(hiddenNodes.size());
@@ -88,7 +36,7 @@ NeuroNet::NeuroNet(
 
    for(auto n : outputNodes)
    {
-      idToIdxMap[in] = mNodes.size();
+      idToIdxMap[n] = mNodes.size();
       mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1});
       mOutputNodes.push_back(&mNodes.back());
    }
@@ -245,4 +193,6 @@ std::vector<NetworkTopology::Node> NetworkTopology::getLayer(const std::size_t i
    {
       return pos->second;
    }
+}
+
 }

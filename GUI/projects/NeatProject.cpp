@@ -43,8 +43,7 @@ void NeatProject::step()
 
 const neat::Population& NeatProject::getPopulation() const
 {
-   static neat::Population empty({});
-   return mNeat.hasPopulation() ? mNeat.getPopulation() : empty;
+   return mPops;
 }
 
 const unsigned int NeatProject::getGeneration() const
@@ -67,7 +66,7 @@ void NeatProject::setGeneration(const unsigned int generation)
    mGeneration = generation;
 }
 
-const boost::property_tree::ptree& NeatProject::getConfig()
+const boost::property_tree::ptree& NeatProject::getConfig() const
 {
    return mConfig;
 }
@@ -84,9 +83,9 @@ const unsigned int NeatProject::getAutosavePeriod() const
    return mConfig.get<unsigned int>("Basic.Autosave Period");
 }
 
-void NeatProject::play(const neat::v2::Genom& g)
+void NeatProject::play(neuroevolution::NeuroNet& ann)
 {
-   mPlayground.play(g);
+   mPlayground.play(ann);
 }
 
 std::string NeatProject::getEsInfo() const
@@ -97,4 +96,9 @@ std::string NeatProject::getEsInfo() const
 IPlayground& NeatProject::getPlayground()
 {
    return mPlayground;
+}
+
+std::string NeatProject::getEngine() const
+{
+   return "Neat";
 }

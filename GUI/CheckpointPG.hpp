@@ -1,17 +1,17 @@
 #pragma once
-#include "IPlayground.hpp"
+#include "neuroevolution/IPlayground.hpp"
 #include <memory>
 
 class CPFitnessEvaluator;
-class CheckpointPG : public IPlayground
+class CheckpointPG : public neuroevolution::IPlayground
 {
 public:
    CheckpointPG();
 
-   neat::IFitnessEvaluator& getFitnessEvaluator() override;
+   neuroevolution::IFitnessEvaluator& getFitnessEvaluator() override;
 
    void step() override;
-   void play(const neat::v2::Genom& g) override;
+   void play(neuroevolution::NeuroNet& ann) override;
    std::string getName() const override;
 
    unsigned int getNumInputs() const override;

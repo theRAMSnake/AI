@@ -1,14 +1,17 @@
 #pragma once
 
+#include <string>
+
 namespace neuroevolution
 {
 
 using Fitness = int;
 
+class NeuroNet;
 class IFitnessEvaluator
 {
 public:
-    virtual Fitness evaluate(const neuronet::NeuroNet& ann) = 0;
+    virtual Fitness evaluate(NeuroNet& ann) = 0;
 
     virtual ~IFitnessEvaluator(){}
 };
@@ -20,7 +23,7 @@ public:
    virtual std::string getName() const = 0;
 
    virtual void step() = 0;
-   virtual void play(const neuronet::NeuroNet& ann) = 0;
+   virtual void play(NeuroNet& ann) = 0;
 
    virtual unsigned int getNumInputs() const = 0;
    virtual unsigned int getNumOutputs() const = 0;

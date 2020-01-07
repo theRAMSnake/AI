@@ -1,17 +1,17 @@
 #include "TetrisPG.hpp"
-#include "neat/neuro_net.hpp"
+#include "neuroevolution/neuro_net.hpp"
 #include "neat/rng.hpp"
 #include <boost/random.hpp>
 #include <future>
 #include <nana/gui.hpp>
 #include <nana/gui/timer.hpp>
-#include "../tetris/Tetris.hpp"
-#include "../logger/Logger.hpp"
+#include "tetris/Tetris.hpp"
+#include "logger/Logger.hpp"
 
 class TetrisPlayer : public IPlayer
 {
 public:
-   TetrisPlayer(neat::NeuroNet& n)
+   TetrisPlayer(neuroevolution::NeuroNet& n)
    : mNet(n)
    {
 
@@ -48,7 +48,7 @@ public:
    }
 
 private:
-   neat::NeuroNet& mNet;
+   neuroevolution::NeuroNet& mNet;
 };
 
 class FakeIO : public IO
@@ -180,7 +180,7 @@ private:
    nana::timer mTimer;
 };
 
-class TetrisFitnessEvaluator : public neat::IFitnessEvaluator
+class TetrisFitnessEvaluator : public neuroevolution::IFitnessEvaluator
 {
 public:
    TetrisFitnessEvaluator()
@@ -193,25 +193,25 @@ public:
        mSeed = neat::Rng::gen32();
    }
 
-   neat::Fitness evaluate(const neat::v2::Genom& g) override
+   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
    {
-    FakeIO io;
+      FakeIO io;
 
-    const unsigned int scoreLimit = 10000000;
+      const unsigned int scoreLimit = 10000000;
 
-    neat::Fitness result = 0;
-    
-    for (int i = 0; i < 10; ++i)
-    {
-        auto n = neat::NeuroNet(g);
+      neuroevolution::Fitness result = 0;
+      
+      for (int i = 0; i < 10; ++i)
+      {
+         ann.reset();
 
-        Tetris t(Mode::AI_Background);
-        TetrisPlayer p(n);
+         Tetris t(Mode::AI_Background);
+         TetrisPlayer p(ann);
 
-        result += t.run(p, scoreLimit, io, neat::Rng::gen32());
-    }
+         result += t.run(p, scoreLimit, io, neat::Rng::gen32());
+      }
 
-    return result;
+      return result;
    }
 
 private:
@@ -220,7 +220,7 @@ private:
    std::vector<int> mValues;
 };
 
-neat::IFitnessEvaluator& TetrisPG::getFitnessEvaluator()
+neuroevolution::IFitnessEvaluator& TetrisPG::getFitnessEvaluator()
 {
    return *mFitnessEvaluator;
 }
@@ -246,19 +246,16 @@ void TetrisPG::step()
    mFitnessEvaluator->step();
 }
 
-void TetrisPG::play(const neat::v2::Genom& g)
+void TetrisPG::play(neuroevolution::NeuroNet& ann)
 {  
    RealIO* io = new RealIO();
 
-   auto t = std::thread([=](){
+   auto t = std::thread([&](){
       const unsigned int scoreLimit = 10000000;
 
-      auto n = neat::NeuroNet(g);
-
       Tetris t(Mode::AI);
-      TetrisPlayer p(n);
+      TetrisPlayer p(ann);
 
-      LOG("About ot run");
       t.run(p, scoreLimit, *io, neat::Rng::gen32());
    });
 
