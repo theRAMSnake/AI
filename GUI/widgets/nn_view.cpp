@@ -25,7 +25,7 @@ Nn_view::Nn_view(std::unique_ptr<neuroevolution::NeuroNet>&& ann)
    mDraw.draw([=](nana::paint::graphics& graph){
 		
       auto topology = mAnn->createTopology();
-      std::map<neat::NodeId, nana::point> posPerNode;
+      std::map<neuroevolution::NodeId, nana::point> posPerNode;
 
       const int widthPerLayer = graph.width() / topology.getNumLayers();
 

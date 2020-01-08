@@ -24,7 +24,7 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
     return result;
 }
 
-NeatProject::NeatProject(const boost::property_tree::ptree& cfg, IPlayground& pg)
+NeatProject::NeatProject(const boost::property_tree::ptree& cfg, neuroevolution::IPlayground& pg)
 : mNeat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), 
       cfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing,
       pg.getFitnessEvaluator())
@@ -41,7 +41,7 @@ void NeatProject::step()
    mGeneration++;
 }
 
-const neat::Population& NeatProject::getPopulation() const
+const IPopulation& NeatProject::getPopulation() const
 {
    return mPops;
 }
@@ -88,12 +88,7 @@ void NeatProject::play(neuroevolution::NeuroNet& ann)
    mPlayground.play(ann);
 }
 
-std::string NeatProject::getEsInfo() const
-{
-   return mNeat.getEsInfo();
-}
-
-IPlayground& NeatProject::getPlayground()
+neuroevolution::IPlayground& NeatProject::getPlayground()
 {
    return mPlayground;
 }
@@ -105,9 +100,9 @@ std::string NeatProject::getEngine() const
 
 void NeatProject::getRawOut(std::stringstream& out) const
 {
-   auto& pops = c.getPopulation();
+   auto& pops = mNeat.getPopulation();
 
-   out << "Generation: " << c.getGeneration() << std::endl;
+   out << "Generation: " << getGeneration() << std::endl;
    out << "Total population: " << pops.size() << std::endl;
    out << "Num species: " << pops.numSpecies() << std::endl;
    out << "Average fitness: " << pops.getAverageFitness() << std::endl;

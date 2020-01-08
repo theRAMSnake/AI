@@ -11,7 +11,6 @@ TetrisPG.cpp
 MainMenuCtrl.cpp
 ControlPanelCtrl.cpp
 ProjectManager.cpp
-EmptyPG.cpp
 CheckpointPG.cpp
 Trainer.cpp
 panels/HistoryPanel.cpp

@@ -55,7 +55,7 @@ void MainMenuCtrl::play()
       if (f.is_open())
       {
          auto ann = neuroevolution::NeuroNet::fromBinaryStream(f);
-         mPm.getProject().play(ann);
+         mPm.getProject()->play(ann);
 
          f.close();
       }
@@ -115,10 +115,14 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
    auto& p = parent.push_back("Project");
    p.append("New", std::bind(&MainMenuCtrl::newProject, this));
    p.append("Load", std::bind(&MainMenuCtrl::loadProject, this));
-   p.append("Save", std::bind(&MainMenuCtrl::saveProject, this));
+   p.append("Save", std::bind(&MainMenuCtrl::saveProject, this)).enabled(false);
 
    auto& t = parent.push_back("Tools");
-   t.append("Play", std::bind(&MainMenuCtrl::play, this));
+   t.append("Play", std::bind(&MainMenuCtrl::play, this)).enabled(false);
+
+   pm.signalProjectChanged.connect([&](auto& x){
+      p.enabled(true);
+   });
 
    trainer.signalStarted.connect([&](){
       p.enabled(false);

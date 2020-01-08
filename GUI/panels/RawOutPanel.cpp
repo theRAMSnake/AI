@@ -28,7 +28,7 @@ RawOutPanel::RawOutPanel(nana::window parent, ProjectManager& pm, Trainer& train
 void RawOutPanel::refresh()
 {
    std::stringstream s;
-   printState(mPm.getProject(), s);
+   printState(*mPm.getProject(), s);
 
    mTextBox.caption(s.str());
 }

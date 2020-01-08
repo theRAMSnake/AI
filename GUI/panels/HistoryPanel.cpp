@@ -11,11 +11,11 @@ HistoryPanel::HistoryPanel(nana::panel<true>& parent, ProjectManager& pm, Traine
    nana::plot::trace& t1 = mPlot->AddRealTimeTrace(500);
    t1.color( nana::colors::blue );
 
-   //nana::plot::trace& t2 = mPlot->AddRealTimeTrace(500);
-   //t2.color( nana::colors::red );
+   nana::plot::trace& t2 = mPlot->AddRealTimeTrace(500);
+   t2.color( nana::colors::red );
 
    trainer.signalStep.connect([&](){
-      t1.add(pm.getProject().getPopulation().getAverageFitness());
-      //t2.add(pm.getProject().getPopulation().getAverageComplexity());
+      t1.add(pm.getProject()->getPopulation().getAverageFitness());
+      t2.add(pm.getProject()->getPopulation().getAverageComplexity());
    });
 }

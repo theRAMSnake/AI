@@ -15,21 +15,22 @@
 
 #include "neuroevolution/neuro_net.hpp"
 #include <iostream>
+#include <fstream>
 
 void PopulationPanel::refresh()
 {
    mTree.clear();
-   for(auto& s: mPm.getProject().getPopulation())
+   for(auto& s: mPm.getProject()->getPopulation().getSpecies())
    {
       auto path = "root/" + std::to_string(s.id);
-      mTree.insert(path, std::to_string(s.id) + " (" + std::to_string(s.getSharedFitness()) + ")");
+      mTree.insert(path, std::to_string(s.id) + " (" + std::to_string(s.averageFitness) + ")");
 
-      std::vector<std::pair<neat::Fitness, std::string>> popStrings;
-      popStrings.reserve(s.population.size());
-      for(auto& p: s.population)
+      std::vector<std::pair<neuroevolution::Fitness, std::string>> popStrings;
+      popStrings.reserve(s.popResults.size());
+      for(auto& p: s.popResults)
       {
-         auto str = std::to_string(p.fitness) + " - H:" + std::to_string(p.genotype.getNodeCount(neat::v2::Genom::NodeType::Hidden)) +
-               " C:" + std::to_string(p.genotype.getComplexity());
+         auto str = std::to_string(p.fitness) + " - H:" + std::to_string(p.nodeCount) +
+               " C:" + std::to_string(p.complexity);
          popStrings.push_back(std::make_pair(p.fitness, str));
       }
 
@@ -56,9 +57,9 @@ PopulationPanel::PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, 
    trainer.signalStopped.connect(std::bind(&PopulationPanel::refresh, this));
    pm.signalProjectChanged.connect(std::bind(&PopulationPanel::refresh, this));
 
-   mCtx.append ("Export", std::bind(&PopulationPanel::exportGenomFromTree, this));
-   mCtx.append ("Play", std::bind(&PopulationPanel::playGenom, this));
-   mCtx.append ("Visualize", std::bind(&PopulationPanel::visualizeGenom, this));
+   mCtx.append ("Export", std::bind(&PopulationPanel::exportAnn, this));
+   mCtx.append ("Play", std::bind(&PopulationPanel::play, this));
+   mCtx.append ("Visualize", std::bind(&PopulationPanel::visualize, this));
    mTree.events().mouse_down([&](auto args){
 
       if(mTree.selected().level() == 3 && !trainer.isRunning())
@@ -68,7 +69,7 @@ PopulationPanel::PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, 
    });
 }
 
-void PopulationPanel::exportGenomFromTree()
+void PopulationPanel::exportAnn()
 {  
    auto& organism = extractPopFromSelected();
 
@@ -83,32 +84,33 @@ void PopulationPanel::exportGenomFromTree()
         
          std::ofstream f;
          f.open(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
-         organism.genotype.write(f);
+
+         mPm.getProject()->getPopulation().createAnn(organism)->toBinaryStream(f);
          f.close();
       }
    }
 }
 
-void PopulationPanel::playGenom()
+void PopulationPanel::play()
 {
    auto& organism = extractPopFromSelected();
 
-   mPm.getProject().play(organism.genotype);
+   mPm.getProject()->play(*mPm.getProject()->getPopulation().createAnn(organism));
 }
 
-void PopulationPanel::visualizeGenom()
+void PopulationPanel::visualize()
 {
    auto& organism = extractPopFromSelected();
 
-   mNnView.reset(new Nn_view(std::move(std::make_unique<neuroevolution::NeuroNet>(organism.genotype))));
+   mNnView.reset(new Nn_view(std::move(mPm.getProject()->getPopulation().createAnn(organism))));
 }
 
-const neat::Pop& PopulationPanel::extractPopFromSelected()
+const PopResult& PopulationPanel::extractPopFromSelected()
 {
    auto specieId = boost::lexical_cast<unsigned int>(mTree.selected().owner().key());
    auto organismIdx = boost::lexical_cast<unsigned int>(mTree.selected().key());
 
-   auto& pops = mPm.getProject().getPopulation();
-   auto specieIter = std::find_if(pops.begin(), pops.end(), [=](auto x){return x.id == specieId;});
-   return specieIter->population[organismIdx];
+   auto& pops = mPm.getProject()->getPopulation();
+   auto specieIter = std::find_if(pops.getSpecies().begin(), pops.getSpecies().end(), [=](auto x){return x.id == specieId;});
+   return specieIter->popResults[organismIdx];
 }

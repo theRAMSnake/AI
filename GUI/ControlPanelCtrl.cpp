@@ -33,7 +33,9 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
 , mGrid(parent)
 {
    mStartStopBtn.caption("Start");
+   mStartStopBtn.enabled(false);
    mUpdateBtn.caption("Update");
+   mUpdateBtn.enabled(false);
 
    nana::place layout(parent);
    layout.div("vert <a weight=10><vert d arrange=[30, 30, 87%] margin=10 gap=10>");
@@ -45,7 +47,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
       if(!trainer.isRunning())
       {
          mStartStopBtn.caption("Stop");
-         trainer.start(pm.getProject());
+         trainer.start(*pm.getProject());
       }
       else
       {
@@ -59,7 +61,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
 
    mUpdateBtn.events().click([&](auto args){
 
-      auto cfg = mPm.getProject().getConfig();
+      auto cfg = mPm.getProject()->getConfig();
 
       for(auto& c: cfg)
       {
@@ -69,7 +71,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
          }
       }
 
-      mPm.getProject().updateConfig(cfg);
+      mPm.getProject()->updateConfig(cfg);
    });
 
    trainer.signalStopped.connect([&](){
@@ -78,27 +80,21 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
       mStartStopBtn.caption("Start");
    });
 
-   for(auto& c: mPm.getProject().getConfig())
+   mPm.signalProjectChanged.connect(std::bind(&ControlPanelCtrl::onProjectChanged, this));
+}
+
+void ControlPanelCtrl::onProjectChanged()
+{
+   mStartStopBtn.enabled(true);
+   mUpdateBtn.enabled(true);
+
+   mGrid.clear();
+   for(auto& c: mPm.getProject()->getConfig())
    {
       auto cat = mGrid.append(c.first);
       for(auto& item: c.second)
       {
          cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>("")))));
-      }
-   }
-
-   mPm.signalProjectChanged.connect(std::bind(&ControlPanelCtrl::fillGrid, this));
-}
-
-void ControlPanelCtrl::fillGrid()
-{
-   auto cfg = mPm.getProject().getConfig();
-
-   for(auto& c: cfg)
-   {
-      for(auto& item: c.second)
-      {
-         mGrid.find(c.first, item.first).value(formatCfgStr(item.second.get<std::string>("")));
       }
    }
 }

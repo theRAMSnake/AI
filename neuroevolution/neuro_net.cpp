@@ -195,4 +195,17 @@ std::vector<NetworkTopology::Node> NetworkTopology::getLayer(const std::size_t i
    }
 }
 
+void NeuroNet::reset()
+{
+   for(auto node : mHiddenNodes)
+   {      
+      node->value = 0.0;
+   }
+
+   for(auto node : mOutputNodes)
+   {      
+      node->value = 0.0;
+   }
+}  
+
 }

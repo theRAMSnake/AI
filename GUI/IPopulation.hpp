@@ -2,13 +2,37 @@
 
 #include "neuroevolution/neuro_net.hpp"
 #include "neuroevolution/IPlayground.hpp"
+#include <memory>
+
+struct PopResult
+{
+   unsigned int specieId;
+   unsigned int organismId;
+
+   neuroevolution::Fitness fitness;
+   unsigned int complexity;
+   unsigned int nodeCount;
+};
+
+struct SpecieResults
+{
+   unsigned int id;
+
+   double averageFitness;
+   neuroevolution::Fitness maxFitness;
+   std::vector<PopResult> popResults;
+};
 
 class IPopulation
 {
 public:
    virtual neuroevolution::Fitness getAverageFitness() const = 0;
+   virtual double getAverageComplexity() const = 0;
    virtual std::size_t size() const = 0;
    virtual unsigned int getNumSpecies() const = 0;
+
+   virtual std::vector<SpecieResults> getSpecies() const = 0;
+   virtual std::unique_ptr<neuroevolution::NeuroNet> createAnn(const PopResult& pop) const = 0;
 
    virtual ~IPopulation(){}
 };

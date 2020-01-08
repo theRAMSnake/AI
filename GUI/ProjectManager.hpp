@@ -13,9 +13,8 @@ public:
    void save(const std::string& fileName);
    void autosave();
    bool load(const std::string& fileName);
-   void createDefaultProject();
    void createProject(const std::string& playgroundName, const std::string& engine, const std::string& fileName);
-   IProject& getProject();
+   IProject* getProject();
    std::vector<std::string> getPlaygroundList() const;
    std::vector<std::string> getEngineList() const;
 

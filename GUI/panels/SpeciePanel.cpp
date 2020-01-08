@@ -191,39 +191,39 @@ SpeciePanel::SpeciePanel(nana::panel<true>& parent, ProjectManager& pm, Trainer&
 
 void SpeciePanel::refresh()
 {
-   auto& pops = mPm.getProject().getPopulation();
+   auto& pops = mPm.getProject()->getPopulation();
 
    std::stringstream out;
-   out << "Generation: " << mPm.getProject().getGeneration();
+   out << "Generation: " << mPm.getProject()->getGeneration();
    out << "Total population: " << pops.size() << std::endl;
-   out << "Num species: " << pops.numSpecies() << std::endl;
+   out << "Num species: " << pops.getNumSpecies() << std::endl;
    out << "Average fitness: " << pops.getAverageFitness() << std::endl;
 
    mInfoTxt.caption(out.str());
 
-   std::vector<const neat::Specie*> bestSpecies;
-   for(auto& s : pops)
+   std::vector<SpecieResults> bestSpecies;
+   for(auto& s : pops.getSpecies())
    {
       if(bestSpecies.size() == 10)
       {
-         auto worst = std::min_element(bestSpecies.begin(), bestSpecies.end(), [](auto x, auto y){return x->maxFitness < y->maxFitness;});
-         if((*worst)->maxFitness < s.maxFitness)
+         auto worst = std::min_element(bestSpecies.begin(), bestSpecies.end(), [](auto x, auto y){return x.maxFitness < y.maxFitness;});
+         if(worst->maxFitness < s.maxFitness)
          {
-            (*worst) = &s;
+            *worst = s;
          }
       }
       else
       {
-         bestSpecies.push_back(&s);
+         bestSpecies.push_back(s);
       }
    }
 
-   std::sort(bestSpecies.begin(), bestSpecies.end(), [](auto& x, auto& y){return x->maxFitness > y->maxFitness;});
+   std::sort(bestSpecies.begin(), bestSpecies.end(), [](auto& x, auto& y){return x.maxFitness > y.maxFitness;});
 
    for(std::size_t i = 0; i < 10; ++i)
    {
       auto& overview = *mSpecieOverviews[i];
-      if(i >= pops.numSpecies())
+      if(i >= pops.getNumSpecies())
       {
          overview.hide();
          continue;
@@ -231,7 +231,7 @@ void SpeciePanel::refresh()
       else
       {
          overview.show();
-         overview.update(*bestSpecies[i], pops.size());
+         overview.update(bestSpecies[i], pops.size());
       }
    }
 }
@@ -269,14 +269,14 @@ SpecieOverview::SpecieOverview(std::shared_ptr<nana::group> impl)
    });
 }
 
-void SpecieOverview::update(const neat::Specie& specie, const unsigned int totalPop)
+void SpecieOverview::update(const SpecieResults& specie, const unsigned int totalPop)
 {
    const auto halfOfMaxPops = totalPop / 2;
-   mBarHeightPercentage = specie.population.size() >= halfOfMaxPops ? 1.0 : static_cast<double>(specie.population.size()) / halfOfMaxPops;
+   mBarHeightPercentage = specie.popResults.size() >= halfOfMaxPops ? 1.0 : static_cast<double>(specie.popResults.size()) / halfOfMaxPops;
    mSpecieId = specie.id;
    mTopFitness = specie.maxFitness;
-   mComplexity = specie.population[0].genotype.getComplexity();
-   mNumNodes = specie.population[0].genotype.getNodeCount(neat::v2::Genom::NodeType::Hidden);
+   mComplexity = specie.popResults[0].complexity;
+   mNumNodes = specie.popResults[0].nodeCount;
 
    mDrawer.update();
 }

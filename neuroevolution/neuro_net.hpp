@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <boost/container/small_vector.hpp>
 #include <map>
+#include <memory>
 
 namespace neuroevolution
 {
@@ -97,7 +98,8 @@ public:
 
    NetworkTopology createTopology() const;
 
-   static NeuroNet fromBinaryStream(std::ifstream& stream);
+   static std::unique_ptr<NeuroNet> fromBinaryStream(std::ifstream& stream);
+   void toBinaryStream(std::ofstream& stream);
 
 private:
    struct Node
