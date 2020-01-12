@@ -37,7 +37,7 @@ Population Population::createInitialPopulation(
    return p;
 }
 
-Fitness Specie::getSharedFitness() const
+double Specie::getSharedFitness() const
 {
    return sharedFitness;
 }

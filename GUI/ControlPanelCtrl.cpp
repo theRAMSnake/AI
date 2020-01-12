@@ -3,7 +3,7 @@
 #include "ProjectManager.hpp"
 #include <nana/gui/widgets/button.hpp>
 #include "widgets/pgitems.hpp"
-
+#include <iostream>
 #include <boost/property_tree/json_parser.hpp>
 
 std::string formatCfgStr(const std::string& input)
@@ -94,9 +94,12 @@ void ControlPanelCtrl::onProjectChanged()
       auto cat = mGrid.append(c.first);
       for(auto& item: c.second)
       {
-         cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>("")))));
+         mItems.push_back(cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>(""))))));
       }
    }
+
+   std::cout << "Done";
+   std::cout.flush();
 }
 
    

@@ -105,12 +105,14 @@ void PopulationPanel::visualize()
    mNnView.reset(new Nn_view(std::move(mPm.getProject()->getPopulation().createAnn(organism))));
 }
 
-const PopResult& PopulationPanel::extractPopFromSelected()
+const PopResult PopulationPanel::extractPopFromSelected()
 {
    auto specieId = boost::lexical_cast<unsigned int>(mTree.selected().owner().key());
    auto organismIdx = boost::lexical_cast<unsigned int>(mTree.selected().key());
 
    auto& pops = mPm.getProject()->getPopulation();
-   auto specieIter = std::find_if(pops.getSpecies().begin(), pops.getSpecies().end(), [=](auto x){return x.id == specieId;});
+
+   auto species = pops.getSpecies();
+   auto specieIter = std::find_if(species.begin(), species.end(), [=](auto x){return x.id == specieId;});
    return specieIter->popResults[organismIdx];
 }

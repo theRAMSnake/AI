@@ -17,7 +17,7 @@ struct Specie
 {
    const Pop& randomPop() const;
    void selectRepresentor();
-   Fitness getSharedFitness() const;
+   double getSharedFitness() const;
    Fitness getTotalFitness() const;
    void updateFitness();
    void produceOffsprings(

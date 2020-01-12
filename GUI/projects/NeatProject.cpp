@@ -30,6 +30,7 @@ NeatProject::NeatProject(const boost::property_tree::ptree& cfg, neuroevolution:
       pg.getFitnessEvaluator())
 , mConfig(cfg)
 , mPlayground(pg)
+, mPops(mNeat)
 {
 
 }
@@ -100,6 +101,11 @@ std::string NeatProject::getEngine() const
 
 void NeatProject::getRawOut(std::stringstream& out) const
 {
+   if(!mNeat.hasPopulation())
+   {
+      return;
+   }
+   
    auto& pops = mNeat.getPopulation();
 
    out << "Generation: " << getGeneration() << std::endl;

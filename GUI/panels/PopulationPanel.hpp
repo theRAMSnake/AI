@@ -14,7 +14,7 @@ public:
    PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, Trainer& trainer);
 
 private:
-   const PopResult& extractPopFromSelected();
+   const PopResult extractPopFromSelected();
 
    void refresh();
    void exportAnn();

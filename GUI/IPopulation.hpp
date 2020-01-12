@@ -10,8 +10,8 @@ struct PopResult
    unsigned int organismId;
 
    neuroevolution::Fitness fitness;
-   unsigned int complexity;
-   unsigned int nodeCount;
+   std::size_t complexity;
+   std::size_t nodeCount;
 };
 
 struct SpecieResults
@@ -25,7 +25,7 @@ struct SpecieResults
 
 class IPopulation
 {
-public:
+public:  
    virtual neuroevolution::Fitness getAverageFitness() const = 0;
    virtual double getAverageComplexity() const = 0;
    virtual std::size_t size() const = 0;

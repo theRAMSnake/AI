@@ -101,7 +101,11 @@ public:
    static std::unique_ptr<NeuroNet> fromBinaryStream(std::ifstream& stream);
    void toBinaryStream(std::ofstream& stream);
 
+   void print();
+
 private:
+   NeuroNet();
+
    struct Node
    {
       NodeId id;
@@ -109,6 +113,7 @@ private:
       int depth = -1;
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
       ActivationFunction func = nullptr;
+      ActivationFunctionType accType;
    };
 
    std::vector<Node> mNodes;

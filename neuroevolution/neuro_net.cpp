@@ -1,6 +1,7 @@
 #include "neuro_net.hpp"
 #include <cmath>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include "activation.hpp"
 
@@ -44,7 +45,7 @@ NeuroNet::NeuroNet(
    for(auto n : hiddenNodes)
    {
       idToIdxMap[n.first] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1, {}, getPtr(n.second)});
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1, {}, getPtr(n.second), n.second});
       mHiddenNodes.push_back(&mNodes.back());
    }
    
@@ -207,5 +208,183 @@ void NeuroNet::reset()
       node->value = 0.0;
    }
 }  
+
+std::vector<NodeId> readIdList(std::ifstream& stream)
+{
+   std::vector<NodeId> result;
+   std::size_t size = 0;
+   stream.read((char*)&size, sizeof(std::size_t));
+   for(std::size_t i = 0; i < size; ++i)
+   {
+      NodeId id;
+      stream.read((char*)&id, sizeof(NodeId));
+
+      result.push_back(id);
+   }
+
+   return result;
+}
+
+std::unique_ptr<NeuroNet> NeuroNet::fromBinaryStream(std::ifstream& stream)
+{
+   auto result = new NeuroNet();
+
+   std::vector<NodeId> inputs = readIdList(stream);
+   std::vector<NodeId> outputs = readIdList(stream);
+   std::vector<NodeId> hiddens = readIdList(stream);
+
+   //Reading nodes
+   std::size_t size = 0;
+   stream.read((char*)&size, sizeof(std::size_t));
+
+   result->mNodes.reserve(size);
+
+   for(std::size_t i = 0; i < size; ++i)
+   {
+      NodeId id;
+      stream.read((char*)&id, sizeof(NodeId));
+
+      int depth = 0;
+      stream.read((char*)&depth, sizeof(int));
+
+      std::size_t numInputs = 0;
+      stream.read((char*)&numInputs, sizeof(std::size_t));
+
+      boost::container::small_vector<std::pair<NodeId, double>, 10> links;
+      for(std::size_t j = 0; j < numInputs; j++)
+      {
+         NodeId src;
+         stream.read((char*)&src, sizeof(NodeId));
+
+         double weight;
+         stream.read((char*)&weight, sizeof(double));
+
+         links.push_back({src, weight});
+      }
+
+      ActivationFunctionType actType;
+      stream.read((char*)&actType, sizeof(ActivationFunctionType));
+
+      //Process node
+      if(std::find(inputs.begin(), inputs.end(), id) != inputs.end())
+      {
+         result->mNodes.push_back(Node{id, 0.0, depth});
+         result->mInputNodes.push_back(&result->mNodes.back());
+      }
+      else if(std::find(outputs.begin(), outputs.end(), id) != outputs.end())
+      {
+         result->mNodes.push_back(Node{id, 0.0, depth, links});
+         result->mOutputNodes.push_back(&result->mNodes.back());
+      }
+      else if(std::find(hiddens.begin(), hiddens.end(), id) != hiddens.end())
+      {
+         result->mNodes.push_back(Node{id, 0.0, depth, links, getPtr(actType), actType});
+         result->mHiddenNodes.push_back(&result->mNodes.back());
+      }
+      else
+      {
+         result->mNodes.push_back(Node{id, 1.0, depth});
+      }
+   }
+
+   std::sort(result->mHiddenNodes.begin(), result->mHiddenNodes.end(), [&](auto x, auto y)
+   {
+      return x->depth < y->depth;
+   });
+
+   //result->print();
+
+   return std::unique_ptr<NeuroNet>(result);
+}
+
+void NeuroNet::toBinaryStream(std::ofstream& stream)
+{
+   //Input ids
+   auto size = mInputNodes.size();
+   stream.write((char*)&size, sizeof(std::size_t));
+   for(auto& n : mInputNodes)
+   {
+      stream.write((char*)&n->id, sizeof(NodeId));
+   }
+   
+   //Output ids
+   size = mOutputNodes.size();
+   stream.write((char*)&size, sizeof(std::size_t));
+   for(auto& n : mOutputNodes)
+   {
+      stream.write((char*)&n->id, sizeof(NodeId));
+   }
+
+   //Hidden ids
+   size = mHiddenNodes.size();
+   stream.write((char*)&size, sizeof(std::size_t));
+   for(auto& n : mHiddenNodes)
+   {
+      stream.write((char*)&n->id, sizeof(NodeId));
+   }
+
+   //Node defs
+   size = mNodes.size();
+   stream.write((char*)&size, sizeof(std::size_t));
+   for(auto& n : mNodes)
+   {
+      stream.write((char*)&n.id, sizeof(NodeId));
+      //Skip value as irrelevant
+      stream.write((char*)&n.depth, sizeof(int));
+      size = n.inputs.size();
+      stream.write((char*)&size, sizeof(std::size_t));
+
+      for(auto& i : n.inputs)
+      {
+         stream.write((char*)&i.first, sizeof(NodeId));
+         stream.write((char*)&i.second, sizeof(double));
+      }
+
+      auto actType = n.accType;
+      stream.write((char*)&actType, sizeof(ActivationFunctionType));
+   }
+}
+
+NeuroNet::NeuroNet()
+{
+
+}
+
+void NeuroNet::print()
+{
+   std::cout << std::endl;
+   for(auto& n : mNodes)
+   {
+      std::cout << n.id << ' ' << static_cast<int>(n.accType) << ' ' << n.depth << ' ' << reinterpret_cast<long long int>(n.func) << ' ' << n.value << " [" ;
+         
+      for(auto& i : n.inputs)
+      {
+         std::cout << i.first << ' ' << i.second << ';';
+      }
+
+      std::cout << ']' << std::endl;
+   }
+
+   for(auto& x : mHiddenNodes)
+   {
+      std::cout << x->id << ' ';
+   }
+
+   std::cout << std::endl;
+
+   for(auto& x : mOutputNodes)
+   {
+      std::cout << x->id << ' ';
+   }
+
+   std::cout << std::endl;
+
+   for(auto& x : mInputNodes)
+   {
+      std::cout << x->id << ' ';
+   }
+
+   std::cout << std::endl;
+}
 
 }

@@ -163,9 +163,16 @@ BOOST_FIXTURE_TEST_CASE( TestSaveLoad, NeuroNetTest )
       f.open("nn.test.tmp", std::ios_base::in | std::ios_base::binary);
 
       auto restored = neuroevolution::NeuroNet::fromBinaryStream(f);
+      auto& r = *restored;
 
-      BOOST_CHECK_EQUAL(neuroevolution::activate(*restored, {10, 10})[0], neuroevolution::activate(*n, {10, 10})[0]);
-      BOOST_CHECK_EQUAL(neuroevolution::activate(*restored, {5, 10})[0], neuroevolution::activate(*n, {5, 10})[0]);
+      auto a = neuroevolution::activate(r, {10, 10})[0];
+      auto b = neuroevolution::activate(*n, {10, 10})[0];
+
+      BOOST_CHECK_EQUAL(a, b);
+
+      BOOST_CHECK_EQUAL(neuroevolution::activate(*restored, {5, 10})[0], 
+                               neuroevolution::activate(*n, {5, 10})[0]);
+
       BOOST_CHECK_EQUAL(neuroevolution::activate(*restored, {3, 10})[0], neuroevolution::activate(*n, {3, 10})[0]);
       BOOST_CHECK_EQUAL(neuroevolution::activate(*restored, {10, -2})[0], neuroevolution::activate(*n, {10, -2})[0]);
    }

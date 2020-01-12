@@ -194,7 +194,7 @@ void SpeciePanel::refresh()
    auto& pops = mPm.getProject()->getPopulation();
 
    std::stringstream out;
-   out << "Generation: " << mPm.getProject()->getGeneration();
+   out << "Generation: " << mPm.getProject()->getGeneration() << std::endl;
    out << "Total population: " << pops.size() << std::endl;
    out << "Num species: " << pops.getNumSpecies() << std::endl;
    out << "Average fitness: " << pops.getAverageFitness() << std::endl;

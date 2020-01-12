@@ -55,7 +55,7 @@ void MainMenuCtrl::play()
       if (f.is_open())
       {
          auto ann = neuroevolution::NeuroNet::fromBinaryStream(f);
-         mPm.getProject()->play(ann);
+         mPm.getProject()->play(*ann);
 
          f.close();
       }
