@@ -32,7 +32,7 @@ std::vector<SpecieResults> NeatPopulation::getSpecies() const
 
     for(auto& s : mSrc.getPopulation())
     {
-        results.push_back({s.id, s.getSharedFitness(), s.getTotalFitness()});
+        results.push_back({s.id, s.getSharedFitness(), s.maxFitness});
 
         unsigned int i = 0;
         for(auto& p : s.population)

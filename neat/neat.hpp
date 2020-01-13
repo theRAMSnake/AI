@@ -1,6 +1,7 @@
 #pragma once
 #include "population.hpp"
 #include "genom.hpp"
+#include "Substrate3D.hpp"
 #include <optional>
 #include "neuroevolution/IPlayground.hpp"
 
@@ -26,6 +27,13 @@ class Neat
 {
 public:
     Neat(const Config& cfg, const EvolutionStrategyType esType, neuroevolution::IFitnessEvaluator& fitnessEvaluator);
+    Neat(
+        const Config& cfg, 
+        const DomainGeometry& domainGeometry, 
+        const EvolutionStrategyType esType, 
+        neuroevolution::IFitnessEvaluator& fitnessEvaluator
+        );
+        
     void step();
     void reconfigure(const Config& cfg, const EvolutionStrategyType esType);
 
@@ -36,16 +44,25 @@ public:
     void loadState(const std::string& fileName);
 
     std::string getEsInfo() const;
+    std::unique_ptr<neuroevolution::NeuroNet> createAnn(const v2::Genom& src);
 
 private:
 
     void updateFitness();
+
+    int evaluate(
+        neuroevolution::IFitnessEvaluator* eval, 
+        std::vector<std::vector<Pop>::iterator>::iterator begin, 
+        std::vector<std::vector<Pop>::iterator>::iterator end
+        );
+    void evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, neuroevolution::IFitnessEvaluator& eval, int numThreads);
 
     Config mCfg;
     neuroevolution::IFitnessEvaluator& mFitnessEvaluator;
 
     std::shared_ptr<IEvolutionStrategy> mEs;
     std::optional<Population> mPopulation;
+    std::optional<Substrate3D> mSubstrate;
     InnovationHistory mHistory;
 };
 

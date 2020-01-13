@@ -11,6 +11,7 @@ neat.cpp
 population.cpp
 rng.cpp
 InnovationHistory.cpp
+Substrate3D.cpp
 )
 
 target_link_libraries(neat neuroevolution logger pthread)

@@ -260,11 +260,9 @@ void Population::nextGeneration(InnovationHistory& history)
 {
    std::vector<v2::Genom> newGenoms;
 
-   double bestFitnessThisGeneration = 0.0;
    for(auto& s : mSpecies)
    {
       s.selectRepresentor();
-      bestFitnessThisGeneration = std::max(bestFitnessThisGeneration, s.maxFitness);
    }
 
    unsigned int averageComplexity = 0;
@@ -278,21 +276,6 @@ void Population::nextGeneration(InnovationHistory& history)
    mAverageComplexity = static_cast<double>(averageComplexity) / size();
 
    mEs->setGenerationResults(getAverageFitness(), mAverageComplexity);
-
-   if (bestFitnessThisGeneration > mBestFitness)
-   {
-       mBestFitness = bestFitnessThisGeneration;
-       mNumStagnantGenerations = 0;
-   }
-   else if (mAverageComplexity > mMaxComplexity)
-   {
-       mMaxComplexity = mAverageComplexity;
-       mNumStagnantGenerations = 0;
-   }
-   else
-   {
-       mNumStagnantGenerations++;
-   }
    
    std::vector<unsigned int> quotas = getSpeciesOffspringQuotas();
 

@@ -147,3 +147,11 @@ void ProjectManager::autosave()
 {
    save(mCurrentProjectFileName);
 }
+
+const boost::property_tree::ptree ProjectManager::getConfigTemplate() const
+{
+   boost::property_tree::ptree cfg;
+   initiatializeConfig(cfg);
+
+   return cfg;
+}

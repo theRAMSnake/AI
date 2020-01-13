@@ -18,6 +18,4 @@ private:
    nana::button mStartStopBtn;
    nana::button mUpdateBtn;
    nana::propertygrid mGrid;
-
-   std::vector<nana::drawerbase::propertygrid::item_proxy> mItems;
 };

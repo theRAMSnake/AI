@@ -81,6 +81,15 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
    });
 
    mPm.signalProjectChanged.connect(std::bind(&ControlPanelCtrl::onProjectChanged, this));
+
+   for(auto& c: mPm.getConfigTemplate())
+   {
+      auto cat = mGrid.append(c.first);
+      for(auto& item: c.second)
+      {
+         cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>("")))));
+      }
+   }
 }
 
 void ControlPanelCtrl::onProjectChanged()
@@ -88,18 +97,11 @@ void ControlPanelCtrl::onProjectChanged()
    mStartStopBtn.enabled(true);
    mUpdateBtn.enabled(true);
 
-   mGrid.clear();
    for(auto& c: mPm.getProject()->getConfig())
    {
-      auto cat = mGrid.append(c.first);
       for(auto& item: c.second)
       {
-         mItems.push_back(cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>(""))))));
+         mGrid.find(c.first, item.first).value(formatCfgStr(item.second.get<std::string>("")));
       }
    }
-
-   std::cout << "Done";
-   std::cout.flush();
 }
-
-   
