@@ -12,6 +12,7 @@ MainMenuCtrl.cpp
 ControlPanelCtrl.cpp
 ProjectManager.cpp
 CheckpointPG.cpp
+LinesPG.cpp
 Trainer.cpp
 panels/HistoryPanel.cpp
 panels/PopulationPanel.cpp
