@@ -87,7 +87,7 @@ double cube(const double val)
 
 double gelu(const double val)
 {
-    return 0.5 * val * (1 + tanh(sqrt(M_2_PI) * (val + 0.044715 * val * val * val)));
+    return 0.5 * val * (1 + tanh(sqrt(0.636619772367581343076) * (val + 0.044715 * val * val * val)));
 }
 
 ActivationFunction getPtr(const ActivationFunctionType type)
