@@ -16,4 +16,7 @@ private:
    
    ProjectManager& mPm;
    nana::window mWnd;
+
+   std::optional<nana::menu::item_proxy> mSaveBtn;
+   std::optional<nana::menu::item_proxy> mPlayBtn;
 };

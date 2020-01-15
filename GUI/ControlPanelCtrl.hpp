@@ -12,7 +12,7 @@ public:
    ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trainer& trainer);
 
 private:
-   void fillGrid();
+   void onProjectChanged();
 
    ProjectManager& mPm;
    nana::button mStartStopBtn;

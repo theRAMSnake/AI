@@ -2,7 +2,7 @@
 #include <nana/gui/widgets/panel.hpp>
 #include <nana/gui/widgets/treebox.hpp>
 #include <nana/gui/widgets/menu.hpp>
-#include <neat/population.hpp>
+#include "../IPopulation.hpp"
 #include "../widgets/nn_view.hpp"
 
 class Trainer;
@@ -14,12 +14,12 @@ public:
    PopulationPanel(nana::panel<true>& parent, ProjectManager& pm, Trainer& trainer);
 
 private:
-   const neat::Pop& extractPopFromSelected();
+   const PopResult extractPopFromSelected();
 
    void refresh();
-   void exportGenomFromTree();
-   void playGenom();
-   void visualizeGenom();
+   void exportAnn();
+   void play();
+   void visualize();
 
    nana::treebox mTree;
    ProjectManager& mPm;

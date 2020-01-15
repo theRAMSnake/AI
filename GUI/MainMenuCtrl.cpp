@@ -10,6 +10,7 @@
 #endif
 #include <nana/gui/filebox.hpp>
 #include <iostream>
+#include <fstream>
 
 void MainMenuCtrl::saveProject()
 {
@@ -41,7 +42,7 @@ void MainMenuCtrl::loadProject()
 void MainMenuCtrl::play()
 {
    nana::filebox fb(mWnd, true);
-   fb.add_filter("Genom file", "*.genom");
+   fb.add_filter("ANN", "*.ann");
    fb.add_filter("All Files", "*.*");
 
    auto items = fb();
@@ -49,19 +50,12 @@ void MainMenuCtrl::play()
    {
       auto file = items[0];
 
-      neat::v2::Genom result(  );
-
       std::ifstream f;
       f.open(file, std::ios_base::in | std::ios_base::binary);
       if (f.is_open())
       {
-         neat::InnovationHistory h;
-         mPm.getProject().play(neat::v2::Genom::read(
-            f,
-            mPm.getProject().getPlayground().getNumInputs(), 
-            mPm.getProject().getPlayground().getNumOutputs(),
-            h
-         ));
+         auto ann = neuroevolution::NeuroNet::fromBinaryStream(f);
+         mPm.getProject()->play(*ann);
 
          f.close();
       }
@@ -73,23 +67,30 @@ void MainMenuCtrl::newProject()
    std::string prjname;
 
    auto pgs = mPm.getPlaygroundList();
+   auto engs = mPm.getEngineList();
 
    nana::form dlg(mWnd, {250, 160});
    dlg.caption("Choose playground");
 
-   nana::combox cmb(dlg);
+   nana::combox cmbPg(dlg);
+   nana::combox cmbEng(dlg);
    nana::textbox filename(dlg);
    nana::button btn(dlg);
    btn.caption("OK");
 
    nana::place layout(dlg);
-   layout.div("<vert a arrange=[28, 28, 28] margin=10 gap=5>");
-   layout.field("a") << cmb << filename << btn;
+   layout.div("<vert a arrange=[28, 28, 28, 28] margin=10 gap=5>");
+   layout.field("a") << cmbPg << cmbEng << filename << btn;
    layout.collocate();
 
    for(auto x : pgs)
    {
-      cmb.push_back(x);
+      cmbPg.push_back(x);
+   }
+
+   for(auto x : engs)
+   {
+      cmbEng.push_back(x);
    }
 
    btn.events().click.connect([&](){
@@ -100,10 +101,11 @@ void MainMenuCtrl::newProject()
       prjname = filename.text();
    });
 
-   cmb.option(0);
+   cmbPg.option(0);
+   cmbEng.option(0);
    dlg.modality();
 
-   mPm.createProject(pgs[cmb.option()], prjname + ".saprj");
+   mPm.createProject(pgs[cmbPg.option()], engs[cmbEng.option()], prjname + ".saprj");
 }
 
 MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& trainer)
@@ -113,10 +115,18 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
    auto& p = parent.push_back("Project");
    p.append("New", std::bind(&MainMenuCtrl::newProject, this));
    p.append("Load", std::bind(&MainMenuCtrl::loadProject, this));
-   p.append("Save", std::bind(&MainMenuCtrl::saveProject, this));
+   mSaveBtn.emplace(std::move(p.append("Save", std::bind(&MainMenuCtrl::saveProject, this))));
+   mSaveBtn->enabled(false);
 
    auto& t = parent.push_back("Tools");
-   t.append("Play", std::bind(&MainMenuCtrl::play, this));
+   mPlayBtn.emplace(std::move(t.append("Play", std::bind(&MainMenuCtrl::play, this))));
+   mPlayBtn->enabled(false);
+
+   pm.signalProjectChanged.connect([&](auto& x){
+      p.enabled(true);
+      mSaveBtn->enabled(true);
+      mPlayBtn->enabled(true);
+   });
 
    trainer.signalStarted.connect([&](){
       p.enabled(false);

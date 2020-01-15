@@ -23,12 +23,8 @@ std::unique_ptr<nana::widget> dockCreate(nana::window parent, std::string name)
 
 int main()
 {
-   LOG("GUI started");
-
    ProjectManager projectManager;
    Trainer trainer;
-
-   projectManager.createDefaultProject();
 
    trainer.signalStopped.connect(std::bind(&ProjectManager::autosave, &projectManager));
 
@@ -77,7 +73,7 @@ int main()
    //---------------------------------------------------------------------------------------------------
 
    trainer.signalStep.connect([&](){
-      if(projectManager.getProject().getGeneration() % projectManager.getProject().getAutosavePeriod() == 0)
+      if(projectManager.getProject()->getGeneration() % projectManager.getProject()->getAutosavePeriod() == 0)
       {
          projectManager.autosave();
       }

@@ -8,12 +8,11 @@ include_directories("..")
 add_executable(gui
 main.cpp
 TetrisPG.cpp
-NeatProject.cpp
 MainMenuCtrl.cpp
 ControlPanelCtrl.cpp
 ProjectManager.cpp
-EmptyPG.cpp
 CheckpointPG.cpp
+LinesPG.cpp
 Trainer.cpp
 panels/HistoryPanel.cpp
 panels/PopulationPanel.cpp
@@ -23,6 +22,8 @@ widgets/plot.cpp
 widgets/propertygrid.cpp
 widgets/pgitems.cpp
 widgets/nn_view.cpp
+projects/NeatProject.cpp
+projects/NeatPopulation.cpp
 )
 
 target_link_libraries(gui nana Xcursor neat tetris logger)

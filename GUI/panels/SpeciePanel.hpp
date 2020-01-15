@@ -3,7 +3,7 @@
 #include <nana/gui/widgets/textbox.hpp>
 #include <nana/gui/widgets/group.hpp>
 #include <nana/gui/drawing.hpp>
-#include "neat/population.hpp"
+#include "../IPopulation.hpp"
 #include <memory>
 
 class Trainer;
@@ -14,7 +14,7 @@ class SpecieOverview
 public:
    SpecieOverview(std::shared_ptr<nana::group> impl);
 
-   void update(const neat::Specie& specie, const unsigned int totalPop);
+   void update(const SpecieResults& specie, const unsigned int totalPop);
    void show();
    void hide();
 

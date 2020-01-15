@@ -1,5 +1,5 @@
 #include "./CheckpointPG.hpp"
-#include "neat/neuro_net.hpp"
+#include "neuroevolution/neuro_net.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <cmath>
@@ -14,7 +14,7 @@ bool sameCorridor(int a, int b)
    return (a - 1) / 2 == (b - 1) / 2;
 }
 
-class CPFitnessEvaluator : public neat::IFitnessEvaluator
+class CPFitnessEvaluator : public neuroevolution::IFitnessEvaluator
 {
 public:
    CPFitnessEvaluator()
@@ -23,23 +23,6 @@ public:
       {
          mSamples.push_back(loadSample(f.path()));
       }
-
-      /*for(auto &s: mSamples)
-      {
-         std::cout << "Sample: counter = " << s.result << " meas = [" << std::endl;
-         for(auto &m : s.measurements)
-         {
-            std::cout << "timeDelta: " << m.timeDelta << " sensors = [ ";
-            for(int i = 0; i < 13; ++i)
-            {
-               std::cout << m.pscs[i] << " ";
-            }
-
-            std::cout << "]" << std::endl;
-         }
-
-         std::cout << "]" << std::endl;
-      }*/
    }
 
    void step()
@@ -47,27 +30,25 @@ public:
       
    }
 
-   std::string play(const neat::v2::Genom& g)
+   std::string play(neuroevolution::NeuroNet& ann)
    {
       std::string result;
       int numSolved = 0;
 
       for(auto &s: mSamples)
       {
-         auto n = neat::NeuroNet(g);
-
          for(auto &m : s.measurements)
          {
-            auto inputIter = n.begin_input();
+            auto inputIter = ann.begin_input();
 
             inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
             *inputIter = m.timeDelta;
 
-            n.activate();
+            ann.activate();
          }
 
-         auto pos = std::max_element(n.begin_output(), n.end_output());
-         auto counter = std::distance(n.begin_output(), pos) + 1;
+         auto pos = std::max_element(ann.begin_output(), ann.end_output());
+         auto counter = std::distance(ann.begin_output(), pos) + 1;
 
          if(counter == s.result)
          {
@@ -90,26 +71,24 @@ public:
       return result;
    }
 
-   neat::Fitness evaluate(const neat::v2::Genom& g) override
+   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
    {
-      neat::Fitness result = 0;
+      neuroevolution::Fitness result = 0;
 
       for(auto &s: mSamples)
       {
-         auto n = neat::NeuroNet(g);
-
          for(auto &m : s.measurements)
          {
-            auto inputIter = n.begin_input();
+            auto inputIter = ann.begin_input();
 
             inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
             *inputIter = m.timeDelta;
 
-            n.activate();
+            ann.activate();
          }
 
-         auto pos = std::max_element(n.begin_output(), n.end_output());
-         auto counter = std::distance(n.begin_output(), pos) + 1;
+         auto pos = std::max_element(ann.begin_output(), ann.end_output());
+         auto counter = std::distance(ann.begin_output(), pos) + 1;
 
          if(counter == s.result)
          {
@@ -212,7 +191,7 @@ private:
    std::vector<Sample> mSamples;
 };
 
-neat::IFitnessEvaluator& CheckpointPG::getFitnessEvaluator()
+neuroevolution::IFitnessEvaluator& CheckpointPG::getFitnessEvaluator()
 {
    return *mFitnessEvaluator;
 }
@@ -238,13 +217,13 @@ void CheckpointPG::step()
    mFitnessEvaluator->step();
 }
 
-void CheckpointPG::play(const neat::v2::Genom& g)
+void CheckpointPG::play(neuroevolution::NeuroNet& ann)
 {
    nana::form frm(nana::API::make_center(500, 800));
    frm.caption("Checkpoint output");
 
    nana::textbox tb(frm);
-   std::string out = mFitnessEvaluator->play(g);
+   std::string out = mFitnessEvaluator->play(ann);
    tb.caption(out);
 
    nana::place layout(frm);
@@ -258,4 +237,13 @@ void CheckpointPG::play(const neat::v2::Genom& g)
 std::string CheckpointPG::getName() const
 {
    return "Checkpoint";
+}
+
+neuroevolution::DomainGeometry CheckpointPG::getDomainGeometry() const
+{
+   return {
+      {9, 4, 3},
+      {{0, 2}, {2, 2}, {2, 1}, {0, 1}, {3, 2}, {5, 2}, {5, 1}, {3, 1}, {6, 2}, {8, 2}, {8, 1}, {6, 1}, {4, 0}, {4, 3}},
+      {{0, 2}, {2, 1}, {3, 2}, {5, 1}, {6, 2}, {8, 1}}
+   };
 }

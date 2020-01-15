@@ -15,7 +15,7 @@ HistoryPanel::HistoryPanel(nana::panel<true>& parent, ProjectManager& pm, Traine
    t2.color( nana::colors::red );
 
    trainer.signalStep.connect([&](){
-      t1.add(pm.getProject().getPopulation().getAverageFitness());
-      t2.add(pm.getProject().getPopulation().getAverageComplexity());
+      t1.add(pm.getProject()->getPopulation().getAverageFitness());
+      t2.add(pm.getProject()->getPopulation().getAverageComplexity());
    });
 }

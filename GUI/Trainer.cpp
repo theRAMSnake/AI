@@ -1,6 +1,6 @@
 #include "Trainer.hpp"
 
-void Trainer::start(NeatProject& s)
+void Trainer::start(IProject& s)
 {
    mSubject = &s;
    if(mThread.joinable())

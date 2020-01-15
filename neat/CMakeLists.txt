@@ -3,14 +3,15 @@ project(neat)
 
 LIST(APPEND CMAKE_MODULE_PATH "..")
 
+include_directories("..")
+
 add_library(neat 
 genom.cpp
 neat.cpp
 population.cpp
 rng.cpp
 InnovationHistory.cpp
-neuro_net.cpp
-activation.cpp
+Substrate3D.cpp
 )
 
-target_link_libraries(neat logger pthread)
+target_link_libraries(neat neuroevolution logger pthread)

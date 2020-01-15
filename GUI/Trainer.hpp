@@ -1,7 +1,7 @@
 #pragma once
 #include <boost/signals2.hpp>
 #include <thread>
-#include "NeatProject.hpp"
+#include "IProject.hpp"
 
 class Trainer
 {
@@ -10,7 +10,7 @@ public:
    boost::signals2::signal<void()> signalStopped;
    boost::signals2::signal<void()> signalStep;
 
-   void start(NeatProject& s);
+   void start(IProject& s);
    void stop();
 
    bool isRunning();
@@ -21,6 +21,6 @@ private:
    void threadFunc();
 
    bool mStop = true;
-   NeatProject* mSubject;
+   IProject* mSubject;
    std::thread mThread;
 };

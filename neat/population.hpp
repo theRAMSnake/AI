@@ -7,14 +7,6 @@
 namespace neat
 {
 
-class IFitnessEvaluator
-{
-public:
-    virtual Fitness evaluate(const v2::Genom& g) = 0;
-
-    virtual ~IFitnessEvaluator(){}
-};
-
 struct Pop
 {
    Fitness fitness;
@@ -25,7 +17,7 @@ struct Specie
 {
    const Pop& randomPop() const;
    void selectRepresentor();
-   Fitness getSharedFitness() const;
+   double getSharedFitness() const;
    Fitness getTotalFitness() const;
    void updateFitness();
    void produceOffsprings(
@@ -40,7 +32,7 @@ struct Specie
    std::optional<Pop> representor;
    unsigned int id;
    std::vector<Pop> population;
-   double maxFitness = 0.0;
+   Fitness maxFitness = 0;
    double maxAverageFitness = 0.0;
    unsigned int numStagnant = 0;
    Fitness totalFitness = 0;

@@ -1,6 +1,7 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include "neat/neuro_net.hpp"
+#include "neuroevolution/neuro_net.hpp"
+#include "neat/genom.hpp"
 
 class RNNTest
 {
@@ -39,8 +40,8 @@ BOOST_FIXTURE_TEST_CASE( TestRNN, RNNTest )
    a.connect(newNodeId1, 3, mHistory, 1.0);
    a.connect(3, 3, mHistory, 1.0);
 
-   neat::NeuroNet n(a);
-   BOOST_CHECK_EQUAL(0.92414181997875655, neat::activate(n, {0, 0})[0]);
-   BOOST_CHECK_EQUAL(1.8482836399575131, neat::activate(n, {0, 0})[0]);
-   BOOST_CHECK_EQUAL(2.7724254599362697, neat::activate(n, {0, 0})[0]);
+   auto n = neat::v2::createAnn(a);
+   BOOST_CHECK_EQUAL(0.92414181997875655, neuroevolution::activate(*n, {0, 0})[0]);
+   BOOST_CHECK_EQUAL(1.8482836399575131, neuroevolution::activate(*n, {0, 0})[0]);
+   BOOST_CHECK_EQUAL(2.7724254599362697, neuroevolution::activate(*n, {0, 0})[0]);
 }

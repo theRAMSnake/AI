@@ -1,13 +1,17 @@
 #pragma once
-#include "genom.hpp"
+#include "activation.hpp"
 #include <vector>
 #include <list>
 #include <cstddef>
 #include <unordered_map>
 #include <boost/container/small_vector.hpp>
+#include <map>
+#include <memory>
 
-namespace neat
+namespace neuroevolution
 {
+
+using NodeId = unsigned int;
 
 class NetworkTopology
 {
@@ -68,9 +72,23 @@ public:
       Node** mNodePtr;
    };
 
-   NeuroNet(const neat::v2::Genom& genotype);
+   struct ConnectionDef
+   {
+      NodeId src;
+      NodeId dst;
+      double weight;
+   };
+
+   NeuroNet(
+      const std::vector<NodeId>& inputNodes, 
+      const std::vector<NodeId>& biasNodes,
+      const std::vector<NodeId>& outputNodes,
+      const std::vector<std::pair<NodeId, ActivationFunctionType>>& hiddenNodes,
+      const std::vector<ConnectionDef>& connections
+      );
 
    void activate();
+   void reset();
    
    NodeIterator begin_input();
    NodeIterator end_input();
@@ -80,7 +98,13 @@ public:
 
    NetworkTopology createTopology() const;
 
+   static std::unique_ptr<NeuroNet> fromBinaryStream(std::ifstream& stream);
+   void toBinaryStream(std::ofstream& stream);
+
+   void print();
+
 private:
+   NeuroNet();
 
    struct Node
    {
@@ -89,9 +113,9 @@ private:
       int depth = -1;
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
       ActivationFunction func = nullptr;
+      ActivationFunctionType accType;
    };
 
-   //const Genom& mGenotype;
    std::vector<Node> mNodes;
 
    std::vector<Node*> mHiddenNodes;

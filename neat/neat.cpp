@@ -8,11 +8,12 @@
 #include <fstream>
 #include <set>
 #include "../logger/Logger.hpp"
+#include "neuroevolution/neuro_net.hpp"
 
 namespace neat
 {
 
-Neat::Neat(const Config& cfg, const EvolutionStrategyType esType, IFitnessEvaluator& fitnessEvaluator)
+Neat::Neat(const Config& cfg, const EvolutionStrategyType esType, neuroevolution::IFitnessEvaluator& fitnessEvaluator)
 : mCfg(cfg)
 , mFitnessEvaluator(fitnessEvaluator)
 {
@@ -59,17 +60,21 @@ bool Neat::hasPopulation() const
     return static_cast<bool>(mPopulation);
 }
 
-int evaluate(IFitnessEvaluator* eval, std::vector<std::vector<Pop>::iterator>::iterator begin, std::vector<std::vector<Pop>::iterator>::iterator end)
+int Neat::evaluate(
+    neuroevolution::IFitnessEvaluator* eval, 
+    std::vector<std::vector<Pop>::iterator>::iterator begin, 
+    std::vector<std::vector<Pop>::iterator>::iterator end
+    )
 {
     for(auto iter = begin; iter != end; ++iter)
     {
-        (*iter)->fitness = eval->evaluate((*iter)->genotype);
+        (*iter)->fitness = eval->evaluate(*createAnn((*iter)->genotype));
     }
 
     return 0;
 }
 
-void evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, IFitnessEvaluator& eval, int numThreads)
+void Neat::evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, neuroevolution::IFitnessEvaluator& eval, int numThreads)
 {
     std::vector<std::future<int>> fs;
     std::size_t numElementsByThread = popPtrs.size() / numThreads + 1;
@@ -78,7 +83,13 @@ void evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, IFitnes
     auto last = first + numElementsByThread;
     for(int i = 0; i < numThreads; ++i)
     {
-        auto f = std::async(std::launch::async, evaluate, &eval, first, last);
+        auto f = std::async(
+            std::launch::async, 
+            std::bind(&Neat::evaluate, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), 
+            &eval, 
+            first, 
+            last
+            );
         fs.push_back(std::move(f));
 
         first += numElementsByThread;
@@ -98,30 +109,24 @@ void evaluateParallel( std::vector<std::vector<Pop>::iterator>& popPtrs, IFitnes
 
 void Neat::updateFitness()
 {
-    if(mCfg.numThreads != 1)
+    std::vector<std::vector<Pop>::iterator> popPtrs;
+    popPtrs.reserve(mCfg.populationCfg.size * 2); //x2 is not to reallocate overpopulation
+
+    for(auto& s: (*mPopulation))
     {
-        std::vector<std::vector<Pop>::iterator> popPtrs;
-        popPtrs.reserve(mCfg.populationCfg.size * 2); //x2 is not to reallocate overpopulation
-
-        for(auto& s: (*mPopulation))
+        for(auto iter = s.population.begin(); iter != s.population.end(); ++iter)
         {
-            for(auto iter = s.population.begin(); iter != s.population.end(); ++iter)
-            {
-                popPtrs.push_back(iter);
-            }
+            popPtrs.push_back(iter);
         }
+    }
 
+    if(mCfg.numThreads > 1)
+    {
         evaluateParallel(popPtrs, mFitnessEvaluator, mCfg.numThreads);
     }
     else
     {
-        for(auto& s: (*mPopulation))
-        {
-            for(auto iter = s.population.begin(); iter != s.population.end(); ++iter)
-            {
-                iter->fitness = mFitnessEvaluator.evaluate(iter->genotype);
-            }
-        }
+        evaluate(&mFitnessEvaluator, popPtrs.begin(), popPtrs.end());
     }
 
     mPopulation->onEvaluationFinished();
@@ -197,6 +202,31 @@ void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
         mPopulation->reconfigure(mCfg.populationCfg);
         mPopulation->setEvolutionStrategy(mEs);
     }
+}
+
+std::unique_ptr<neuroevolution::NeuroNet> Neat::createAnn(const v2::Genom& src) const
+{
+    if(mSubstrate)
+    {
+        return mSubstrate->apply(src);
+    }
+    else
+    {
+        return v2::createAnn(src);
+    }
+}
+
+Neat::Neat(
+    const Config& cfg, 
+    const neuroevolution::DomainGeometry& domainGeometry, 
+    const EvolutionStrategyType esType, 
+    neuroevolution::IFitnessEvaluator& fitnessEvaluator
+    )
+    : Neat(cfg, esType, fitnessEvaluator)
+{
+    mCfg.numInputs = 6; //(x1, y1, z1, x2, y2, z2)
+    mCfg.numOutputs = 1; //weight
+    mSubstrate.emplace(domainGeometry);
 }
 
 }

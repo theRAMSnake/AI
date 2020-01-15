@@ -24,16 +24,16 @@ protected:
    neat::Config mCfg;
 };
 
-class SimpleFitnessEvaluator : public neat::IFitnessEvaluator
+class SimpleFitnessEvaluator : public neuroevolution::IFitnessEvaluator
 {
 public:
-    virtual neat::Fitness evaluate(const neat::v2::Genom& g)
+    virtual neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann)
     {
         return mCurrent++;
     }
 
 private:
-    neat::Fitness mCurrent = 0;
+    neuroevolution::Fitness mCurrent = 0;
 };
 
 bool isNeatSame(neat::Neat& a, neat::Neat& b)

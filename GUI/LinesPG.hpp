@@ -2,11 +2,11 @@
 #include "neuroevolution/IPlayground.hpp"
 #include <memory>
 
-class CPFitnessEvaluator;
-class CheckpointPG : public neuroevolution::IPlayground
+class LinesFitnessEvaluator;
+class LinesPG : public neuroevolution::IPlayground
 {
 public:
-   CheckpointPG();
+   LinesPG();
 
    neuroevolution::IFitnessEvaluator& getFitnessEvaluator() override;
 
@@ -19,5 +19,5 @@ public:
    unsigned int getNumOutputs() const override;
 
 private:
-   std::shared_ptr<CPFitnessEvaluator> mFitnessEvaluator;
+   std::shared_ptr<LinesFitnessEvaluator> mFitnessEvaluator;
 };

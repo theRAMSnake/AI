@@ -1,8 +1,25 @@
 #include "ProjectManager.hpp"
-#include "EmptyPG.hpp"
 #include "TetrisPG.hpp"
 #include "CheckpointPG.hpp"
+#include "LinesPG.hpp"
+#include "projects/NeatProject.hpp"
 #include <filesystem>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+IProject* instantiateProject(const boost::property_tree::ptree& cfg, const std::string& engine, neuroevolution::IPlayground& pg)
+{
+   if(engine == "Neat")
+   {
+      return new NeatProject(cfg, false, pg);
+   }
+   else if(engine == "HyperNeat")
+   {
+      return new NeatProject(cfg, true, pg);
+   }
+
+   throw -1;
+}
 
 void ProjectManager::save(const std::string& fileName)
 {
@@ -12,6 +29,7 @@ void ProjectManager::save(const std::string& fileName)
       tree.put("neat_state_filename", fileName + ".neat");
       tree.put("generation", mCurrentProject->getGeneration());
       tree.put("playground", mPlayground->getName());
+      tree.put("engine", mCurrentProject->getEngine());
 
       boost::property_tree::write_json(fileName, tree);
 
@@ -72,7 +90,7 @@ bool ProjectManager::load(const std::string& fileName)
 
     auto neatFileName = tree.get<std::string>("neat_state_filename");
 
-    mCurrentProject = std::make_unique<NeatProject>(tree, createPlayground(tree.get<std::string>("playground")));
+    mCurrentProject.reset(instantiateProject(tree, tree.get<std::string>("engine"), createPlayground(tree.get<std::string>("playground"))));
     mCurrentProject->loadState(neatFileName);
     mCurrentProject->setGeneration(tree.get<unsigned int>("generation"));
     mCurrentProjectFileName = fileName;
@@ -81,43 +99,34 @@ bool ProjectManager::load(const std::string& fileName)
     return true;
 }
 
-void ProjectManager::createDefaultProject()
-{
-   boost::property_tree::ptree cfg;
-   initiatializeConfig(cfg);
-
-   mCurrentProject = std::make_unique<NeatProject>(cfg, createPlayground("Empty"));
-   signalProjectChanged(*mCurrentProject);
-}
-
-void ProjectManager::createProject(const std::string& playgroundName, const std::string& fileName)
+void ProjectManager::createProject(const std::string& playgroundName, const std::string& engineName, const std::string& fileName)
 {
    boost::property_tree::ptree cfg;
    initiatializeConfig(cfg);
 
    mCurrentProjectFileName = fileName;
-   mCurrentProject = std::make_unique<NeatProject>(cfg, createPlayground(playgroundName));
+   mCurrentProject.reset(instantiateProject(cfg, engineName, createPlayground(playgroundName)));
    signalProjectChanged(*mCurrentProject);
 }
 
-NeatProject& ProjectManager::getProject()
+IProject* ProjectManager::getProject()
 {
-   return *mCurrentProject;
+   return mCurrentProject.get();
 }
 
-IPlayground& ProjectManager::createPlayground(const std::string& name)
+neuroevolution::IPlayground& ProjectManager::createPlayground(const std::string& name)
 {
-   if(name == "Empty")
-   {
-      mPlayground = std::make_unique<EmptyPG>();
-   }
-   else if(name == "Tetris")
+   if(name == "Tetris")
    {
       mPlayground = std::make_unique<TetrisPG>();
    }
    else if(name == "Checkpoint")
    {
       mPlayground = std::make_unique<CheckpointPG>();
+   }
+   else if(name == "Lines")
+   {
+      mPlayground = std::make_unique<LinesPG>();
    }
    else
    {
@@ -130,13 +139,29 @@ IPlayground& ProjectManager::createPlayground(const std::string& name)
 std::vector<std::string> ProjectManager::getPlaygroundList() const
 {
    return {
-      "Empty",
       "Tetris",
-      "Checkpoint"
+      "Checkpoint",
+      "Lines"
+   };
+}
+
+std::vector<std::string> ProjectManager::getEngineList() const
+{
+   return {
+      "Neat",
+      "HyperNeat"
    };
 }
 
 void ProjectManager::autosave()
 {
    save(mCurrentProjectFileName);
+}
+
+const boost::property_tree::ptree ProjectManager::getConfigTemplate() const
+{
+   boost::property_tree::ptree cfg;
+   initiatializeConfig(cfg);
+
+   return cfg;
 }
