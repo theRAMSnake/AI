@@ -1,5 +1,14 @@
 #include "Substrate3D.hpp"
 #include <set>
+#include "logger/Logger.hpp"
+
+#define TRACE
+
+#ifdef TRACE
+   #define TRACE_LOG(x) LOG(x)
+#elif
+   #define TRACE_LOG(x)
+#endif
 
 namespace neat
 {
@@ -8,12 +17,14 @@ inline neuroevolution::NodeId genNodeId(const unsigned int x, const unsigned int
 {
    static_assert(sizeof(neuroevolution::NodeId) > 3);
 
-   return z << 16 | y << 8 | x; 
+   return z << 16 | y << 8 | x;
 }
 
 Substrate3D::Substrate3D(const neuroevolution::DomainGeometry& domainGeometry)
 : mGeometry(domainGeometry)
 {
+   TRACE_LOG("Create substrate");
+
    if(domainGeometry.size.z < 3 || domainGeometry.size.z > 254 || domainGeometry.size.x > 254 || domainGeometry.size.y > 254)
    {
       //Should be at least 1 hidden layer
@@ -25,16 +36,19 @@ Substrate3D::Substrate3D(const neuroevolution::DomainGeometry& domainGeometry)
    {
       //One bias per hidden layer at [0, 0]
       mBiasNodes.push_back(genNodeId(0, 0, i + 1));
+      TRACE_LOG("Create bias: " + std::to_string(genNodeId(0, 0, i + 1)));
    }
 
    for(auto& n : domainGeometry.inputs)
    {
       mInputNodes.push_back(genNodeId(n.x, n.y, 0));
+      TRACE_LOG("Create input: " + std::to_string(genNodeId(n.x, n.y, 0)));
    }
 
    for(auto& n : domainGeometry.outputs)
    {
       mOutputNodes.push_back(genNodeId(n.x, n.y, domainGeometry.size.z - 1));
+      TRACE_LOG("Create output: " + std::to_string(genNodeId(n.x, n.y, domainGeometry.size.z - 1)));
    }
 
    for(unsigned int i = 0; i < domainGeometry.size.x; ++i)
@@ -68,6 +82,11 @@ void genConnections(
             continue;
          }
 
+         if(s.x == d.x && s.y == d.y) //Skip recursive
+         {
+            continue;
+         }
+
          auto w = neuroevolution::activate(cpnn, {double(s.x), double(s.y), double(srcLayer), double(d.x), double(d.y), double(dstLayer)})[0];
          if(std::abs(w) > THRESHOLD)
          {
@@ -93,10 +112,13 @@ std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& sr
    //1. Connect inputs to layer1
    genConnections(mGeometry.inputs, 0, mHiddenPlaneNodes, 1, false, *srcAnn, connections, hiddenNodesSet);
 
-   //2. Connect each layer n to layer n+1 and itself
+   //2. Connect each layer n to layer n+1
    for(unsigned int srcLayer = 1; srcLayer != mGeometry.size.z - 1; ++srcLayer)
    {
+      //Connections within layer
       genConnections(mHiddenPlaneNodes, srcLayer, mHiddenPlaneNodes, srcLayer, false, *srcAnn, connections, hiddenNodesSet);
+
+      //Conenctions to next layer
       if(srcLayer != mGeometry.size.z - 2) //Last layer will connect ot outputs
       {
          genConnections(mHiddenPlaneNodes, srcLayer, mHiddenPlaneNodes, srcLayer + 1, false, *srcAnn, connections, hiddenNodesSet);

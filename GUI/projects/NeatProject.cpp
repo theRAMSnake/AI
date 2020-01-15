@@ -27,6 +27,7 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
 NeatProject::NeatProject(const boost::property_tree::ptree& cfg, const bool isHyperNeat, neuroevolution::IPlayground& pg)
 : mConfig(cfg)
 , mPlayground(pg)
+, mIsHyperNeat(isHyperNeat)
 {
    if(isHyperNeat)
    {
@@ -106,7 +107,7 @@ neuroevolution::IPlayground& NeatProject::getPlayground()
 
 std::string NeatProject::getEngine() const
 {
-   return "Neat";
+   return mIsHyperNeat ? "HyperNeat" : "Neat";
 }
 
 void NeatProject::getRawOut(std::stringstream& out) const

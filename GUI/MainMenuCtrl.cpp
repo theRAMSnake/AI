@@ -115,15 +115,17 @@ MainMenuCtrl::MainMenuCtrl(nana::menubar& parent, ProjectManager& pm, Trainer& t
    auto& p = parent.push_back("Project");
    p.append("New", std::bind(&MainMenuCtrl::newProject, this));
    p.append("Load", std::bind(&MainMenuCtrl::loadProject, this));
-   auto& saveBtn = p.append("Save", std::bind(&MainMenuCtrl::saveProject, this)).enabled(false);
+   mSaveBtn.emplace(std::move(p.append("Save", std::bind(&MainMenuCtrl::saveProject, this))));
+   mSaveBtn->enabled(false);
 
    auto& t = parent.push_back("Tools");
-   auto& playBtn = t.append("Play", std::bind(&MainMenuCtrl::play, this)).enabled(false);
+   mPlayBtn.emplace(std::move(t.append("Play", std::bind(&MainMenuCtrl::play, this))));
+   mPlayBtn->enabled(false);
 
    pm.signalProjectChanged.connect([&](auto& x){
       p.enabled(true);
-      saveBtn.enabled(true);
-      playBtn.enabled(true);
+      mSaveBtn->enabled(true);
+      mPlayBtn->enabled(true);
    });
 
    trainer.signalStarted.connect([&](){

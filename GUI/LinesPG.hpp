@@ -13,6 +13,7 @@ public:
    void step() override;
    void play(neuroevolution::NeuroNet& ann) override;
    std::string getName() const override;
+   neuroevolution::DomainGeometry getDomainGeometry() const override;
 
    unsigned int getNumInputs() const override;
    unsigned int getNumOutputs() const override;

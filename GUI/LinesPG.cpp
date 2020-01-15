@@ -59,7 +59,14 @@ public:
 
             auto inputIter = ann.begin_input();
 
-            std::copy(&picture[0][0], &picture[0][0] + 25, inputIter);
+            for (unsigned int i = 0; i < 5; i++)
+            {
+               for (unsigned int j = 0; j < 5; j++)
+               {
+                  *inputIter = picture[i][j];
+                  ++inputIter;
+               }
+            }
 
             ann.activate();
 
@@ -116,4 +123,22 @@ void LinesPG::play(neuroevolution::NeuroNet& ann)
 std::string LinesPG::getName() const
 {
    return "Lines";
+}
+
+neuroevolution::DomainGeometry LinesPG::getDomainGeometry() const
+{
+   neuroevolution::DomainGeometry result;
+
+   result.size = {5, 5, 3};
+   result.outputs = {{0, 0}, {4, 4}};
+
+   for (unsigned int i = 0; i < 5; i++)
+   {
+      for (unsigned int j = 0; j < 5; j++)
+      {
+         result.inputs.push_back({i, j});
+      }
+   }
+
+   return result;
 }

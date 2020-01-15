@@ -31,4 +31,5 @@ private:
    boost::property_tree::ptree mConfig;
    neuroevolution::IPlayground& mPlayground;
    std::unique_ptr<NeatPopulation> mPops;
+   bool mIsHyperNeat;
 };
