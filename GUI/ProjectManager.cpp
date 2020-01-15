@@ -1,6 +1,7 @@
 #include "ProjectManager.hpp"
 #include "TetrisPG.hpp"
 #include "CheckpointPG.hpp"
+#include "LinesPG.hpp"
 #include "projects/NeatProject.hpp"
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
@@ -123,6 +124,10 @@ neuroevolution::IPlayground& ProjectManager::createPlayground(const std::string&
    {
       mPlayground = std::make_unique<CheckpointPG>();
    }
+   else if(name == "Lines")
+   {
+      mPlayground = std::make_unique<LinesPG>();
+   }
    else
    {
       throw -1;
@@ -135,7 +140,8 @@ std::vector<std::string> ProjectManager::getPlaygroundList() const
 {
    return {
       "Tetris",
-      "Checkpoint"
+      "Checkpoint",
+      "Lines"
    };
 }
 

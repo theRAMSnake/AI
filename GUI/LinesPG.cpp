@@ -1,0 +1,119 @@
+
+#include "neuroevolution/neuro_net.hpp"
+#include "neat/rng.hpp"
+#include "LinesPG.hpp"
+
+class LinesFitnessEvaluator : public neuroevolution::IFitnessEvaluator
+{
+public:
+   LinesFitnessEvaluator()
+   {
+       
+   }
+
+   void step()
+   {
+       
+   }
+
+   void genPicture(const bool vert, double picture[5][5])
+   {
+      auto pos = neat::Rng::genChoise(5);
+
+      for(int i = 0; i < 5; ++i)
+      {
+         for(int j = 0; j < 5; ++j)
+         {
+            picture[i][j] = 0.0;
+         }
+      }
+
+      if(vert)
+      {
+         for(int i = 0; i < 5; ++i)
+         {
+            picture[pos][i] = 1.0;
+         }
+      }
+      else
+      {
+         for(int i = 0; i < 5; ++i)
+         {
+            picture[i][pos] = 1.0;
+         }
+      }
+   }
+
+   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
+   {
+        neuroevolution::Fitness result = 0;
+
+        double picture[5][5];
+
+        for(int i = 0; i < 100; ++i)
+        {
+            ann.reset();
+
+            bool vert = neat::Rng::genProbability(0.5);
+            genPicture(vert, picture);
+
+            auto inputIter = ann.begin_input();
+
+            std::copy(&picture[0][0], &picture[0][0] + 25, inputIter);
+
+            ann.activate();
+
+            auto outputIter = ann.begin_output();
+            auto vertProb = *outputIter;
+            ++outputIter;
+            auto horzProb = *outputIter; 
+
+            if(vertProb > horzProb)
+            {
+                result += vert ? 1 : 0;
+            }
+            else
+            {
+                result += !vert ? 1 : 0;
+            }
+        }
+
+        return result;
+   }
+};
+
+neuroevolution::IFitnessEvaluator& LinesPG::getFitnessEvaluator()
+{
+   return *mFitnessEvaluator;
+}
+
+LinesPG::LinesPG()
+: mFitnessEvaluator(new LinesFitnessEvaluator)
+{
+   
+}
+
+unsigned int LinesPG::getNumInputs() const
+{
+   return 25;
+}
+
+unsigned int LinesPG::getNumOutputs() const
+{
+   return 2;
+}
+
+void LinesPG::step()
+{
+   mFitnessEvaluator->step();
+}
+
+void LinesPG::play(neuroevolution::NeuroNet& ann)
+{  
+   
+}
+
+std::string LinesPG::getName() const
+{
+   return "Lines";
+}
