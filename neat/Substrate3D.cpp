@@ -32,12 +32,9 @@ Substrate3D::Substrate3D(const neuroevolution::DomainGeometry& domainGeometry)
       throw -1;
    }
 
-   for(unsigned int i = 0; i < domainGeometry.size.z - 2; ++i)
-   {
-      //One bias per hidden layer at [0, 0]
-      mBiasNodes.push_back(genNodeId(0, 0, i + 1));
-      TRACE_LOG("Create bias: " + std::to_string(genNodeId(0, 0, i + 1)));
-   }
+   //One bias per hidden layer at [0, 0]
+   mBiasNodes.push_back(genNodeId(0, 0, 0));
+   TRACE_LOG("Create bias: " + std::to_string(genNodeId(0, 0, 0)));
 
    for(auto& n : domainGeometry.inputs)
    {
@@ -77,16 +74,6 @@ void genConnections(
    {
       for(auto& d : dst)
       {
-         if(s.x == 0 && s.y == 0) //Skip bias
-         {
-            continue;
-         }
-
-         if(s.x == d.x && s.y == d.y) //Skip recursive
-         {
-            continue;
-         }
-
          auto w = neuroevolution::activate(cpnn, {double(s.x), double(s.y), double(srcLayer), double(d.x), double(d.y), double(dstLayer)})[0];
          if(std::abs(w) > THRESHOLD)
          {
@@ -101,6 +88,22 @@ void genConnections(
    }
 }
 
+const std::vector<neuroevolution::Point2D>& Substrate3D::getLayer(const std::size_t n) const
+{
+   if(n == 0)
+   {
+      return mGeometry.inputs;
+   }
+   else if(n == mGeometry.size.z - 1)
+   {
+      return mGeometry.outputs;
+   }
+   else
+   {
+      return mHiddenPlaneNodes;
+   }
+}
+
 std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& src) const
 {
    auto srcAnn = v2::createAnn(src);
@@ -109,7 +112,17 @@ std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& sr
    std::vector<neuroevolution::NeuroNet::ConnectionDef> connections;
    std::set<neuroevolution::NodeId> hiddenNodesSet;
 
-   //1. Connect inputs to layer1
+   for(unsigned int srcLayer = 0; srcLayer != mGeometry.size.z - 1; ++srcLayer) //Exclude output layer
+   {
+      auto& srcNodePositions = getLayer(srcLayer);
+      for(unsigned int dstLayer = 1; dstLayer != mGeometry.size.z; ++dstLayer) //Exclude input layer
+      {
+         auto& dstNodePositions = getLayer(dstLayer);
+         genConnections(srcNodePositions, srcLayer, dstNodePositions, dstLayer, dstLayer == mGeometry.size.z - 1, *srcAnn, connections, hiddenNodesSet);
+      }
+   }
+
+   /*//1. Connect inputs to layer1
    genConnections(mGeometry.inputs, 0, mHiddenPlaneNodes, 1, false, *srcAnn, connections, hiddenNodesSet);
 
    //2. Connect each layer n to layer n+1
@@ -126,7 +139,7 @@ std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& sr
    }     
 
    //3. Connect last layer to outputs
-   genConnections(mHiddenPlaneNodes, mGeometry.size.z - 2, mGeometry.outputs, mGeometry.size.z - 1, true, *srcAnn, connections, hiddenNodesSet);
+   genConnections(mHiddenPlaneNodes, mGeometry.size.z - 2, mGeometry.outputs, mGeometry.size.z - 1, true, *srcAnn, connections, hiddenNodesSet);*/
 
    std::vector<std::pair<neuroevolution::NodeId, ActivationFunctionType>> hiddenNodes;
    for(auto& n : hiddenNodesSet)

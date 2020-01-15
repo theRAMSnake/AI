@@ -16,6 +16,8 @@ public:
    std::unique_ptr<neuroevolution::NeuroNet> apply(const v2::Genom& src) const;
 
 private:
+   const std::vector<neuroevolution::Point2D>& getLayer(const std::size_t n) const;
+
    neuroevolution::DomainGeometry mGeometry;
 
    std::vector<neuroevolution::NodeId> mInputNodes; 
