@@ -24,27 +24,37 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
     return result;
 }
 
-NeatProject::NeatProject(const boost::property_tree::ptree& cfg, neuroevolution::IPlayground& pg)
-: mNeat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), 
-      cfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing,
-      pg.getFitnessEvaluator())
-, mConfig(cfg)
+NeatProject::NeatProject(const boost::property_tree::ptree& cfg, const bool isHyperNeat, neuroevolution::IPlayground& pg)
+: mConfig(cfg)
 , mPlayground(pg)
-, mPops(mNeat)
 {
+   if(isHyperNeat)
+   {
+      mNeat.reset(new neat::Neat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), 
+         pg.getDomainGeometry(),
+         cfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing,
+         pg.getFitnessEvaluator()));
+   }
+   else
+   {
+      mNeat.reset(new neat::Neat(toNeatConfig(cfg, pg.getNumInputs(), pg.getNumOutputs()), 
+         cfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing,
+         pg.getFitnessEvaluator()));
+   }
 
+   mPops.reset(new NeatPopulation(*mNeat));
 }
 
 void NeatProject::step()
 {
    mPlayground.step();
-   mNeat.step();
+   mNeat->step();
    mGeneration++;
 }
 
 const IPopulation& NeatProject::getPopulation() const
 {
-   return mPops;
+   return *mPops;
 }
 
 const unsigned int NeatProject::getGeneration() const
@@ -54,12 +64,12 @@ const unsigned int NeatProject::getGeneration() const
 
 void NeatProject::saveState(const std::string& filename)
 {
-   mNeat.saveState(filename);
+   mNeat->saveState(filename);
 }
 
 void NeatProject::loadState(const std::string& filename)
 {
-   mNeat.loadState(filename);
+   mNeat->loadState(filename);
 }
 
 void NeatProject::setGeneration(const unsigned int generation)
@@ -75,7 +85,7 @@ const boost::property_tree::ptree& NeatProject::getConfig() const
 void NeatProject::updateConfig(const boost::property_tree::ptree& newCfg)
 {
    mConfig = newCfg;
-   mNeat.reconfigure(toNeatConfig(mConfig, 0, 0), 
+   mNeat->reconfigure(toNeatConfig(mConfig, 0, 0), 
       newCfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing);
 }
 
@@ -101,12 +111,12 @@ std::string NeatProject::getEngine() const
 
 void NeatProject::getRawOut(std::stringstream& out) const
 {
-   if(!mNeat.hasPopulation())
+   if(!mNeat->hasPopulation())
    {
       return;
    }
    
-   auto& pops = mNeat.getPopulation();
+   auto& pops = mNeat->getPopulation();
 
    out << "Generation: " << getGeneration() << std::endl;
    out << "Total population: " << pops.size() << std::endl;

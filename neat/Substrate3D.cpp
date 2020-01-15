@@ -1,4 +1,5 @@
 #include "Substrate3D.hpp"
+#include <set>
 
 namespace neat
 {
@@ -10,7 +11,7 @@ inline neuroevolution::NodeId genNodeId(const unsigned int x, const unsigned int
    return z << 16 | y << 8 | x; 
 }
 
-Substrate3D::Substrate3D(const DomainGeometry& domainGeometry)
+Substrate3D::Substrate3D(const neuroevolution::DomainGeometry& domainGeometry)
 : mGeometry(domainGeometry)
 {
    if(domainGeometry.size.z < 3 || domainGeometry.size.z > 254 || domainGeometry.size.x > 254 || domainGeometry.size.y > 254)
@@ -35,33 +36,82 @@ Substrate3D::Substrate3D(const DomainGeometry& domainGeometry)
    {
       mOutputNodes.push_back(genNodeId(n.x, n.y, domainGeometry.size.z - 1));
    }
+
+   for(unsigned int i = 0; i < domainGeometry.size.x; ++i)
+   {
+      for(unsigned int j = 0; j < domainGeometry.size.y; ++j)
+      {
+         mHiddenPlaneNodes.push_back({i, j});
+      }
+   }
+}
+
+void genConnections(
+   const std::vector<neuroevolution::Point2D>& src, 
+   unsigned int srcLayer, 
+   const std::vector<neuroevolution::Point2D>& dst, 
+   unsigned int dstLayer,
+   const bool destinationIsOutput,
+   neuroevolution::NeuroNet& cpnn,
+   std::vector<neuroevolution::NeuroNet::ConnectionDef>& out,
+   std::set<neuroevolution::NodeId>& hiddenNodesSet
+   )
+{
+   const double THRESHOLD = 0.2;
+
+   for(auto& s : src)
+   {
+      for(auto& d : dst)
+      {
+         if(s.x == 0 && s.y == 0) //Skip bias
+         {
+            continue;
+         }
+
+         auto w = neuroevolution::activate(cpnn, {double(s.x), double(s.y), double(srcLayer), double(d.x), double(d.y), double(dstLayer)})[0];
+         if(std::abs(w) > THRESHOLD)
+         {
+            out.push_back({genNodeId(s.x, s.y, srcLayer), genNodeId(d.x, d.y, dstLayer), w /*Should we normalize*/});
+
+            if(!destinationIsOutput)
+            {
+               hiddenNodesSet.insert(genNodeId(d.x, d.y, dstLayer));
+            }
+         }
+      }
+   }
 }
 
 std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& src) const
 {
-   const double THRESHOLD = 0.2;
-
    auto srcAnn = v2::createAnn(src);
 
    //Restriction: only allow connections on the same or neighbour layers.
    std::vector<neuroevolution::NeuroNet::ConnectionDef> connections;
+   std::set<neuroevolution::NodeId> hiddenNodesSet;
 
-   for(unsigned int srcLayer = 0; srcLayer != mGeometry.size.z; ++srcLayer)
+   //1. Connect inputs to layer1
+   genConnections(mGeometry.inputs, 0, mHiddenPlaneNodes, 1, false, *srcAnn, connections, hiddenNodesSet);
+
+   //2. Connect each layer n to layer n+1 and itself
+   for(unsigned int srcLayer = 1; srcLayer != mGeometry.size.z - 1; ++srcLayer)
    {
-      if(srcLayer == 0) //Special case: inputs to hidden layer 1 connections
+      genConnections(mHiddenPlaneNodes, srcLayer, mHiddenPlaneNodes, srcLayer, false, *srcAnn, connections, hiddenNodesSet);
+      if(srcLayer != mGeometry.size.z - 2) //Last layer will connect ot outputs
       {
-         for(auto& n : mGeometry.inputs)
-         {
-            for(auto& pt : mHiddenLayerNodes)
-            {
-               //Skip bias
-               auto w = neuroevolution::activate(*srcAnn, {n.x, n.y, 0, pt.x, pt.y, srcLayer + 1})[0];
-            }
-         }
+         genConnections(mHiddenPlaneNodes, srcLayer, mHiddenPlaneNodes, srcLayer + 1, false, *srcAnn, connections, hiddenNodesSet);
       }
    }     
 
-   std::vector<std::pair<neuroevolution::NodeId, ActivationFunctionType>> hiddenNodes; // = fromConnections
+   //3. Connect last layer to outputs
+   genConnections(mHiddenPlaneNodes, mGeometry.size.z - 2, mGeometry.outputs, mGeometry.size.z - 1, true, *srcAnn, connections, hiddenNodesSet);
+
+   std::vector<std::pair<neuroevolution::NodeId, ActivationFunctionType>> hiddenNodes;
+   for(auto& n : hiddenNodesSet)
+   {
+      hiddenNodes.push_back({n, ActivationFunctionType::SIGMOID});
+   }
+
    return std::make_unique<neuroevolution::NeuroNet>(mInputNodes, mBiasNodes, mOutputNodes, hiddenNodes, connections);
 }
 

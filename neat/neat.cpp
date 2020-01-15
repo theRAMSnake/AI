@@ -204,7 +204,7 @@ void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
     }
 }
 
-std::unique_ptr<neuroevolution::NeuroNet> Neat::createAnn(const v2::Genom& src)
+std::unique_ptr<neuroevolution::NeuroNet> Neat::createAnn(const v2::Genom& src) const
 {
     if(mSubstrate)
     {
@@ -218,7 +218,7 @@ std::unique_ptr<neuroevolution::NeuroNet> Neat::createAnn(const v2::Genom& src)
 
 Neat::Neat(
     const Config& cfg, 
-    const DomainGeometry& domainGeometry, 
+    const neuroevolution::DomainGeometry& domainGeometry, 
     const EvolutionStrategyType esType, 
     neuroevolution::IFitnessEvaluator& fitnessEvaluator
     )

@@ -8,7 +8,7 @@
 class NeatProject : public IProject
 {
 public:
-   NeatProject(const boost::property_tree::ptree& cfg, neuroevolution::IPlayground& pg);
+   NeatProject(const boost::property_tree::ptree& cfg, const bool isHyperNeat, neuroevolution::IPlayground& pg);
 
    void step() override;
    void saveState(const std::string& filename) override;
@@ -27,8 +27,8 @@ public:
 
 private:
    unsigned int mGeneration = 0;
-   neat::Neat mNeat;
+   std::unique_ptr<neat::Neat> mNeat;
    boost::property_tree::ptree mConfig;
    neuroevolution::IPlayground& mPlayground;
-   NeatPopulation mPops;
+   std::unique_ptr<NeatPopulation> mPops;
 };

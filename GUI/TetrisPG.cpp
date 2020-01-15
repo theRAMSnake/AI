@@ -21,7 +21,14 @@ public:
    {
       auto inputIter = mNet.begin_input();
 
-      std::copy(&view[0][0], &view[0][0] + BOARD_WIDTH*BOARD_HEIGHT, inputIter);
+      for (unsigned int i = 0; i < BOARD_WIDTH; i++)
+      {
+         for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
+         {
+            *inputIter = view[i][j];
+            ++inputIter;
+         }
+      }
 
       mNet.activate();
 
@@ -266,4 +273,22 @@ void TetrisPG::play(neuroevolution::NeuroNet& ann)
 std::string TetrisPG::getName() const
 {
    return "Tetris";
+}
+
+neuroevolution::DomainGeometry TetrisPG::getDomainGeometry() const
+{
+   neuroevolution::DomainGeometry result;
+
+   result.size = {10, 20, 5};
+   result.outputs = {{0, 5}, {9, 5}, {5, 5}, {5, 19}};
+
+   for (unsigned int i = 0; i < BOARD_WIDTH; i++)
+   {
+      for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
+      {
+         result.inputs.push_back({i, j});
+      }
+   }
+
+   return result;
 }

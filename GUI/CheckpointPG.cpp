@@ -238,3 +238,12 @@ std::string CheckpointPG::getName() const
 {
    return "Checkpoint";
 }
+
+neuroevolution::DomainGeometry CheckpointPG::getDomainGeometry() const
+{
+   return {
+      {9, 4, 3},
+      {{0, 2}, {2, 2}, {2, 1}, {0, 1}, {3, 2}, {5, 2}, {5, 1}, {3, 1}, {6, 2}, {8, 2}, {8, 1}, {6, 1}, {4, 0}, {4, 3}},
+      {{0, 2}, {2, 1}, {3, 2}, {5, 1}, {6, 2}, {8, 1}}
+   };
+}

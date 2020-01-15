@@ -48,8 +48,7 @@ std::vector<SpecieResults> NeatPopulation::getSpecies() const
 
 std::unique_ptr<neuroevolution::NeuroNet> NeatPopulation::createAnn(const PopResult& pop) const
 {
-    std::cout << "SPECIE: " << pop.specieId << " POP: " << pop.organismId;
-    return neat::v2::createAnn(mSrc.getPopulation()[pop.specieId].population[pop.organismId].genotype);
+    return mSrc.createAnn(mSrc.getPopulation()[pop.specieId].population[pop.organismId].genotype);
 }
 
 NeatPopulation::NeatPopulation(const neat::Neat& src)

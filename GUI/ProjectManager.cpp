@@ -10,7 +10,11 @@ IProject* instantiateProject(const boost::property_tree::ptree& cfg, const std::
 {
    if(engine == "Neat")
    {
-      return new NeatProject(cfg, pg);
+      return new NeatProject(cfg, false, pg);
+   }
+   else if(engine == "HyperNeat")
+   {
+      return new NeatProject(cfg, true, pg);
    }
 
    throw -1;

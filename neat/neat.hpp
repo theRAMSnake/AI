@@ -29,7 +29,7 @@ public:
     Neat(const Config& cfg, const EvolutionStrategyType esType, neuroevolution::IFitnessEvaluator& fitnessEvaluator);
     Neat(
         const Config& cfg, 
-        const DomainGeometry& domainGeometry, 
+        const neuroevolution::DomainGeometry& domainGeometry, 
         const EvolutionStrategyType esType, 
         neuroevolution::IFitnessEvaluator& fitnessEvaluator
         );
@@ -44,7 +44,7 @@ public:
     void loadState(const std::string& fileName);
 
     std::string getEsInfo() const;
-    std::unique_ptr<neuroevolution::NeuroNet> createAnn(const v2::Genom& src);
+    std::unique_ptr<neuroevolution::NeuroNet> createAnn(const v2::Genom& src) const;
 
 private:
 
