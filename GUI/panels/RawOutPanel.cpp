@@ -21,11 +21,11 @@ RawOutPanel::RawOutPanel(nana::window parent, ProjectManager& pm, Trainer& train
 
    mTextBox.editable(false);
 
-   pm.signalProjectChanged.connect(std::bind(&RawOutPanel::refresh, this));
-   trainer.signalStep.connect(std::bind(&RawOutPanel::refresh, this));
+   pm.signalProjectChanged.connect(std::bind(&RawOutPanel::refresh, this, std::chrono::milliseconds(0)));
+   trainer.signalStep.connect(std::bind(&RawOutPanel::refresh, this, std::placeholders::_1));
 }
 
-void RawOutPanel::refresh()
+void RawOutPanel::refresh(std::chrono::milliseconds msecs)
 {
    std::stringstream s;
    printState(*mPm.getProject(), s);

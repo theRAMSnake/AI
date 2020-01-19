@@ -36,9 +36,11 @@ void Trainer::threadFunc()
 
    while(!mStop)
    {
+      auto t = std::chrono::system_clock::now();
       mSubject->step();
+      auto t2 = std::chrono::system_clock::now();
 
-      signalStep();
+      signalStep(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t));
    }
 
    signalStopped();

@@ -8,7 +8,7 @@ class Trainer
 public:
    boost::signals2::signal<void()> signalStarted;
    boost::signals2::signal<void()> signalStopped;
-   boost::signals2::signal<void()> signalStep;
+   boost::signals2::signal<void(std::chrono::milliseconds)> signalStep;
 
    void start(IProject& s);
    void stop();

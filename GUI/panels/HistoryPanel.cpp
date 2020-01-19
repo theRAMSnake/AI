@@ -14,7 +14,7 @@ HistoryPanel::HistoryPanel(nana::panel<true>& parent, ProjectManager& pm, Traine
    nana::plot::trace& t2 = mPlot->AddRealTimeTrace(500);
    t2.color( nana::colors::red );
 
-   trainer.signalStep.connect([&](){
+   trainer.signalStep.connect([&](auto x){
       t1.add(pm.getProject()->getPopulation().getAverageFitness());
       t2.add(pm.getProject()->getPopulation().getAverageComplexity());
    });

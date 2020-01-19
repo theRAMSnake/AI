@@ -9,7 +9,7 @@ public:
    RawOutPanel(nana::window parent, ProjectManager& pm, Trainer& t);
 
 private:
-   void refresh();
+   void refresh(std::chrono::milliseconds msecs);
 
    nana::textbox mTextBox;
    ProjectManager& mPm;

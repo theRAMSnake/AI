@@ -1,7 +1,10 @@
 #include "SpeciePanel.hpp"
 #include <nana/gui/place.hpp>
+#include <nana/gui/filebox.hpp>
+#include <fstream>
 #include "../ProjectManager.hpp"
 #include "../Trainer.hpp"
+#include "timeutils.hpp"
 
 const nana::color COLORS[] = {
    nana::colors::alice_blue ,
@@ -170,8 +173,8 @@ SpeciePanel::SpeciePanel(nana::panel<true>& parent, ProjectManager& pm, Trainer&
    layoutPop.field("a") << mInfoTxt << mSpecieGroup;
    layoutPop.collocate();
 
-   pm.signalProjectChanged.connect(std::bind(&SpeciePanel::refresh, this));
-   trainer.signalStep.connect(std::bind(&SpeciePanel::refresh, this));
+   pm.signalProjectChanged.connect(std::bind(&SpeciePanel::refresh, this, std::chrono::milliseconds(0)));
+   trainer.signalStep.connect(std::bind(&SpeciePanel::refresh, this, std::placeholders::_1));
 
    nana::place layoutSpecie(mSpecieGroup);
    layoutSpecie.div("<a gap=25 margin=10>");
@@ -189,12 +192,16 @@ SpeciePanel::SpeciePanel(nana::panel<true>& parent, ProjectManager& pm, Trainer&
    layoutSpecie.collocate();
 }
 
-void SpeciePanel::refresh()
+void SpeciePanel::refresh(std::chrono::milliseconds msecs)
 {
    auto& pops = mPm.getProject()->getPopulation();
 
    std::stringstream out;
-   out << "Generation: " << mPm.getProject()->getGeneration() << std::endl;
+   out << "Generation: " << mPm.getProject()->getGeneration() << " (" << formatDuration<
+      std::chrono::milliseconds,
+      std::chrono::minutes,
+      std::chrono::seconds,
+      std::chrono::milliseconds>(msecs) << ")" << std::endl;
    out << "Total population: " << pops.size() << std::endl;
    out << "Num species: " << pops.getNumSpecies() << std::endl;
    out << "Average fitness: " << pops.getAverageFitness() << std::endl;
@@ -231,7 +238,7 @@ void SpeciePanel::refresh()
       else
       {
          overview.show();
-         overview.update(bestSpecies[i], pops.size());
+         overview.update(bestSpecies[i], pops.size(), *mPm.getProject());
       }
    }
 }
@@ -267,9 +274,16 @@ SpecieOverview::SpecieOverview(std::shared_ptr<nana::group> impl)
          nana::colors::black
          );
    });
+
+   mCtx.append ("Export", std::bind(&SpecieOverview::exportAnn, this));
+   mCtx.append ("Play", std::bind(&SpecieOverview::play, this));
+   mCtx.append ("Visualize", std::bind(&SpecieOverview::visualize, this));
+   mImpl->events().mouse_down([&](auto args){
+      nana::menu_popuper(mCtx, *mImpl, nana::point(args.pos.x, args.pos.y), nana::mouse::right_button )(args);
+   });
 }
 
-void SpecieOverview::update(const SpecieResults& specie, const unsigned int totalPop)
+void SpecieOverview::update(const SpecieResults& specie, const unsigned int totalPop, IProject& prj)
 {
    const auto halfOfMaxPops = totalPop / 2;
    mBarHeightPercentage = specie.popResults.size() >= halfOfMaxPops ? 1.0 : static_cast<double>(specie.popResults.size()) / halfOfMaxPops;
@@ -277,6 +291,8 @@ void SpecieOverview::update(const SpecieResults& specie, const unsigned int tota
    mTopFitness = specie.maxFitness;
    mComplexity = specie.popResults[0].complexity;
    mNumNodes = specie.popResults[0].nodeCount;
+   mTopPop = specie.popResults[0];
+   mPrj = &prj;
 
    mDrawer.update();
 }
@@ -289,4 +305,32 @@ void SpecieOverview::show()
 void SpecieOverview::hide()
 {
    mImpl->hide();
+}
+
+void SpecieOverview::exportAnn()
+{  
+   nana::filebox fb(*mImpl, false);
+   fb.add_filter("ANN file", "*.ann");
+
+   auto items = fb();
+   if(!items.empty())
+   {
+      auto file = items[0];
+      
+      std::ofstream f;
+      f.open(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+
+      mPrj->getPopulation().createAnn(mTopPop)->toBinaryStream(f);
+      f.close();
+   }
+}
+
+void SpecieOverview::play()
+{
+   mPrj->play(*mPrj->getPopulation().createAnn(mTopPop));
+}
+
+void SpecieOverview::visualize()
+{
+   mNnView.reset(new Nn_view(std::move(mPrj->getPopulation().createAnn(mTopPop))));
 }
