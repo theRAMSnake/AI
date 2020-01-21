@@ -281,6 +281,9 @@ void Population::nextGeneration(InnovationHistory& history)
 
    newGenoms.reserve(mCfg.size);
 
+   auto bestSpecie = std::max_element(mSpecies.begin(), mSpecies.end(), [](auto & a, auto & b) {return a.maxFitness < b.maxFitness; });
+   newGenoms.push_back(bestSpecie->population[0].genotype);
+
    int specieNum = 0;
    for(auto& s : mSpecies)
    {
@@ -302,7 +305,6 @@ void Population::nextGeneration(InnovationHistory& history)
       }
    }
    
-
    //Fill population up to level
    while (newGenoms.size() < mCfg.size)
    {
