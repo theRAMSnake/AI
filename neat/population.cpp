@@ -1,5 +1,5 @@
 #include "population.hpp"
-#include "rng.hpp"
+#include "neuroevolution/rng.hpp"
 #include <algorithm>
 #include <numeric>
 #include <iostream>

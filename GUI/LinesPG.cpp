@@ -1,6 +1,6 @@
 
 #include "neuroevolution/neuro_net.hpp"
-#include "neat/rng.hpp"
+#include "neuroevolution/rng.hpp"
 #include "LinesPG.hpp"
 
 class LinesFitnessEvaluator : public neuroevolution::IFitnessEvaluator
@@ -18,7 +18,7 @@ public:
 
    void genPicture(const bool vert, double picture[5][5])
    {
-      auto pos = neat::Rng::genChoise(5);
+      auto pos = Rng::genChoise(5);
 
       for(int i = 0; i < 5; ++i)
       {
@@ -54,7 +54,7 @@ public:
         {
             ann.reset();
 
-            bool vert = neat::Rng::genProbability(0.5);
+            bool vert = Rng::genProbability(0.5);
             genPicture(vert, picture);
 
             auto inputIter = ann.begin_input();
