@@ -1,6 +1,6 @@
 #include "TetrisPG.hpp"
 #include "neuroevolution/neuro_net.hpp"
-#include "neat/rng.hpp"
+#include "neuroevolution/rng.hpp"
 #include <boost/random.hpp>
 #include <future>
 #include <nana/gui.hpp>
@@ -192,12 +192,12 @@ class TetrisFitnessEvaluator : public neuroevolution::IFitnessEvaluator
 public:
    TetrisFitnessEvaluator()
    {
-       mSeed = neat::Rng::gen32();
+       mSeed = Rng::gen32();
    }
 
    void step()
    {
-       mSeed = neat::Rng::gen32();
+       mSeed = Rng::gen32();
    }
 
    neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
@@ -215,7 +215,7 @@ public:
          Tetris t(Mode::AI_Background);
          TetrisPlayer p(ann);
 
-         result += t.run(p, scoreLimit, io, neat::Rng::gen32());
+         result += t.run(p, scoreLimit, io, Rng::gen32());
       }
 
       return result;
@@ -263,7 +263,7 @@ void TetrisPG::play(neuroevolution::NeuroNet& ann)
       Tetris t(Mode::AI);
       TetrisPlayer p(ann);
 
-      t.run(p, scoreLimit, *io, neat::Rng::gen32());
+      t.run(p, scoreLimit, *io, Rng::gen32());
    });
 
    io->start();

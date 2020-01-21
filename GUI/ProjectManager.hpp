@@ -19,7 +19,7 @@ public:
    std::vector<std::string> getEngineList() const;
 
    //To support property_tree static nature workaround
-   const boost::property_tree::ptree getConfigTemplate() const;
+   const boost::property_tree::ptree getConfigTemplate(const std::string& engine) const;
 
 private:
    neuroevolution::IPlayground& createPlayground(const std::string& name);

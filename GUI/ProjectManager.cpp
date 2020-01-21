@@ -17,6 +17,10 @@ IProject* instantiateProject(const boost::property_tree::ptree& cfg, const std::
    {
       return new NeatProject(cfg, true, pg);
    }
+   else if(engine == "SnakeGA")
+   {
+      return new SGAProject(cfg pg);
+   }
 
    throw -1;
 }
@@ -26,14 +30,14 @@ void ProjectManager::save(const std::string& fileName)
    if(mCurrentProject)
    {
       boost::property_tree::ptree tree = mCurrentProject->getConfig();
-      tree.put("neat_state_filename", fileName + ".neat");
+      tree.put("state_filename", fileName + ".state");
       tree.put("generation", mCurrentProject->getGeneration());
       tree.put("playground", mPlayground->getName());
       tree.put("engine", mCurrentProject->getEngine());
 
       boost::property_tree::write_json(fileName, tree);
 
-      mCurrentProject->saveState(fileName + ".neat");
+      mCurrentProject->saveState(fileName + ".state");
       mCurrentProjectFileName = fileName;
    }
 }
@@ -58,37 +62,12 @@ void initiatializeConfig(boost::property_tree::ptree& cfg)
    cfg.put("Es.Phasing", 0);
 }
 
-void checkAndUpdateLegacyProjectFile(boost::property_tree::ptree& cfg)
-{
-   if(!cfg.get_optional<unsigned int>("Basic.Population"))
-   {
-      initiatializeConfig(cfg);
-   }
-
-   if(!cfg.get_optional<double>("Mutation.Change Node"))
-   {
-      cfg.put("Mutation.Change Node", 0.2);
-   }
-
-   if(!cfg.get_optional<double>("Mutation.Remove Node"))
-   {
-      cfg.put("Mutation.Remove Node", 0.05);
-   }
-
-   if(!cfg.get_optional<int>("Es.Phasing"))
-   {
-      cfg.put("Es.Phasing", 0);
-   }
-}
-
 bool ProjectManager::load(const std::string& fileName)
 {
     boost::property_tree::ptree tree;
     boost::property_tree::read_json(fileName, tree);
 
-    checkAndUpdateLegacyProjectFile(tree);
-
-    auto neatFileName = tree.get<std::string>("neat_state_filename");
+    auto neatFileName = tree.get<std::string>("state_filename");
 
     mCurrentProject.reset(instantiateProject(tree, tree.get<std::string>("engine"), createPlayground(tree.get<std::string>("playground"))));
     mCurrentProject->loadState(neatFileName);
@@ -102,7 +81,7 @@ bool ProjectManager::load(const std::string& fileName)
 void ProjectManager::createProject(const std::string& playgroundName, const std::string& engineName, const std::string& fileName)
 {
    boost::property_tree::ptree cfg;
-   initiatializeConfig(cfg);
+   initiatializeConfig(engineName, cfg);
 
    mCurrentProjectFileName = fileName;
    mCurrentProject.reset(instantiateProject(cfg, engineName, createPlayground(playgroundName)));
@@ -149,7 +128,8 @@ std::vector<std::string> ProjectManager::getEngineList() const
 {
    return {
       "Neat",
-      "HyperNeat"
+      "HyperNeat",
+      "SnakeGA"
    };
 }
 
@@ -158,10 +138,10 @@ void ProjectManager::autosave()
    save(mCurrentProjectFileName);
 }
 
-const boost::property_tree::ptree ProjectManager::getConfigTemplate() const
+const boost::property_tree::ptree ProjectManager::getConfigTemplate(const std::string& engine) const
 {
    boost::property_tree::ptree cfg;
-   initiatializeConfig(cfg);
+   initiatializeConfig(engine, cfg);
 
    return cfg;
 }

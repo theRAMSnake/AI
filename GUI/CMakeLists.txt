@@ -26,7 +26,7 @@ projects/NeatProject.cpp
 projects/NeatPopulation.cpp
 )
 
-target_link_libraries(gui nana Xcursor neat tetris logger)
+target_link_libraries(gui nana Xcursor neat tetris logger snakega)
 
 add_custom_command(
         TARGET gui POST_BUILD

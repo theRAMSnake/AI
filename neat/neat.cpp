@@ -1,5 +1,5 @@
 #include "neat.hpp"
-#include "rng.hpp"
+#include "neuroevolution/rng.hpp"
 #include <ctime>
 #include <algorithm>
 #include <future>

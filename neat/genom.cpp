@@ -1,5 +1,5 @@
 #include "genom.hpp"
-#include "rng.hpp"
+#include "neuroevolution/rng.hpp"
 #include <algorithm>
 #include <numeric>
 #include <set>
