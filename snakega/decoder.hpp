@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+#include "genom.hpp"
+#include "neuroevolution/neuro_net.hpp"
 
 namespace snakega
 {

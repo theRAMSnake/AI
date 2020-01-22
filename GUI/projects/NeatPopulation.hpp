@@ -8,7 +8,7 @@ class NeatPopulation : public IPopulation
 public:
    NeatPopulation(const neat::Neat& src);
 
-   neuroevolution::Fitness getAverageFitness() const override;
+   double getAverageFitness() const override;
    double getAverageComplexity() const override;
    std::size_t size() const override;
    unsigned int getNumSpecies() const override;

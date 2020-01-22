@@ -26,7 +26,7 @@ struct SpecieResults
 class IPopulation
 {
 public:  
-   virtual neuroevolution::Fitness getAverageFitness() const = 0;
+   virtual double getAverageFitness() const = 0;
    virtual double getAverageComplexity() const = 0;
    virtual std::size_t size() const = 0;
    virtual unsigned int getNumSpecies() const = 0;

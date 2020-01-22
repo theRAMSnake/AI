@@ -90,7 +90,7 @@ void MainMenuCtrl::newProject()
 
    for(auto x : engs)
    {
-      cmbEng.push_back(x);
+      cmbEng.push_back(to_string(x));
    }
 
    btn.events().click.connect([&](){
@@ -101,8 +101,6 @@ void MainMenuCtrl::newProject()
       prjname = filename.text();
    });
 
-   cmbPg.option(0);
-   cmbEng.option(0);
    dlg.modality();
 
    mPm.createProject(pgs[cmbPg.option()], engs[cmbEng.option()], prjname + ".saprj");

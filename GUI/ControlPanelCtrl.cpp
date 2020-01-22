@@ -30,7 +30,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
 : mPm(pm)
 , mStartStopBtn(parent)
 , mUpdateBtn(parent)
-, mGrid(parent)
+, mGridGrp(parent.handle())
 {
    mStartStopBtn.caption("Start");
    mStartStopBtn.enabled(false);
@@ -39,7 +39,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
 
    nana::place layout(parent);
    layout.div("vert <a weight=10><vert d arrange=[30, 30, 87%] margin=10 gap=10>");
-   layout.field("d") << mStartStopBtn << mUpdateBtn << mGrid;
+   layout.field("d") << mStartStopBtn << mUpdateBtn << mGridGrp;
    layout.collocate();
 
    mStartStopBtn.events().click([&](auto args){
@@ -67,7 +67,7 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
       {
          for(auto& item: c.second)
          {
-            item.second.put("", mGrid.find(c.first, item.first).value());
+            item.second.put("", mEngineToGrids[mPm.getProject()->getEngine()]->find(c.first, item.first).value());
          }
       }
 
@@ -82,13 +82,21 @@ ControlPanelCtrl::ControlPanelCtrl(nana::group& parent, ProjectManager& pm, Trai
 
    mPm.signalProjectChanged.connect(std::bind(&ControlPanelCtrl::onProjectChanged, this));
 
-   for(auto& c: mPm.getConfigTemplate())
+   for(auto& e : mPm.getEngineList())
    {
-      auto cat = mGrid.append(c.first);
-      for(auto& item: c.second)
+      auto grid = std::make_shared<nana::propertygrid>(mGridGrp, nana::rectangle(mGridGrp.size()));
+      grid->hide();
+
+      for(auto& c: mPm.getConfigTemplate(e))
       {
-         cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>("")))));
+         auto cat = grid->append(c.first);
+         for(auto& item: c.second)
+         {
+            cat.append(nana::propertygrid::pgitem_ptr(new nana::pg_string(item.first, formatCfgStr(item.second.get<std::string>("")))));
+         }
       }
+
+      mEngineToGrids[e] = grid;
    }
 }
 
@@ -97,11 +105,21 @@ void ControlPanelCtrl::onProjectChanged()
    mStartStopBtn.enabled(true);
    mUpdateBtn.enabled(true);
 
-   for(auto& c: mPm.getProject()->getConfig())
+   for(auto& g : mEngineToGrids)
    {
-      for(auto& item: c.second)
+      g.second->hide();
+
+      if(g.first == mPm.getProject()->getEngine())
       {
-         mGrid.find(c.first, item.first).value(formatCfgStr(item.second.get<std::string>("")));
+         g.second->show();
+
+         for(auto& c: mPm.getProject()->getConfig())
+         {
+            for(auto& item: c.second)
+            {
+               g.second->find(c.first, item.first).value(formatCfgStr(item.second.get<std::string>("")));
+            }
+         }
       }
    }
 }

@@ -101,6 +101,8 @@ class Genom
 public:
    Genom(const std::size_t numInputs, const std::size_t numOutputs);
 
+   void operator= (const Genom& other);
+
    static Genom createHalfConnected(const std::size_t numInputs, const std::size_t numOutputs);
 
    void mutateStructure(const MutationConfig& mutationConfig);
