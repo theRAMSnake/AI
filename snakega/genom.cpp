@@ -254,4 +254,15 @@ void Genom::updateNumNeurons()
    mNumNeurons += currentBlockSize;
 }
 
+void Genom::operator= (const Genom& other)
+{
+   if(other.mNumInputs != mNumInputs || other.mNumOutputs != mNumOutputs)
+   {
+      throw -1;
+   }
+
+   mNumNeurons = other.mNumNeurons;
+   mGenes = other.mGenes;
+}
+
 }

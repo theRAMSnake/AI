@@ -25,8 +25,7 @@ neat::Config toNeatConfig(const boost::property_tree::ptree& cfg, const unsigned
 }
 
 NeatProject::NeatProject(const boost::property_tree::ptree& cfg, const bool isHyperNeat, neuroevolution::IPlayground& pg)
-: mConfig(cfg)
-, mPlayground(pg)
+: ProjectBase(cfg, pg)
 , mIsHyperNeat(isHyperNeat)
 {
    if(isHyperNeat)
@@ -48,7 +47,7 @@ NeatProject::NeatProject(const boost::property_tree::ptree& cfg, const bool isHy
 
 void NeatProject::step()
 {
-   mPlayground.step();
+   getPlayground().step();
    mNeat->step();
    mGeneration++;
 }
@@ -56,11 +55,6 @@ void NeatProject::step()
 const IPopulation& NeatProject::getPopulation() const
 {
    return *mPops;
-}
-
-const unsigned int NeatProject::getGeneration() const
-{
-   return mGeneration;
 }
 
 void NeatProject::saveState(const std::string& filename)
@@ -73,41 +67,15 @@ void NeatProject::loadState(const std::string& filename)
    mNeat->loadState(filename);
 }
 
-void NeatProject::setGeneration(const unsigned int generation)
+void NeatProject::reconfigure()
 {
-   mGeneration = generation;
+   mNeat->reconfigure(toNeatConfig(getConfig(), 0, 0), 
+      getConfig().get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing);
 }
 
-const boost::property_tree::ptree& NeatProject::getConfig() const
+Engine NeatProject::getEngine() const
 {
-   return mConfig;
-}
-
-void NeatProject::updateConfig(const boost::property_tree::ptree& newCfg)
-{
-   mConfig = newCfg;
-   mNeat->reconfigure(toNeatConfig(mConfig, 0, 0), 
-      newCfg.get<int>("Es.Phasing") == 0 ? neat::EvolutionStrategyType::Blend : neat::EvolutionStrategyType::Phasing);
-}
-
-const unsigned int NeatProject::getAutosavePeriod() const
-{
-   return mConfig.get<unsigned int>("Basic.Autosave Period");
-}
-
-void NeatProject::play(neuroevolution::NeuroNet& ann)
-{
-   mPlayground.play(ann);
-}
-
-neuroevolution::IPlayground& NeatProject::getPlayground()
-{
-   return mPlayground;
-}
-
-std::string NeatProject::getEngine() const
-{
-   return mIsHyperNeat ? "HyperNeat" : "Neat";
+   return mIsHyperNeat ? Engine::HyperNeat : Engine::Neat;
 }
 
 void NeatProject::getRawOut(std::stringstream& out) const

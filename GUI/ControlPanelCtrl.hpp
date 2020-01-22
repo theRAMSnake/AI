@@ -1,8 +1,10 @@
 #pragma once
+#include <map>
 #include <nana/gui.hpp>
 #include <nana/gui/widgets/button.hpp>
 #include <nana/gui/widgets/group.hpp>
 #include "widgets/propertygrid.hpp"
+#include "ProjectManager.hpp"
 
 class Trainer;
 class ProjectManager;
@@ -17,5 +19,6 @@ private:
    ProjectManager& mPm;
    nana::button mStartStopBtn;
    nana::button mUpdateBtn;
-   nana::propertygrid mGrid;
+   nana::group mGridGrp;
+   std::map<Engine, std::shared_ptr<nana::propertygrid>> mEngineToGrids;
 };

@@ -1,27 +1,26 @@
 #pragma once
-#include "neat/neat.hpp"
 #include "neuroevolution/IPlayground.hpp"
 #include "ProjectBase.hpp"
 #include <boost/property_tree/ptree.hpp>
-#include "NeatPopulation.hpp"
+#include "snakega/snakega.hpp"
 
-class NeatProject : public ProjectBase
+class SGAPopulation;
+class SGAProject : public ProjectBase
 {
 public:
-   NeatProject(const boost::property_tree::ptree& cfg, const bool isHyperNeat, neuroevolution::IPlayground& pg);
+   SGAProject(const boost::property_tree::ptree& cfg, neuroevolution::IPlayground& pg);
 
    void step() override;
    void saveState(const std::string& filename) override;
    void loadState(const std::string& filename) override;
-   Engine getEngine() const override;
    
    const IPopulation& getPopulation() const override;
+   Engine getEngine() const override;
    void getRawOut(std::stringstream& out) const override;
    
 private:
    void reconfigure() override;
 
-   std::unique_ptr<neat::Neat> mNeat;
-   std::unique_ptr<NeatPopulation> mPops;
-   bool mIsHyperNeat;
+   std::unique_ptr<SGAPopulation> mPops;
+   snakega::Algorithm mImpl;
 };

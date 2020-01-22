@@ -10,6 +10,7 @@ genom.cpp
 snakega.cpp
 pop.cpp
 exploitation.cpp
+decoder.cpp
 )
 
 target_link_libraries(snakega neuroevolution logger pthread)

@@ -24,6 +24,8 @@ widgets/pgitems.cpp
 widgets/nn_view.cpp
 projects/NeatProject.cpp
 projects/NeatPopulation.cpp
+projects/ProjectBase.cpp
+projects/SGAProject.cpp
 )
 
 target_link_libraries(gui nana Xcursor neat tetris logger snakega)
