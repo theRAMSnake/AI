@@ -14,6 +14,7 @@ Algorithm::Algorithm(
    neuroevolution::IFitnessEvaluator& fitnessEvaluator
    )
    : mCfg(cfg)
+   , mDomainGeometry(domainGeometry)
    , mFitnessEvaluator(fitnessEvaluator)
 {
    for(std::size_t i = 0; i < mCfg.populationSize; ++i)
@@ -53,7 +54,7 @@ void Algorithm::exploit()
    {
       Exploitation exploitation(pop, mCfg.exploitationSize);
 
-      auto bestPop = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mFitnessEvaluator);
+      auto bestPop = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mDomainGeometry, mFitnessEvaluator);
       if(bestPop.mFitness > pop.mFitness)
       {
          pop = bestPop;

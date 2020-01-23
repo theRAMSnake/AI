@@ -99,6 +99,7 @@ using Gene = std::variant<ConnectTerminalsGene, SpawnNeuronGene, CopyWithOffsetG
 class Genom
 {
 public:
+   friend class GenomDecoder;
    Genom(const std::size_t numInputs, const std::size_t numOutputs);
 
    void operator= (const Genom& other);
@@ -108,20 +109,26 @@ public:
    void mutateStructure(const MutationConfig& mutationConfig);
    void mutateParameters(const MutationConfig& mutationConfig);
 
+   unsigned int getNumNeurons() const;
+   unsigned int getComplexity() const;
+   unsigned int getNumInputs() const;
+   unsigned int getNumOutputs() const;
+
+protected:
+   std::vector<Gene> mGenes;
+
 private:
    void mutateAddGene(const MutationConfig& mutationConfig);
    void mutateSwapGenes();
    void mutateRemoveGene();
    void mutateChangeGene();
 
-   Terminal genRandomTerminal() const;
+   Terminal genRandomTerminal(const bool isSrc) const;
    Point3D genPos() const;
    Point3D genOffset() const;
    Point3D genSmallPosOffset() const;
 
    void updateNumNeurons();
-
-   std::vector<Gene> mGenes;
 
    unsigned int mNumNeurons = 0;
    const std::size_t mNumInputs;

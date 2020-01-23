@@ -87,6 +87,20 @@ public:
       const std::vector<ConnectionDef>& connections
       );
 
+   struct HiddenNodeDef
+   {
+      NodeId id;
+      ActivationFunctionType acType;
+      double bias;
+   };
+
+   NeuroNet(
+      const std::vector<NodeId>& inputNodes, 
+      const std::vector<NodeId>& outputNodes,
+      const std::vector<HiddenNodeDef>& hiddenNodes,
+      const std::vector<ConnectionDef>& connections
+      );
+
    void activate();
    void reset();
    

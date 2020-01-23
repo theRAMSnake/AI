@@ -41,6 +41,7 @@ private:
    void finalize();
 
    Config mCfg;
+   const neuroevolution::DomainGeometry& mDomainGeometry; 
    neuroevolution::IFitnessEvaluator& mFitnessEvaluator;
    std::vector<Pop> mPopulation;
 

@@ -112,8 +112,8 @@ void Genom::mutateAddGene(const MutationConfig& mutationConfig)
    if(mNumNeurons > 0 && Rng::genProbability(0.5))
    {
       mGenes.push_back(ConnectTerminalsGene{
-         genRandomTerminal(), 
-         genRandomTerminal(),
+         genRandomTerminal(true), 
+         genRandomTerminal(false),
          Rng::genWeight()
          });
    }
@@ -181,8 +181,23 @@ void Genom::mutateChangeGene()
          spawnGene.connectionsSeed += Rng::gen32();
 
          //increase/decrease num connections by 1
-         spawnGene.numInputs += int(Rng::genChoise(3)) - 1;
-         spawnGene.numOutputs += int(Rng::genChoise(3)) - 1;
+         if(spawnGene.numInputs == 0)
+         {
+            spawnGene.numInputs = 1;
+         }
+         else
+         {
+            spawnGene.numInputs += int(Rng::genChoise(3)) - 1;
+         }
+
+         if(spawnGene.numOutputs == 0)
+         {
+            spawnGene.numOutputs = 1;
+         }
+         else
+         {
+            spawnGene.numOutputs += int(Rng::genChoise(3)) - 1;
+         }
       }
       else if(std::holds_alternative<CopyWithOffsetGene>(gene))
       {
@@ -191,16 +206,16 @@ void Genom::mutateChangeGene()
    }
 }
 
-Terminal Genom::genRandomTerminal() const
+Terminal Genom::genRandomTerminal(const bool isSrc) const
 {
    Terminal result;
 
-   if(Rng::genProbability(0.05))
+   if(isSrc && Rng::genProbability(mNumInputs / (double)mNumNeurons))
    {
       result.type = TerminalType::Input;
       result.id = Rng::genChoise(mNumInputs);
    }
-   else if(Rng::genProbability(0.05))
+   else if(!isSrc && Rng::genProbability(mNumOutputs / (double)mNumNeurons))
    {
       result.type = TerminalType::Output;
       result.id = Rng::genChoise(mNumOutputs);
@@ -263,6 +278,26 @@ void Genom::operator= (const Genom& other)
 
    mNumNeurons = other.mNumNeurons;
    mGenes = other.mGenes;
+}
+
+unsigned int Genom::getNumNeurons() const
+{
+   return mNumNeurons;
+}
+
+unsigned int Genom::getComplexity() const
+{
+   return mGenes.size();
+}
+
+unsigned int Genom::getNumInputs() const
+{
+   return mNumInputs;
+}
+
+unsigned int Genom::getNumOutputs() const
+{
+   return mNumOutputs;
 }
 
 }
