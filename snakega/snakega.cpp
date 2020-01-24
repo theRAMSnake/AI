@@ -57,11 +57,7 @@ int Algorithm::exploitRange(
    {
       Exploitation exploitation(*iter, mCfg.exploitationSize);
 
-      auto bestPop = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mDomainGeometry, mFitnessEvaluator);
-      if(bestPop.mFitness > iter->mFitness)
-      {
-         *iter = bestPop;
-      }
+      *iter = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mDomainGeometry, mFitnessEvaluator);
    }
 
    return 0;
