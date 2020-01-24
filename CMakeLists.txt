@@ -6,6 +6,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++17 -DNANA_FILESY
 
 add_subdirectory(logger)
 add_subdirectory(neat)
+add_subdirectory(snakega)
 #add_subdirectory(test)
 add_subdirectory(tetris)
 add_subdirectory(GUI)

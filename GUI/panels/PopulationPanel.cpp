@@ -19,7 +19,7 @@
 
 void PopulationPanel::refresh()
 {
-   mTree.clear();
+   mTree.erase("root");
    for(auto& s: mPm.getProject()->getPopulation().getSpecies())
    {
       auto path = "root/" + std::to_string(s.id);

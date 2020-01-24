@@ -9,7 +9,6 @@ add_library(neat
 genom.cpp
 neat.cpp
 population.cpp
-rng.cpp
 InnovationHistory.cpp
 Substrate3D.cpp
 )

@@ -1,7 +1,7 @@
 #include "NeatPopulation.hpp"
 #include <iostream>
 
-neuroevolution::Fitness NeatPopulation::getAverageFitness() const
+double NeatPopulation::getAverageFitness() const
 {
     return mSrc.hasPopulation() ? mSrc.getPopulation().getAverageFitness() : 0;
 }

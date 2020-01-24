@@ -16,9 +16,9 @@ struct PopResult
 
 struct SpecieResults
 {
-   unsigned int id;
+   unsigned int id = 0;
 
-   double averageFitness;
+   double averageFitness = 0.0;
    neuroevolution::Fitness maxFitness;
    std::vector<PopResult> popResults;
 };
@@ -26,7 +26,7 @@ struct SpecieResults
 class IPopulation
 {
 public:  
-   virtual neuroevolution::Fitness getAverageFitness() const = 0;
+   virtual double getAverageFitness() const = 0;
    virtual double getAverageComplexity() const = 0;
    virtual std::size_t size() const = 0;
    virtual unsigned int getNumSpecies() const = 0;

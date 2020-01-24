@@ -13,13 +13,13 @@ public:
    void save(const std::string& fileName);
    void autosave();
    bool load(const std::string& fileName);
-   void createProject(const std::string& playgroundName, const std::string& engine, const std::string& fileName);
+   void createProject(const std::string& playgroundName, const Engine engine, const std::string& fileName);
    IProject* getProject();
    std::vector<std::string> getPlaygroundList() const;
-   std::vector<std::string> getEngineList() const;
+   std::vector<Engine> getEngineList() const;
 
    //To support property_tree static nature workaround
-   const boost::property_tree::ptree getConfigTemplate() const;
+   const boost::property_tree::ptree getConfigTemplate(const Engine engine) const;
 
 private:
    neuroevolution::IPlayground& createPlayground(const std::string& name);

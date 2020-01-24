@@ -72,7 +72,7 @@ int main()
 
    //---------------------------------------------------------------------------------------------------
 
-   trainer.signalStep.connect([&](){
+   trainer.signalStep.connect([&](auto x){
       if(projectManager.getProject()->getGeneration() % projectManager.getProject()->getAutosavePeriod() == 0)
       {
          projectManager.autosave();
