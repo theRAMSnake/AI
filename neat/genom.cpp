@@ -622,9 +622,9 @@ const NodeGene& Genom::NodesIterator::operator *() const
 std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g)
 {
     std::vector<NodeId> inputNodes(g.getNodeCount(neat::v2::Genom::NodeType::Input)); //Always same can be optimized
-    std::vector<NodeId> biasNodes(g.getNodeCount(neat::v2::Genom::NodeType::Bias));
     std::vector<NodeId> outputNodes(g.getNodeCount(neat::v2::Genom::NodeType::Output)); //Always same can be optimized
-    std::vector<std::pair<NodeId, ActivationFunctionType>> hiddenNodes(g.getNodeCount(neat::v2::Genom::NodeType::Hidden));
+    std::vector<neuroevolution::NeuroNet::HiddenNodeDef> hiddenNodes(g.getNodeCount(neat::v2::Genom::NodeType::Hidden) +
+        g.getNodeCount(neat::v2::Genom::NodeType::Bias));
     std::vector<neuroevolution::NeuroNet::ConnectionDef> connections(g.getComplexity());
 
     std::transform(g.beginNodes(neat::v2::Genom::NodeType::Input),
@@ -635,8 +635,8 @@ std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g)
 
     std::transform(g.beginNodes(neat::v2::Genom::NodeType::Bias),
         g.endNodes(neat::v2::Genom::NodeType::Bias),
-        biasNodes.begin(),
-        [](auto x){return x.id;}
+        hiddenNodes.begin(),
+        [](auto x){return neuroevolution::NeuroNet::HiddenNodeDef{x.id, ActivationFunctionType::IDENTITY, 1.0};}
         );
 
     std::transform(g.beginNodes(neat::v2::Genom::NodeType::Output),
@@ -648,7 +648,7 @@ std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g)
     std::transform(g.beginNodes(neat::v2::Genom::NodeType::Hidden),
         g.endNodes(neat::v2::Genom::NodeType::Hidden),
         hiddenNodes.begin(),
-        [](auto x){return std::make_pair(x.id, x.acType);}
+        [](auto x){return neuroevolution::NeuroNet::HiddenNodeDef{x.id, x.acType, 0.0};}
         );
 
     std::transform(g.begin(),
@@ -657,7 +657,7 @@ std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g)
         [](auto x){return neuroevolution::NeuroNet::ConnectionDef{x.srcNodeId, x.dstNodeId, x.weight};}
         );
 
-    return std::make_unique<neuroevolution::NeuroNet>(inputNodes, biasNodes, outputNodes, hiddenNodes, connections);
+    return std::make_unique<neuroevolution::NeuroNet>(inputNodes, outputNodes, hiddenNodes, connections);
 }
 
 }

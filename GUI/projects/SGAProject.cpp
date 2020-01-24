@@ -11,7 +11,7 @@ public:
    : mSrc(src)
    , mGeometry(geometry)
    {
-
+      mResults.id = 0;
    }
 
    virtual double getAverageFitness() const
@@ -31,7 +31,7 @@ public:
 
    virtual unsigned int getNumSpecies() const
    {
-      return 0;
+      return mResults.popResults.empty() ? 0 : 1;
    }
 
    virtual std::vector<SpecieResults> getSpecies() const
@@ -49,10 +49,14 @@ public:
       double totalFitness = 0.0;
       double totalComplexity = 0.0;
 
+      mResults.popResults.clear();
+
+      unsigned int popId = 0;
       for(auto& p : mSrc)
       {
          totalFitness += p.mFitness;
          totalComplexity += p.mGenom.getComplexity();
+         mResults.popResults.push_back({0, popId++, p.mFitness, p.mGenom.getComplexity(), p.mGenom.getNumNeurons()});
       }
 
       mResults.averageFitness = totalFitness / mSrc.size();
@@ -77,6 +81,7 @@ snakega::Config toConfig(const boost::property_tree::ptree& cfg)
    result.exploitationSize = cfg.get<std::size_t>("Exploitation.Size");
    result.populationSize = cfg.get<std::size_t>("Basic.Population");
    result.survivalRate = cfg.get<double>("Selection.Survival Rate");
+   result.numThreads = cfg.get<unsigned int>("Basic.Threads");
    
    return result;
 }

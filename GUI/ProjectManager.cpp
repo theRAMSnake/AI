@@ -45,7 +45,7 @@ void ProjectManager::save(const std::string& fileName)
 
 void initiatializeConfig(const Engine engine, boost::property_tree::ptree& cfg)
 {
-   cfg.put("Basic.Population", 1000);
+   cfg.put("Basic.Population", 100);
    cfg.put("Basic.Threads", 3);
    cfg.put("Basic.Autosave Period", 500);
 
@@ -69,8 +69,8 @@ void initiatializeConfig(const Engine engine, boost::property_tree::ptree& cfg)
    {
       cfg.put("Selection.Champions Kept", 5);
       cfg.put("Selection.Survival Rate", 0.25);
-      cfg.put("Exploitation.Depth", 50);
-      cfg.put("Exploitation.Size", 200);
+      cfg.put("Exploitation.Depth", 10);
+      cfg.put("Exploitation.Size", 25);
    }
    else
    {

@@ -15,6 +15,8 @@ struct Config
    double survivalRate;
 
    MutationConfig mutationConfig;
+
+   std::size_t numThreads;
 };
 
 class Algorithm
@@ -22,7 +24,7 @@ class Algorithm
 public:
    Algorithm(
       const Config& cfg,
-      const neuroevolution::DomainGeometry& domainGeometry, 
+      const neuroevolution::DomainGeometry domainGeometry, 
       neuroevolution::IFitnessEvaluator& fitnessEvaluator
       );
 
@@ -38,10 +40,16 @@ private:
    std::vector<Pop> select() const;
    void repopulate(const std::vector<Pop>& pops);
    void exploit();
+
+   int exploitRange(
+      std::vector<Pop>::iterator begin, 
+      std::vector<Pop>::iterator end
+      );
+
    void finalize();
 
    Config mCfg;
-   const neuroevolution::DomainGeometry& mDomainGeometry; 
+   const neuroevolution::DomainGeometry mDomainGeometry; 
    neuroevolution::IFitnessEvaluator& mFitnessEvaluator;
    std::vector<Pop> mPopulation;
 

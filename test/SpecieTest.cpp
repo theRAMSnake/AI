@@ -36,7 +36,7 @@ BOOST_FIXTURE_TEST_CASE( UpdateFitness, SpecieTest )
    s.updateFitness();
 
    BOOST_CHECK_EQUAL(185, s.getTotalFitness());
-   BOOST_CHECK_EQUAL(18, s.getSharedFitness());
+   BOOST_CHECK_EQUAL(18.5, s.getSharedFitness());
 }
 
 BOOST_FIXTURE_TEST_CASE( produceOffsprings, SpecieTest ) 

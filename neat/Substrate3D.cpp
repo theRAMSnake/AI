@@ -141,13 +141,18 @@ std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& sr
    //3. Connect last layer to outputs
    genConnections(mHiddenPlaneNodes, mGeometry.size.z - 2, mGeometry.outputs, mGeometry.size.z - 1, true, *srcAnn, connections, hiddenNodesSet);*/
 
-   std::vector<std::pair<neuroevolution::NodeId, ActivationFunctionType>> hiddenNodes;
-   for(auto& n : hiddenNodesSet)
+   std::vector<neuroevolution::NeuroNet::HiddenNodeDef> hiddenNodes;
+   for(auto& b : mBiasNodes)
    {
-      hiddenNodes.push_back({n, ActivationFunctionType::SIGMOID});
+      hiddenNodes.push_back({b, ActivationFunctionType::IDENTITY, 1.0});
    }
 
-   return std::make_unique<neuroevolution::NeuroNet>(mInputNodes, mBiasNodes, mOutputNodes, hiddenNodes, connections);
+   for(auto& n : hiddenNodesSet)
+   {
+      hiddenNodes.push_back({n, ActivationFunctionType::SIGMOID, 0.0});
+   }
+
+   return std::make_unique<neuroevolution::NeuroNet>(mInputNodes, mOutputNodes, hiddenNodes, connections);
 }
 
 }

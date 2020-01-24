@@ -4,13 +4,14 @@
 #include "fitness_weighted_pool.hpp"
 #include "neuroevolution/rng.hpp"
 #include <algorithm>
+#include <future>
 
 namespace snakega
 {
 
 Algorithm::Algorithm(
    const Config& cfg,
-   const neuroevolution::DomainGeometry& domainGeometry, 
+   const neuroevolution::DomainGeometry domainGeometry, 
    neuroevolution::IFitnessEvaluator& fitnessEvaluator
    )
    : mCfg(cfg)
@@ -46,19 +47,55 @@ std::vector<Pop> Algorithm::select() const
    return result;
 }
 
-void Algorithm::exploit()
+int Algorithm::exploitRange(
+   std::vector<Pop>::iterator begin, 
+   std::vector<Pop>::iterator end
+   )
 {
    //Note: can be changed by more effective CMA-ES
-   //Note: parralelisation point
-   for(auto& pop : mPopulation)
+   for(auto iter = begin; iter != end; ++iter)
    {
-      Exploitation exploitation(pop, mCfg.exploitationSize);
+      Exploitation exploitation(*iter, mCfg.exploitationSize);
 
       auto bestPop = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mDomainGeometry, mFitnessEvaluator);
-      if(bestPop.mFitness > pop.mFitness)
+      if(bestPop.mFitness > iter->mFitness)
       {
-         pop = bestPop;
+         *iter = bestPop;
       }
+   }
+
+   return 0;
+}
+
+void Algorithm::exploit()
+{
+   std::vector<std::future<int>> fs;
+   std::size_t numElementsByThread = mPopulation.size() / mCfg.numThreads + 1;
+
+   auto first = mPopulation.begin();
+   auto last = first + numElementsByThread;
+   for(std::size_t i = 0; i < mCfg.numThreads; ++i)
+   {
+      auto f = std::async(
+         std::launch::async, 
+         std::bind(&Algorithm::exploitRange, this, std::placeholders::_1, std::placeholders::_2), 
+         first, 
+         last
+         );
+      fs.push_back(std::move(f));
+
+      first += numElementsByThread;
+      last += numElementsByThread;
+
+      if(last > mPopulation.end())
+      {
+         last = mPopulation.end();
+      }
+   }
+   
+   for(auto& f : fs)
+   {
+      f.get();
    }
 }
 
@@ -100,7 +137,7 @@ const std::vector<Pop>& Algorithm::getPopulation() const
 
 void Algorithm::saveState(const std::string& fileName)
 {
-   throw -1;
+   //throw -1;
 }
 
 void Algorithm::loadState(const std::string& fileName)

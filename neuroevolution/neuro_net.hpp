@@ -79,14 +79,6 @@ public:
       double weight;
    };
 
-   NeuroNet(
-      const std::vector<NodeId>& inputNodes, 
-      const std::vector<NodeId>& biasNodes,
-      const std::vector<NodeId>& outputNodes,
-      const std::vector<std::pair<NodeId, ActivationFunctionType>>& hiddenNodes,
-      const std::vector<ConnectionDef>& connections
-      );
-
    struct HiddenNodeDef
    {
       NodeId id;
@@ -124,6 +116,7 @@ private:
    {
       NodeId id;
       double value;
+      double bias;
       int depth = -1;
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
       ActivationFunction func = nullptr;
