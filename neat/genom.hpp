@@ -64,6 +64,12 @@ public:
         const NodeGene* operator -> () const;
         const NodeGene& operator *() const;
 
+        using difference_type = std::ptrdiff_t;
+        using value_type = NodeGene;
+        using pointer = NodeGene *;
+        using reference = NodeGene &;
+        using iterator_category = std::forward_iterator_tag;
+
     private:
         void selectNextType();
         std::size_t getElementCount();
