@@ -114,6 +114,9 @@ public:
    unsigned int getNumInputs() const;
    unsigned int getNumOutputs() const;
 
+   static Genom loadState(std::ifstream& s, const std::size_t numInputs, const std::size_t numOutputs);
+   void saveState(std::ofstream& s) const;
+
 protected:
    std::vector<Gene> mGenes;
 
