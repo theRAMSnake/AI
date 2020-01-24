@@ -19,7 +19,7 @@ neuroevolution::NodeId genOutputNodeId(const std::size_t index)
 {
    static_assert(sizeof(neuroevolution::NodeId) == 4);
 
-   return (1 << 31) & index; 
+   return (neuroevolution::NodeId(1) << 31) | index; 
 }
 
 bool isOutputNodeId(const neuroevolution::NodeId nodeId)
@@ -31,7 +31,7 @@ neuroevolution::NodeId genHiddenNodeId(const std::size_t index)
 {
    static_assert(sizeof(neuroevolution::NodeId) == 4);
 
-   return (3 << 30) & index; 
+   return (neuroevolution::NodeId(3) << 30) | index; 
 }
 
 neuroevolution::NodeId genNodeId(const Terminal& t)
