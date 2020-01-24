@@ -5,6 +5,7 @@
 #include "neuroevolution/rng.hpp"
 #include <algorithm>
 #include <future>
+#include <fstream>
 
 namespace snakega
 {
@@ -133,12 +134,39 @@ const std::vector<Pop>& Algorithm::getPopulation() const
 
 void Algorithm::saveState(const std::string& fileName)
 {
-   //throw -1;
+   //Quick for now
+   std::ofstream ofile(fileName, std::ios::binary | std::ios::trunc);
+
+   auto size = mPopulation.size();
+   ofile.write((char*)&size, sizeof(std::size_t));
+
+   for(auto& p : mPopulation)
+   {
+      ofile.write((char*)&p.mFitness, sizeof(neuroevolution::Fitness));
+      p.mGenom.saveState(ofile);
+   }
 }
 
 void Algorithm::loadState(const std::string& fileName)
 {
-   throw -1;
+   //Quick for now
+   std::ifstream ifile(fileName, std::ios::binary);
+
+   std::size_t size = 0;
+   ifile.read((char*)&size, sizeof(std::size_t));
+
+   mPopulation.clear();
+   mPopulation.reserve(size);
+
+   for(std::size_t i = 0; i < size; ++i)
+   {
+      Pop p(Genom(mDomainGeometry.inputs.size(), mDomainGeometry.inputs.size()));
+
+      ifile.read((char*)&p.mFitness, sizeof(neuroevolution::Fitness));
+      p.mGenom = Genom::loadState(ifile, mDomainGeometry.inputs.size(), mDomainGeometry.inputs.size());
+
+      mPopulation.push_back(p);
+   }
 }
 
 }

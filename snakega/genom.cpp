@@ -1,5 +1,6 @@
 #include "genom.hpp"
 #include "neuroevolution/rng.hpp"
+#include <fstream>
 
 namespace snakega
 {
@@ -298,6 +299,26 @@ unsigned int Genom::getNumInputs() const
 unsigned int Genom::getNumOutputs() const
 {
    return mNumOutputs;
+}
+
+Genom Genom::loadState(std::ifstream& s, const std::size_t numInputs, const std::size_t numOutputs)
+{
+   Genom g(numInputs, numOutputs);
+
+   std::size_t size = 0;
+   s.read((char*)&size, sizeof(std::size_t));
+
+   g.mGenes.resize(size);
+   s.read(reinterpret_cast<char*>(&g.mGenes[0]), size * sizeof(Gene));
+
+   return g;
+}
+
+void Genom::saveState(std::ofstream& s) const
+{
+   auto sz = mGenes.size();
+   s.write((char*)&sz, sizeof(std::size_t));  
+   s.write((char*)&mGenes[0], sizeof(Gene) * mGenes.size());  
 }
 
 }
