@@ -78,17 +78,21 @@ public:
       //If slow - use smart algorithm
       std::vector<neuroevolution::NodeId> result;
 
-      std::vector<double> distanceToPos(mPoints.size());
+      std::vector<std::pair<double, neuroevolution::NodeId>> distanceToPos(mPoints.size());
 
       for(std::size_t i = 0; i < mPoints.size(); ++i)
       {
          auto& pt = mPoints[i].second;
-         distanceToPos[i] = sqrt((pt.x - pos.x) * (pt.x - pos.x) + (pt.y - pos.y) * (pt.y - pos.y) + (pt.z - pos.z) * (pt.z - pos.z));
+         distanceToPos[i] = { 
+             sqrt((pt.x - pos.x) * (pt.x - pos.x) + (pt.y - pos.y) * (pt.y - pos.y) + (pt.z - pos.z) * (pt.z - pos.z)),
+             mPoints[i].first
+         };
       }
 
       std::sort(distanceToPos.begin(), distanceToPos.end());
 
-      std::copy(distanceToPos.begin(), distanceToPos.begin() + std::min(distanceToPos.size(), amount), std::back_inserter(result));
+      std::transform(distanceToPos.begin(), distanceToPos.begin() + std::min(distanceToPos.size(), amount), std::back_inserter(result),
+          [](auto x) {return x.second; });
 
       return result;
    }
@@ -137,10 +141,13 @@ void GenomDecoder::processSpawnNeuron(const SpawnNeuronGene& s)
 
       if(isOutputNodeId(*pos))
       {
-         continue;
+          //Connect to random input instead
+          mConnections.push_back({ mInputNodes[mRngConnections() % mInputNodes.size()], id, mUniformWeights(mRngWeigths) });
       }
-
-      mConnections.push_back({*pos, id, mUniformWeights(mRngWeigths)});
+      else
+      {
+          mConnections.push_back({ *pos, id, mUniformWeights(mRngWeigths) });
+      }
 
       neighbours.erase(pos);
    }
@@ -151,10 +158,13 @@ void GenomDecoder::processSpawnNeuron(const SpawnNeuronGene& s)
 
       if(isInputNodeId(*pos))
       {
-         continue;
+          //Connect to random output instead
+          mConnections.push_back({ id, mOutputNodes[mRngConnections() % mOutputNodes.size()], mUniformWeights(mRngWeigths) });
       }
-
-      mConnections.push_back({id, *pos, mUniformWeights(mRngWeigths)});
+      else
+      {
+          mConnections.push_back({ id, *pos, mUniformWeights(mRngWeigths) });
+      }
 
       neighbours.erase(pos);
    }
@@ -171,6 +181,10 @@ void GenomDecoder::run()
       if(std::holds_alternative<ConnectTerminalsGene>(g))
       {
          auto& c = std::get<ConnectTerminalsGene>(g);
+         if (c.B.type == TerminalType::Input)
+         {
+             std::cout << "!";
+         }
          mConnections.push_back({genNodeId(c.A), genNodeId(c.B), c.weight});
       }
       else if(std::holds_alternative<SpawnNeuronGene>(g))
@@ -233,6 +247,7 @@ std::unique_ptr<neuroevolution::NeuroNet> GenomDecoder::decode(const neuroevolut
 
    decoder.run();
 
+   //std::cout << decoder.mOutputNodes.size() << " ";
    return std::make_unique<neuroevolution::NeuroNet>(decoder.mInputNodes, decoder.mOutputNodes, decoder.mHiddenNodes, decoder.mConnections);
 }
 

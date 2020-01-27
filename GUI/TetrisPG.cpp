@@ -33,7 +33,7 @@ public:
       mNet.activate();
 
       auto pos = std::max_element(mNet.begin_output(), mNet.end_output());
-      if(*pos > 1.0)
+      //if(*pos > 1.0)
       {
          switch(std::distance(mNet.begin_output(), pos))
          {

@@ -21,7 +21,8 @@ Algorithm::Algorithm(
 {
    for(std::size_t i = 0; i < mCfg.populationSize; ++i)
    {
-      mPopulation.push_back(Genom::createHalfConnected(domainGeometry.inputs.size(), domainGeometry.outputs.size()));
+      //mPopulation.push_back(Genom::createHalfConnected(domainGeometry.inputs.size(), domainGeometry.outputs.size()));
+      mPopulation.push_back(Genom::createGeometrical(domainGeometry));
    }
 }
 
@@ -160,10 +161,10 @@ void Algorithm::loadState(const std::string& fileName)
 
    for(std::size_t i = 0; i < size; ++i)
    {
-      Pop p(Genom(mDomainGeometry.inputs.size(), mDomainGeometry.inputs.size()));
+      Pop p(Genom(mDomainGeometry.inputs.size(), mDomainGeometry.outputs.size()));
 
       ifile.read((char*)&p.mFitness, sizeof(neuroevolution::Fitness));
-      p.mGenom = Genom::loadState(ifile, mDomainGeometry.inputs.size(), mDomainGeometry.inputs.size());
+      p.mGenom = Genom::loadState(ifile, mDomainGeometry.inputs.size(), mDomainGeometry.outputs.size());
 
       mPopulation.push_back(p);
    }

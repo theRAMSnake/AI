@@ -15,6 +15,7 @@ void Logger::Log(const std::string& data)
 
     mMutex.lock();
     mFile << '[' << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "]   " << data << std::endl;
+    mFile.flush();
     mMutex.unlock();
 }
 

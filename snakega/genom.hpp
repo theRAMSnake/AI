@@ -105,6 +105,7 @@ public:
    void operator= (const Genom& other);
 
    static Genom createHalfConnected(const std::size_t numInputs, const std::size_t numOutputs);
+   static Genom createGeometrical(const neuroevolution::DomainGeometry& geometry);
 
    void mutateStructure(const MutationConfig& mutationConfig);
    void mutateParameters(const MutationConfig& mutationConfig);
@@ -134,6 +135,7 @@ private:
    void updateNumNeurons();
 
    unsigned int mNumNeurons = 0;
+   unsigned int mNumConnections = 0;
    const std::size_t mNumInputs;
    const std::size_t mNumOutputs;
 };

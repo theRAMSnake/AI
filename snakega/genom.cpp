@@ -1,6 +1,7 @@
 #include "genom.hpp"
 #include "neuroevolution/rng.hpp"
 #include <fstream>
+#include <iostream>
 
 namespace snakega
 {
@@ -36,6 +37,35 @@ Genom Genom::createHalfConnected(const std::size_t numInputs, const std::size_t 
    return result;
 }
 
+Genom Genom::createGeometrical(const neuroevolution::DomainGeometry& geometry)
+{
+    Genom result(geometry.inputs.size(), geometry.outputs.size());
+
+    for (std::size_t i = 0; i < geometry.inputs.size(); ++i)
+    {
+        if (Rng::genProbability(0.5))
+        {
+            //Creates neuron near the input
+            result.mGenes.push_back(SpawnNeuronGene{
+                {(double)geometry.inputs[i].x / geometry.size.x,
+                    (double)geometry.inputs[i].y / geometry.size.y,
+                    0.1},
+                Rng::genChoise(5) + 1, //1-5 inputs
+                Rng::genChoise(3) + 1, //1-3 outputs
+                Rng::gen32(),
+                static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
+                0.0,
+                Rng::gen32()
+                });
+        }
+    }
+
+    result.mGenes.push_back(PushGene{});
+    result.updateNumNeurons();
+
+    return result;
+}
+
 void Genom::mutateStructure(const MutationConfig& mutationConfig)
 {
    enum StructureMutationType
@@ -46,7 +76,7 @@ void Genom::mutateStructure(const MutationConfig& mutationConfig)
       Change
    };
 
-   StructureMutationType choise = static_cast<StructureMutationType>(Rng::genChoise(4));
+   StructureMutationType choise = static_cast<StructureMutationType>(Rng::genChoise(3));
 
    switch(choise)
    {
@@ -56,9 +86,9 @@ void Genom::mutateStructure(const MutationConfig& mutationConfig)
       case Remove:
          mutateRemoveGene();
          break;
-      case Swap:
+      /*case Swap:
          mutateSwapGenes();
-         break;
+         break;*/
       case Change:
          mutateChangeGene();
          break;
@@ -118,7 +148,7 @@ void Genom::mutateAddGene(const MutationConfig& mutationConfig)
          Rng::genWeight()
          });
    }
-   if(Rng::genProbability(0.2))
+   if(Rng::genProbability(0.25))
    {
       mGenes.push_back(SpawnNeuronGene{
          genPos(), 
@@ -211,12 +241,12 @@ Terminal Genom::genRandomTerminal(const bool isSrc) const
 {
    Terminal result;
 
-   if(isSrc && Rng::genProbability(mNumInputs / (double)mNumNeurons))
+   if(isSrc && Rng::genProbability(mNumInputs / (double)(mNumInputs + mNumNeurons)))
    {
       result.type = TerminalType::Input;
       result.id = Rng::genChoise(mNumInputs);
    }
-   else if(!isSrc && Rng::genProbability(mNumOutputs / (double)mNumNeurons))
+   else if(!isSrc && Rng::genProbability(mNumOutputs / (double)(mNumOutputs + mNumNeurons)))
    {
       result.type = TerminalType::Output;
       result.id = Rng::genChoise(mNumOutputs);
@@ -248,26 +278,38 @@ Point3D Genom::genSmallPosOffset() const
 void Genom::updateNumNeurons()
 {
    mNumNeurons = 0;
+   mNumConnections = 0;
 
    unsigned int currentBlockSize = 0;
+   unsigned int currentConnections = 0;
    for(auto& g : mGenes)
    {
       if(std::holds_alternative<SpawnNeuronGene>(g))
       {
          currentBlockSize++;
+         currentConnections += std::get<SpawnNeuronGene>(g).numInputs + std::get<SpawnNeuronGene>(g).numOutputs;
       }
       else if(std::holds_alternative<MirrorGene>(g) ||
          std::holds_alternative<CopyWithOffsetGene>(g))
       {
          currentBlockSize *= 2;  
+         currentConnections *= 2;
       }
       else if(std::holds_alternative<PushGene>(g))
       {
          mNumNeurons += currentBlockSize;
+         mNumConnections += currentConnections;
+         currentBlockSize = 0;
+         currentConnections = 0;
+      }
+      else if (std::holds_alternative<ConnectTerminalsGene>(g))
+      {
+          mNumConnections++;
       }
    }
 
    mNumNeurons += currentBlockSize;
+   mNumConnections += currentConnections;
 }
 
 void Genom::operator= (const Genom& other)
@@ -278,6 +320,7 @@ void Genom::operator= (const Genom& other)
    }
 
    mNumNeurons = other.mNumNeurons;
+   mNumConnections = other.mNumConnections;
    mGenes = other.mGenes;
 }
 
@@ -288,7 +331,7 @@ unsigned int Genom::getNumNeurons() const
 
 unsigned int Genom::getComplexity() const
 {
-   return mGenes.size();
+   return mNumConnections;
 }
 
 unsigned int Genom::getNumInputs() const
@@ -310,6 +353,8 @@ Genom Genom::loadState(std::ifstream& s, const std::size_t numInputs, const std:
 
    g.mGenes.resize(size);
    s.read(reinterpret_cast<char*>(&g.mGenes[0]), size * sizeof(Gene));
+
+   g.updateNumNeurons();
 
    return g;
 }
