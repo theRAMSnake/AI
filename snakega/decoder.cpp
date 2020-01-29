@@ -1,4 +1,5 @@
 #include "decoder.hpp"
+#include "logger//Logger.hpp"
 
 namespace snakega
 {
@@ -129,6 +130,11 @@ void GenomDecoder::processSpawnNeuron(const SpawnNeuronGene& s)
 {
    auto id = genHiddenNodeId(mHiddenNodes.size());
    mHiddenNodes.push_back({id, s.af, s.bias});
+
+   if (isInputNodeId(id))
+   {
+       std::cout << "136";
+   }
    
    mRngConnections.seed(s.connectionsSeed);
    mRngWeigths.seed(s.weightsSeed);
@@ -176,6 +182,7 @@ void GenomDecoder::processSpawnNeuron(const SpawnNeuronGene& s)
 
 void GenomDecoder::run()
 {
+    LOG_FUNC
    for(auto& g : mSrc.mGenes)
    {
       if(std::holds_alternative<ConnectTerminalsGene>(g))
@@ -183,7 +190,7 @@ void GenomDecoder::run()
          auto& c = std::get<ConnectTerminalsGene>(g);
          if (c.B.type == TerminalType::Input)
          {
-             std::cout << "!";
+             std::cout << "=";
          }
          mConnections.push_back({genNodeId(c.A), genNodeId(c.B), c.weight});
       }
@@ -243,11 +250,11 @@ void GenomDecoder::run()
 
 std::unique_ptr<neuroevolution::NeuroNet> GenomDecoder::decode(const neuroevolution::DomainGeometry& domainGeometry, const Genom& src)
 {
+    LOG_FUNC
    GenomDecoder decoder(domainGeometry, src);
 
    decoder.run();
 
-   //std::cout << decoder.mOutputNodes.size() << " ";
    return std::make_unique<neuroevolution::NeuroNet>(decoder.mInputNodes, decoder.mOutputNodes, decoder.mHiddenNodes, decoder.mConnections);
 }
 

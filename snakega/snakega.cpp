@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <future>
 #include <fstream>
+#include "logger/Logger.hpp"
 
 namespace snakega
 {
@@ -35,8 +36,11 @@ void Algorithm::step()
 
 std::vector<Pop> Algorithm::select() const
 {
+   LOG_FUNC
    //Keep champions, and *survivalRate* selected randomly, weighted by fitness. Never pick same guy
    std::vector<Pop> result;
+
+   std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
 
    std::copy(mPopulation.begin(), mPopulation.begin() + mCfg.championsKept, std::back_inserter(result));
    FitnessWeightedPool pool(mPopulation.begin() + mCfg.championsKept, mPopulation.end(), mBestFitness);
@@ -54,6 +58,7 @@ int Algorithm::exploitRange(
    std::vector<Pop>::iterator end
    )
 {
+    LOG_FUNC
    //Note: can be changed by more effective CMA-ES
    for(auto iter = begin; iter != end; ++iter)
    {
@@ -99,6 +104,7 @@ void Algorithm::exploit()
 
 void Algorithm::repopulate(const std::vector<Pop>& pops)
 {
+    LOG_FUNC
    mPopulation.clear();
 
    std::copy(pops.begin(), pops.end(), std::back_inserter(mPopulation));

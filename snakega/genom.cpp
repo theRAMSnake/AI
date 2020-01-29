@@ -2,6 +2,7 @@
 #include "neuroevolution/rng.hpp"
 #include <fstream>
 #include <iostream>
+#include "logger/Logger.hpp"
 
 namespace snakega
 {
@@ -41,26 +42,21 @@ Genom Genom::createGeometrical(const neuroevolution::DomainGeometry& geometry)
 {
     Genom result(geometry.inputs.size(), geometry.outputs.size());
 
-    for (std::size_t i = 0; i < geometry.inputs.size(); ++i)
+    //for (std::size_t i = 0; i < geometry.inputs.size(); ++i)
     {
-        if (Rng::genProbability(0.5))
-        {
-            //Creates neuron near the input
-            result.mGenes.push_back(SpawnNeuronGene{
-                {(double)geometry.inputs[i].x / geometry.size.x,
-                    (double)geometry.inputs[i].y / geometry.size.y,
-                    0.1},
-                Rng::genChoise(5) + 1, //1-5 inputs
-                Rng::genChoise(3) + 1, //1-3 outputs
-                Rng::gen32(),
-                static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
-                0.0,
-                Rng::gen32()
-                });
-        }
+        //Creates neuron near the input
+        result.mGenes.push_back(SpawnNeuronGene{
+            result.genPos(),
+            Rng::genChoise(5) + 1, //1-5 inputs
+            Rng::genChoise(3) + 1, //1-3 outputs
+            Rng::gen32(),
+            static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
+            0.0,
+            Rng::gen32()
+            });
     }
 
-    result.mGenes.push_back(PushGene{});
+    //result.mGenes.push_back(PushGene{});
     result.updateNumNeurons();
 
     return result;
@@ -76,7 +72,7 @@ void Genom::mutateStructure(const MutationConfig& mutationConfig)
       Change
    };
 
-   StructureMutationType choise = static_cast<StructureMutationType>(Rng::genChoise(3));
+   StructureMutationType choise = static_cast<StructureMutationType>(Rng::genChoise(4));
 
    switch(choise)
    {
@@ -86,9 +82,9 @@ void Genom::mutateStructure(const MutationConfig& mutationConfig)
       case Remove:
          mutateRemoveGene();
          break;
-      /*case Swap:
-         mutateSwapGenes();
-         break;*/
+      case Swap:
+          mutateSwapGenes();
+         break;
       case Change:
          mutateChangeGene();
          break;
@@ -139,6 +135,8 @@ void Genom::mutateParameters(const MutationConfig& mutationConfig)
 
 void Genom::mutateAddGene(const MutationConfig& mutationConfig)
 {
+    LOG_FUNC
+
    //Configurate later
    if(mNumNeurons > 0 && Rng::genProbability(0.5))
    {
@@ -181,6 +179,7 @@ void Genom::mutateAddGene(const MutationConfig& mutationConfig)
 
 void Genom::mutateRemoveGene()
 {
+    LOG_FUNC
    if(!mGenes.empty())
    {
       mGenes.erase(mGenes.begin() + Rng::genChoise(mGenes.size()));
@@ -189,14 +188,16 @@ void Genom::mutateRemoveGene()
 
 void Genom::mutateSwapGenes()
 {
-   if(!mGenes.empty())
+   if(mGenes.size() > 1)
    {
-      std::swap(*(mGenes.begin() + Rng::genChoise(mGenes.size())), *(mGenes.begin() + Rng::genChoise(mGenes.size())));
+       auto pos = (mGenes.begin() + Rng::genChoise(mGenes.size() - 1) + 1);
+       std::swap(*pos, *(pos - 1));
    }
 }
 
 void Genom::mutateChangeGene()
 {
+    LOG_FUNC
    if(!mGenes.empty())
    {
       auto& gene = *(mGenes.begin() + Rng::genChoise(mGenes.size()));

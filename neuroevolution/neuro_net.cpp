@@ -4,9 +4,18 @@
 #include <fstream>
 #include <algorithm>
 #include "activation.hpp"
+#include "../logger/Logger.hpp"
 
 namespace neuroevolution
 {
+
+void dumpConnections(const std::vector<NeuroNet::ConnectionDef>& connections)
+{
+    for (auto& c : connections)
+    {
+        LOG("C: " + std::to_string(c.src) + "-" + std::to_string(c.dst));
+    }
+}
 
 NeuroNet::NeuroNet(
    const std::vector<NodeId>& inputNodes, 
@@ -43,10 +52,16 @@ NeuroNet::NeuroNet(
       mHiddenNodes.push_back(&mNodes.back());
    }
    
-   for(auto& c : connections)
+   for (auto& c : connections)
    {
-      auto& src = mNodes[idToIdxMap[c.src]];
-      auto& dst = mNodes[idToIdxMap[c.dst]];
+       auto& src = mNodes[idToIdxMap[c.src]];
+       auto& dst = mNodes[idToIdxMap[c.dst]];
+
+       if (c.dst < mInputNodes.size())
+       {
+           dumpConnections(connections);
+           throw - 1;
+       }
 
       dst.inputs.push_back({src.id, c.weight});
 

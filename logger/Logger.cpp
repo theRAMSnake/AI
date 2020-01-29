@@ -23,3 +23,14 @@ Logger::Logger()
 {
     mFile.open("Logger.log", std::ofstream::out | std::ofstream::trunc);
 }
+
+LogFunc::LogFunc(const std::string& funcName)
+    : mFuncName(funcName)
+{
+    LOG(mFuncName + " ENTER");
+}
+
+LogFunc::~LogFunc()
+{
+    LOG(mFuncName + " LEAVE");
+}

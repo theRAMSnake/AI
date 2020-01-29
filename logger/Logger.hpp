@@ -17,3 +17,23 @@ private:
     std::ofstream mFile;
     Logger();
 };
+
+class LogFunc
+{
+public:
+    LogFunc(const std::string& funcName);
+    ~LogFunc();
+
+private:
+    const std::string mFuncName;
+};
+
+#ifndef __FUNCTION_NAME__
+#ifdef WIN32   //WINDOWS
+#define __FUNCTION_NAME__   __FUNCTION__  
+#else          //*NIX
+#define __FUNCTION_NAME__   __func__ 
+#endif
+#endif
+
+#define LOG_FUNC LogFunc __lgfnc(__FUNCTION_NAME__);
