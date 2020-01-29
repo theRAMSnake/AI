@@ -4,55 +4,64 @@
 #include <fstream>
 #include <algorithm>
 #include "activation.hpp"
+#include "../logger/Logger.hpp"
 
 namespace neuroevolution
 {
 
+void dumpConnections(const std::vector<NeuroNet::ConnectionDef>& connections)
+{
+    for (auto& c : connections)
+    {
+        LOG("C: " + std::to_string(c.src) + "-" + std::to_string(c.dst));
+    }
+}
+
 NeuroNet::NeuroNet(
    const std::vector<NodeId>& inputNodes, 
-   const std::vector<NodeId>& biasNodes,
    const std::vector<NodeId>& outputNodes,
-   const std::vector<std::pair<NodeId, ActivationFunctionType>>& hiddenNodes,
+   const std::vector<HiddenNodeDef>& hiddenNodes,
    const std::vector<ConnectionDef>& connections
    )
 {
-   mNodes.reserve(inputNodes.size() + biasNodes.size() + outputNodes.size() + hiddenNodes.size());
+   mNodes.reserve(inputNodes.size() + outputNodes.size() + hiddenNodes.size());
    mInputNodes.reserve(inputNodes.size());
    mOutputNodes.reserve(outputNodes.size());
    mHiddenNodes.reserve(hiddenNodes.size());
 
    std::map<NodeId, NodeId> idToIdxMap;
-   for(auto n : biasNodes)
-   {
-      idToIdxMap[n] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 1.0, -1});
-   }
 
    for(auto n : inputNodes)
    {
       idToIdxMap[n] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0});
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0.0, 0});
       mInputNodes.push_back(&mNodes.back());
    }
 
    for(auto n : outputNodes)
    {
       idToIdxMap[n] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1});
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0.0, -1});
       mOutputNodes.push_back(&mNodes.back());
    }
 
    for(auto n : hiddenNodes)
    {
-      idToIdxMap[n.first] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, -1, {}, getPtr(n.second), n.second});
+      idToIdxMap[n.id] = mNodes.size();
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), n.bias, n.bias, -1, {}, getPtr(n.acType), n.acType});
       mHiddenNodes.push_back(&mNodes.back());
    }
    
-   for(auto& c : connections)
+   for (auto& c : connections)
    {
-      auto& src = mNodes[idToIdxMap[c.src]];
-      auto& dst = mNodes[idToIdxMap[c.dst]];
+       auto& src = mNodes[idToIdxMap[c.src]];
+       auto& dst = mNodes[idToIdxMap[c.dst]];
+
+       if (c.dst < mInputNodes.size())
+       {
+           dumpConnections(connections);
+           throw - 1;
+       }
 
       dst.inputs.push_back({src.id, c.weight});
 
@@ -200,12 +209,12 @@ void NeuroNet::reset()
 {
    for(auto node : mHiddenNodes)
    {      
-      node->value = 0.0;
+      node->value = node->bias;
    }
 
    for(auto node : mOutputNodes)
    {      
-      node->value = 0.0;
+      node->value = node->bias;
    }
 }  
 
@@ -244,6 +253,9 @@ std::unique_ptr<NeuroNet> NeuroNet::fromBinaryStream(std::ifstream& stream)
       NodeId id;
       stream.read((char*)&id, sizeof(NodeId));
 
+      double bias = 0.0;
+      stream.read((char*)&bias, sizeof(double));
+
       int depth = 0;
       stream.read((char*)&depth, sizeof(int));
 
@@ -268,22 +280,22 @@ std::unique_ptr<NeuroNet> NeuroNet::fromBinaryStream(std::ifstream& stream)
       //Process node
       if(std::find(inputs.begin(), inputs.end(), id) != inputs.end())
       {
-         result->mNodes.push_back(Node{id, 0.0, depth});
+         result->mNodes.push_back(Node{id, 0.0, bias, depth});
          result->mInputNodes.push_back(&result->mNodes.back());
       }
       else if(std::find(outputs.begin(), outputs.end(), id) != outputs.end())
       {
-         result->mNodes.push_back(Node{id, 0.0, depth, links});
+         result->mNodes.push_back(Node{id, 0.0, bias, depth, links});
          result->mOutputNodes.push_back(&result->mNodes.back());
       }
       else if(std::find(hiddens.begin(), hiddens.end(), id) != hiddens.end())
       {
-         result->mNodes.push_back(Node{id, 0.0, depth, links, getPtr(actType), actType});
+         result->mNodes.push_back(Node{id, 0.0, bias, depth, links, getPtr(actType), actType});
          result->mHiddenNodes.push_back(&result->mNodes.back());
       }
       else
       {
-         result->mNodes.push_back(Node{id, 1.0, depth});
+         result->mNodes.push_back(Node{id, 1.0, bias, depth});
       }
    }
 
@@ -291,8 +303,6 @@ std::unique_ptr<NeuroNet> NeuroNet::fromBinaryStream(std::ifstream& stream)
    {
       return x->depth < y->depth;
    });
-
-   //result->print();
 
    return std::unique_ptr<NeuroNet>(result);
 }
@@ -330,6 +340,7 @@ void NeuroNet::toBinaryStream(std::ofstream& stream)
    {
       stream.write((char*)&n.id, sizeof(NodeId));
       //Skip value as irrelevant
+      stream.write((char*)&n.bias, sizeof(double));
       stream.write((char*)&n.depth, sizeof(int));
       size = n.inputs.size();
       stream.write((char*)&size, sizeof(std::size_t));

@@ -53,9 +53,7 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
          if(mMode == Mode::AI)
          {
             io.ClearScreen();
-            game.DrawScene(io);	
-            //game.DrawView(io, view);
-            //io.UpdateScreen();
+            game.DrawScene(io);
          }
 
          auto action = p.getNextAction(view, game.mPiece, game.mPosX + 2, game.mPosY + 2);
@@ -99,7 +97,35 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
       {
          board.StorePiece (game.mPosX, game.mPosY, game.mPiece, game.mRotation);
          
-         score += board.DeletePossibleLines();
+         auto lines = board.DeletePossibleLines();
+
+         switch (lines)
+         {
+         case 0:
+             break;
+         case 1:
+             score += 10;
+             break;
+         case 2:
+             score += 30;
+             break;
+         case 3:
+             score += 60;
+             break;
+         case 4:
+             score += 100;
+             break;
+
+         default:
+             ;
+         }
+
+         if (board.getNumHoles() == 0)
+         {
+             score += 2;
+         }
+
+         score++;
          
          game.CreateNewPiece();
       }
@@ -108,5 +134,11 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
       {
          return score;
       }
+
+      /*
+      Line: +10/30/60/100 pt
+      Perfect play: +2 per turn (no holes below)
+      Figure survived: +1
+      */
    }
 }

@@ -7,10 +7,11 @@ class SGAPopulation : public IPopulation
 public:
    using SrcPopsType = decltype(((snakega::Algorithm*)nullptr)->getPopulation());
 
-   SGAPopulation(SrcPopsType& src)
+   SGAPopulation(SrcPopsType& src, neuroevolution::DomainGeometry geometry)
    : mSrc(src)
+   , mGeometry(geometry)
    {
-
+      mResults.id = 0;
    }
 
    virtual double getAverageFitness() const
@@ -30,7 +31,7 @@ public:
 
    virtual unsigned int getNumSpecies() const
    {
-      return 1;
+      return mResults.popResults.empty() ? 0 : 1;
    }
 
    virtual std::vector<SpecieResults> getSpecies() const
@@ -40,17 +41,32 @@ public:
 
    virtual std::unique_ptr<neuroevolution::NeuroNet> createAnn(const PopResult& pop) const
    {
-      return snakega::GenomDecoder::decode(mSrc[pop.organismId].mGenom);
+      return snakega::GenomDecoder::decode(mGeometry, mSrc[pop.organismId].mGenom);
    }
 
    void update()
    {
-      
+      double totalFitness = 0.0;
+      double totalComplexity = 0.0;
+
+      mResults.popResults.clear();
+
+      unsigned int popId = 0;
+      for(auto& p : mSrc)
+      {
+         totalFitness += p.mFitness;
+         totalComplexity += p.mGenom.getComplexity();
+         mResults.popResults.push_back({0, popId++, p.mFitness, p.mGenom.getComplexity(), p.mGenom.getNumNeurons()});
+      }
+
+      mResults.averageFitness = totalFitness / mSrc.size();
+      mAverageComplexity = totalComplexity / mSrc.size();
    }
 
 private:
    SrcPopsType& mSrc;
    SpecieResults mResults;
+   neuroevolution::DomainGeometry mGeometry;
    double mAverageComplexity;
 };
 
@@ -65,6 +81,7 @@ snakega::Config toConfig(const boost::property_tree::ptree& cfg)
    result.exploitationSize = cfg.get<std::size_t>("Exploitation.Size");
    result.populationSize = cfg.get<std::size_t>("Basic.Population");
    result.survivalRate = cfg.get<double>("Selection.Survival Rate");
+   result.numThreads = cfg.get<unsigned int>("Basic.Threads");
    
    return result;
 }
@@ -73,7 +90,7 @@ SGAProject::SGAProject(const boost::property_tree::ptree& cfg, neuroevolution::I
 : ProjectBase(cfg, pg)
 , mImpl(toConfig(cfg), pg.getDomainGeometry(), pg.getFitnessEvaluator())
 {
-   mPops = std::make_unique<SGAPopulation>(mImpl.getPopulation());
+   mPops = std::make_unique<SGAPopulation>(mImpl.getPopulation(), pg.getDomainGeometry());
 }
 
 void SGAProject::step()
@@ -119,6 +136,7 @@ void SGAProject::getRawOut(std::stringstream& out) const
 
    for(std::size_t i = 0; i < 10 && i < pops.size(); ++i)
    {
-      throw -1;
+      out << "Pop[" << i << "]: F: " << pops[i].mFitness << ", N: " << pops[i].mGenom.getNumNeurons() << ", C: " 
+         << pops[i].mGenom.getComplexity() << std::endl;
    }
 }

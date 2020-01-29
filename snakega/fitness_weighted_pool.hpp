@@ -16,6 +16,8 @@ public:
       {
          mPool.push_back(iter);
       }
+
+      mMaxAttermpts = mPool.size() * 5;
    }
 
    const Pop& pick()
@@ -29,7 +31,7 @@ public:
       while(true)
       {
          auto choise = mPool.begin() + Rng::genChoise(mPool.size());
-         if(mBestFitness != 0 && attempts++ < mPool.size() * 3) //Skip fitness check if we tried to many times - looks like only shity pops left,
+         if(mBestFitness != 0 && attempts++ < mMaxAttermpts) //Skip fitness check if we tried to many times - looks like only shity pops left,
                                                                 // so it is irrelevant what to pick
          {
             if(!Rng::genProbability(double((*choise)->mFitness) / mBestFitness))
@@ -38,12 +40,14 @@ public:
             }
          }
 
+         auto& result = **choise;
          mPool.erase(choise);
-         return **choise;
+         return result;
       }
    }
 
 private:
+   unsigned int mMaxAttermpts;
    neuroevolution::Fitness mBestFitness;
    std::vector<std::vector<Pop>::const_iterator> mPool;
 };

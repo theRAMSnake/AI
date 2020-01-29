@@ -15,10 +15,22 @@ void Logger::Log(const std::string& data)
 
     mMutex.lock();
     mFile << '[' << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << "]   " << data << std::endl;
+    mFile.flush();
     mMutex.unlock();
 }
 
 Logger::Logger()
 {
     mFile.open("Logger.log", std::ofstream::out | std::ofstream::trunc);
+}
+
+LogFunc::LogFunc(const std::string& funcName)
+    : mFuncName(funcName)
+{
+    LOG(mFuncName + " ENTER");
+}
+
+LogFunc::~LogFunc()
+{
+    LOG(mFuncName + " LEAVE");
 }

@@ -16,9 +16,9 @@ struct PopResult
 
 struct SpecieResults
 {
-   unsigned int id;
+   unsigned int id = 0;
 
-   double averageFitness;
+   double averageFitness = 0.0;
    neuroevolution::Fitness maxFitness;
    std::vector<PopResult> popResults;
 };

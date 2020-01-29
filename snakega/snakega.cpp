@@ -4,21 +4,26 @@
 #include "fitness_weighted_pool.hpp"
 #include "neuroevolution/rng.hpp"
 #include <algorithm>
+#include <future>
+#include <fstream>
+#include "logger/Logger.hpp"
 
 namespace snakega
 {
 
 Algorithm::Algorithm(
    const Config& cfg,
-   const neuroevolution::DomainGeometry& domainGeometry, 
+   const neuroevolution::DomainGeometry domainGeometry, 
    neuroevolution::IFitnessEvaluator& fitnessEvaluator
    )
    : mCfg(cfg)
+   , mDomainGeometry(domainGeometry)
    , mFitnessEvaluator(fitnessEvaluator)
 {
    for(std::size_t i = 0; i < mCfg.populationSize; ++i)
    {
-      mPopulation.push_back(Genom::createHalfConnected(domainGeometry.inputs.size(), domainGeometry.outputs.size()));
+      //mPopulation.push_back(Genom::createHalfConnected(domainGeometry.inputs.size(), domainGeometry.outputs.size()));
+      mPopulation.push_back(Genom::createGeometrical(domainGeometry));
    }
 }
 
@@ -31,8 +36,11 @@ void Algorithm::step()
 
 std::vector<Pop> Algorithm::select() const
 {
+   LOG_FUNC
    //Keep champions, and *survivalRate* selected randomly, weighted by fitness. Never pick same guy
    std::vector<Pop> result;
+
+   std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
 
    std::copy(mPopulation.begin(), mPopulation.begin() + mCfg.championsKept, std::back_inserter(result));
    FitnessWeightedPool pool(mPopulation.begin() + mCfg.championsKept, mPopulation.end(), mBestFitness);
@@ -45,24 +53,58 @@ std::vector<Pop> Algorithm::select() const
    return result;
 }
 
+int Algorithm::exploitRange(
+   std::vector<Pop>::iterator begin, 
+   std::vector<Pop>::iterator end
+   )
+{
+    LOG_FUNC
+   //Note: can be changed by more effective CMA-ES
+   for(auto iter = begin; iter != end; ++iter)
+   {
+      Exploitation exploitation(*iter, mCfg.exploitationSize);
+
+      *iter = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mDomainGeometry, mFitnessEvaluator);
+   }
+
+   return 0;
+}
+
 void Algorithm::exploit()
 {
-   //Note: can be changed by more effective CMA-ES
-   //Note: parralelisation point
-   for(auto& pop : mPopulation)
-   {
-      Exploitation exploitation(pop, mCfg.exploitationSize);
+   std::vector<std::future<int>> fs;
+   std::size_t numElementsByThread = mPopulation.size() / mCfg.numThreads + 1;
 
-      auto bestPop = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mFitnessEvaluator);
-      if(bestPop.mFitness > pop.mFitness)
+   auto first = mPopulation.begin();
+   auto last = first + numElementsByThread;
+   for(std::size_t i = 0; i < mCfg.numThreads; ++i)
+   {
+      auto f = std::async(
+         std::launch::async, 
+         std::bind(&Algorithm::exploitRange, this, std::placeholders::_1, std::placeholders::_2), 
+         first, 
+         last
+         );
+      fs.push_back(std::move(f));
+
+      first += numElementsByThread;
+      last += numElementsByThread;
+
+      if(last > mPopulation.end())
       {
-         pop = bestPop;
+         last = mPopulation.end();
       }
+   }
+   
+   for(auto& f : fs)
+   {
+      f.get();
    }
 }
 
 void Algorithm::repopulate(const std::vector<Pop>& pops)
 {
+    LOG_FUNC
    mPopulation.clear();
 
    std::copy(pops.begin(), pops.end(), std::back_inserter(mPopulation));
@@ -99,12 +141,39 @@ const std::vector<Pop>& Algorithm::getPopulation() const
 
 void Algorithm::saveState(const std::string& fileName)
 {
-   throw -1;
+   //Quick for now
+   std::ofstream ofile(fileName, std::ios::binary | std::ios::trunc);
+
+   auto size = mPopulation.size();
+   ofile.write((char*)&size, sizeof(std::size_t));
+
+   for(auto& p : mPopulation)
+   {
+      ofile.write((char*)&p.mFitness, sizeof(neuroevolution::Fitness));
+      p.mGenom.saveState(ofile);
+   }
 }
 
 void Algorithm::loadState(const std::string& fileName)
 {
-   throw -1;
+   //Quick for now
+   std::ifstream ifile(fileName, std::ios::binary);
+
+   std::size_t size = 0;
+   ifile.read((char*)&size, sizeof(std::size_t));
+
+   mPopulation.clear();
+   mPopulation.reserve(size);
+
+   for(std::size_t i = 0; i < size; ++i)
+   {
+      Pop p(Genom(mDomainGeometry.inputs.size(), mDomainGeometry.outputs.size()));
+
+      ifile.read((char*)&p.mFitness, sizeof(neuroevolution::Fitness));
+      p.mGenom = Genom::loadState(ifile, mDomainGeometry.inputs.size(), mDomainGeometry.outputs.size());
+
+      mPopulation.push_back(p);
+   }
 }
 
 }
