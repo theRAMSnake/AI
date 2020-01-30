@@ -20,10 +20,23 @@ Algorithm::Algorithm(
    , mDomainGeometry(domainGeometry)
    , mFitnessEvaluator(fitnessEvaluator)
 {
+   //Put all inputz with z=0.
+   for(std::size_t i = 0; i < domainGeometry.inputs.size(); ++i)
+   {
+      auto& orig = domainGeometry.inputs[i];
+      mInputs.push_back({double(orig.x) / domainGeometry.size.x, double(orig.y) / domainGeometry.size.y, 0});
+   }
+
+   //Put all outputs with z=1.
+   for(std::size_t i = 0; i < domainGeometry.outputs.size(); ++i)
+   {
+      auto& orig = domainGeometry.outputs[i];
+      mOutputs.push_back({double(orig.x) / domainGeometry.size.x, double(orig.y) / domainGeometry.size.y, 1.0});
+   }
+
    for(std::size_t i = 0; i < mCfg.populationSize; ++i)
    {
-      //mPopulation.push_back(Genom::createHalfConnected(domainGeometry.inputs.size(), domainGeometry.outputs.size()));
-      mPopulation.push_back(Genom::createGeometrical(domainGeometry));
+      mPopulation.push_back(Genom::createHalfConnected(mInputs, mOutputs));
    }
 }
 
@@ -42,8 +55,8 @@ std::vector<Pop> Algorithm::select() const
 
    std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
 
-   std::copy(mPopulation.begin(), mPopulation.begin() + mCfg.championsKept, std::back_inserter(result));
-   FitnessWeightedPool pool(mPopulation.begin() + mCfg.championsKept, mPopulation.end(), mBestFitness);
+   std::copy(mPopulation.begin(), mPopulation.begin() + numChampionsKept, std::back_inserter(result));
+   FitnessWeightedPool pool(mPopulation.begin() + numChampionsKept, mPopulation.end(), mBestFitness);
    
    while(result.size() < mCfg.populationSize * mCfg.survivalRate)
    {
@@ -167,10 +180,10 @@ void Algorithm::loadState(const std::string& fileName)
 
    for(std::size_t i = 0; i < size; ++i)
    {
-      Pop p(Genom(mDomainGeometry.inputs.size(), mDomainGeometry.outputs.size()));
+      Pop p(Genom(mInputs, mOutputs));
 
       ifile.read((char*)&p.mFitness, sizeof(neuroevolution::Fitness));
-      p.mGenom = Genom::loadState(ifile, mDomainGeometry.inputs.size(), mDomainGeometry.outputs.size());
+      p.mGenom = Genom::loadState(ifile, mInputs, mOutputs);
 
       mPopulation.push_back(p);
    }
