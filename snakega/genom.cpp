@@ -3,10 +3,23 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <numeric>
 #include "logger/Logger.hpp"
 
 namespace snakega
 {
+
+bool operator< (const Terminal& a, const Terminal& b)
+{
+    if (a.type == b.type)
+    {
+        return a.id < b.id;
+    }
+    else
+    {
+        return a.type < b.type;
+    }
+}
 
 Genom::Genom(const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs)
 : mNumInputs(inputs.size())
@@ -17,129 +30,135 @@ Genom::Genom(const std::vector<Point3D>& inputs, const std::vector<Point3D>& out
 
 }
 
+NeuronId Genom::spawnNeuron()
+{
+    auto id = genNeuronId();
+    mNeurons.push_back({
+       genPos(),
+       id,
+       static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
+       Rng::genReal() }
+    );
+
+    for (unsigned int x = 0; x < Rng::genChoise(5); ++x)
+    {
+        addConnection(
+            { TerminalType::Neuron, id },
+            genRandomTerminal(false),
+            Rng::genWeight()
+        );
+    }
+
+    for (unsigned int y = 0; y < Rng::genChoise(5); ++y)
+    {
+        addConnection(
+            genRandomTerminal(true),
+            { TerminalType::Neuron, id },
+            Rng::genWeight()
+        );
+    }
+
+    return id;
+}
+
 Genom Genom::createHalfConnected(const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs)
 {
-   //Create one fully connected hidden layer
    Genom result(inputs, outputs);
 
-   for(std::size_t i = 0; i < result.mNumInputs; ++i)
+   /*for (std::size_t i = 0; i < inputs.size(); ++i)
    {
-      result.mNeurons.push_back({
-         {inputs[i].x, inputs[i].y, 0.5}, 
-         result.genNeuronId(),
-         static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)), 
-         0.0}
-         );
-   }
-
-   for(auto &n : result.mNeurons)
-   {
-      for(std::size_t i = 0; i < result.mNumInputs; ++i)
-      {
-         if(Rng::genProbability(0.5))
-         {
-            result.mConnections.push_back(ConnectTerminalsGene{
-               {TerminalType::Input, static_cast<TerminalId>(i)}, 
-               {TerminalType::Neuron, n.id},
-               Rng::genWeight()
-               });
-         }
-      }
-      for(std::size_t j = 0; j < result.mNumOutputs; ++j)
-      {
-         if(Rng::genProbability(0.5))
-         {
-            result.mConnections.push_back(ConnectTerminalsGene{
-               {TerminalType::Neuron, n.id}, 
-               {TerminalType::Output, static_cast<TerminalId>(j)},
-               Rng::genWeight()
-               });
-         }
-      }
-   }
+       for (std::size_t j = 0; j < outputs.size(); ++j)
+       {
+           if (Rng::genProbability(0.5))
+           {
+               result.addConnection(
+                   { TerminalType::Input, static_cast<TerminalId>(i) },
+                   { TerminalType::Output, static_cast<TerminalId>(j) },
+                   Rng::genWeight()
+               );
+           }
+       }
+   }*/
+   result.spawnNeuron();
 
    return result;
 }
 
+bool operator == (Terminal A, Terminal B)
+{
+    return A.type == B.type && A.id == B.id;
+}
+
+bool operator != (Terminal A, Terminal B)
+{
+    return !(A == B);
+}
+
+void Genom::addConnection(Terminal A, Terminal B, double weight)
+{
+    if (std::find_if(mConnections.begin(), mConnections.end(), [&](auto x) {return x.A == A && x.B == B;}) == mConnections.end())
+    {
+        mConnections.push_back({A, B, weight});
+    }
+}
+
 void Genom::mutateStructure(const MutationConfig& mutationConfig)
 {
-   //Each neuron can raise connections each generation, depending on the distance to target
+   //Generate more connections based on the amount of neurons = 5% chance per neuron
    for(auto& n : mNeurons)
    {
-      if(Rng::genProbability(0.02))
+      if(Rng::genProbability(0.05))
       {
-         bool isSrc = Rng::genProbability(0.5);
-         if(isSrc)
-         {
-            mConnections.push_back(ConnectTerminalsGene{
-               {TerminalType::Neuron, n.id}, 
-               genRandomTerminal(n.pos, false),
-               Rng::genWeight()
-               });
-         }
-         else
-         {
-            mConnections.push_back(ConnectTerminalsGene{
-               genRandomTerminal(n.pos, true),
-               {TerminalType::Neuron, n.id}, 
-               Rng::genWeight()
-               });
-         }
+         addConnection(
+             genRandomTerminal(true),
+             genRandomTerminal(false),
+             Rng::genWeight()
+             );
       }
    }
 
-   //Drop amount of connections based on number of neurons
+   //Drop amount of connections based on number of neurons = 5% chance per neuron
    if(!mConnections.empty())
    {
       for(std::size_t i = 0; i < mNeurons.size(); ++i)
       {
-         if(Rng::genProbability(0.01))
+         if(Rng::genProbability(0.03))
          {
             mConnections.erase(mConnections.begin() + Rng::genChoise(mConnections.size()));
          }
       }
    }
 
-   //Each generation a new neurons(depending on the size) are born at random position, connected to some others
-   for(std::size_t i = 0; i < mNeurons.size() * 0.02 + 1; ++i)
+   //Each generation a new neurons(depending on the size) are born connected to some others
+   for(std::size_t i = 0; i < mNeurons.size() / 50 + 1; ++i)
    {
       if(Rng::genProbability(0.5))
       {
-         auto id = genNeuronId();
-         auto pos = genPos();
-         mNeurons.push_back({
-            pos, 
-            id,
-            static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)), 
-            0.0}
-            );
-
-         for(unsigned int x = 0; x < Rng::genChoise(5); ++x)
-         {
-            mConnections.push_back(ConnectTerminalsGene{
-               {TerminalType::Neuron, id}, 
-               genRandomTerminal(pos, false),
-               Rng::genWeight()
-               });
-         }
-
-         for(unsigned int y = 0; y < Rng::genChoise(5); ++y)
-         {
-            mConnections.push_back(ConnectTerminalsGene{
-               genRandomTerminal(pos, true),
-               {TerminalType::Neuron, id}, 
-               Rng::genWeight()
-               });
-         }
+          spawnNeuron();
       }
    }
 
-   //Each generation set of neurons are destroyed(depending on the size)
-   for(std::size_t i = 0; i < mNeurons.size() * 0.02; ++i)
+   //Each generation set of neurons are destroyed(depending on the size). Only redundant neurons are allowed to be deleted
+   for(std::size_t i = 0; i < mNeurons.size() / 50 + 1; ++i)
    {
-      if(Rng::genProbability(0.25))
+      if(!mNeurons.empty() && Rng::genProbability(0.5))
       {
          auto pos = mNeurons.begin() + Rng::genChoise(mNeurons.size());
+
+         auto numLinks = std::accumulate(mConnections.begin(), mConnections.end(), 0, [&](auto c, auto x) {
+             if ((x.A.id == pos->id && x.A.type == TerminalType::Neuron) ||
+                 (x.B.id == pos->id && x.B.type == TerminalType::Neuron))
+             {
+                 return c + 1;
+             }
+
+             return c;
+         });
+
+         if (numLinks > 1)
+         {
+             continue;
+         }
 
          mConnections.erase(std::remove_if(mConnections.begin(), mConnections.end(), [&](auto x){
             return (x.A.id == pos->id && x.A.type == TerminalType::Neuron) ||
@@ -151,55 +170,104 @@ void Genom::mutateStructure(const MutationConfig& mutationConfig)
    }
 }
 
+double calculateDistance(const Point3D& srcPos, const Point3D& otherPos)
+{
+    return sqrt((srcPos.x - otherPos.x) * (srcPos.x - otherPos.x) +
+        (srcPos.y - otherPos.y) * (srcPos.y - otherPos.y) +
+        (srcPos.z - otherPos.z) * (srcPos.z - otherPos.z));
+}
+
+bool has(const std::vector<Terminal>& vec, const Terminal& t)
+{
+    return std::find(vec.begin(), vec.end(), t) != vec.end();
+}
+
+ConnectionLotery Genom::createConnectionLotery(const SpawnNeuronGene& g) const
+{
+    ConnectionLotery result;
+
+    std::vector<Terminal> srcConnections;
+    std::vector<Terminal> dstConnections;
+
+    for (auto& c : mConnections)
+    {
+        if (c.B == Terminal{ TerminalType::Neuron, g.id })
+        {
+            srcConnections.push_back(c.B);
+        }
+        if (c.A == Terminal{ TerminalType::Neuron, g.id })
+        {
+            dstConnections.push_back(c.A);
+        }
+    }
+
+    for (std::size_t i = 0; i < mInputs.size(); ++i)
+    {
+        auto otherPos = mInputs[i];
+        auto distance = calculateDistance(g.pos, otherPos);
+
+        if (!has(srcConnections, { TerminalType::Input, TerminalId(i)}))
+        {
+            result.addSrc({ TerminalType::Input, TerminalId(i) }, distance);
+        }
+    }
+
+    for (std::size_t i = 0; i < mOutputs.size(); ++i)
+    {
+        auto otherPos = mOutputs[i];
+        auto distance = calculateDistance(g.pos, otherPos);
+
+        if (!has(dstConnections, { TerminalType::Output, TerminalId(i) }))
+        {
+            result.addDst({ TerminalType::Output, TerminalId(i) }, distance);
+        }
+    }
+
+    for (auto& n : mNeurons)
+    {
+        auto otherPos = n.pos;
+        auto distance = calculateDistance(g.pos, otherPos);
+
+        if (!has(dstConnections, { TerminalType::Neuron, n.id }))
+        {
+            result.addDst({ TerminalType::Neuron, n.id }, distance);
+        }
+
+        if (!has(srcConnections, { TerminalType::Neuron, n.id }))
+        {
+            result.addSrc({ TerminalType::Neuron, n.id }, distance);
+        }
+    }
+
+    return result;
+}
+
 void Genom::mutateParameters(const MutationConfig& mutationConfig)
 {
-   for(auto& c : mConnections)
+   for(std::size_t i = 0; i < mConnections.size(); ++i)
    {
-      if(Rng::genProbability(0.8))
-      {
-         c.weight += Rng::genPerturbation();
-      }
-      else
-      {
-         c.weight = Rng::genWeight();
-      }
+       if (Rng::genProbability(0.2))
+       {
+           mConnections[i].weight = Rng::genWeight();
+       }
+       else
+       {
+           mConnections[i].weight += Rng::genPerturbation();
+       }
    }
 }
 
-Terminal Genom::genRandomTerminal(const Point3D& srcPos, const bool isSrc) const
+void Genom::crossoverParameters(const Genom& other)
 {
-   Terminal result;
+    if (mConnections.size() != other.mConnections.size())
+    {
+        throw - 1;
+    }
 
-   while(true)
-   {
-      if(isSrc && Rng::genProbability(mNumInputs / (double)(mNumInputs + mNeurons.size())))
-      {
-         result.type = TerminalType::Input;
-         result.id = Rng::genChoise(mNumInputs);
-      }
-      else if(!isSrc && Rng::genProbability(mNumOutputs / (double)(mNumOutputs + mNeurons.size())))
-      {
-         result.type = TerminalType::Output;
-         result.id = Rng::genChoise(mNumOutputs);
-      }
-      else
-      {
-         result.type = TerminalType::Neuron;
-         result.id = Rng::genChoise(mNeurons.size());
-      }
-
-      auto otherPos = getPos(result);
-      auto distance = sqrt((srcPos.x - otherPos.x) * (srcPos.x - otherPos.x) + 
-         (srcPos.y - otherPos.y) * (srcPos.y - otherPos.y) + 
-         (srcPos.z - otherPos.z) * (srcPos.z - otherPos.z));
-
-      if(distance == 0.0 || Rng::genProbability(1.0 / std::exp(5 * distance)))
-      {
-         break;
-      }
-   }
-
-   return result;
+    for (std::size_t i = 0; i < mConnections.size(); ++i)
+    {
+        mConnections[i].weight = (mConnections[i].weight + other.mConnections[i].weight) / 2;
+    }
 }
 
 Point3D Genom::getPos(const Terminal& terminal) const
@@ -293,6 +361,81 @@ unsigned int Genom::genNeuronId()
    {
       return mNeurons.back().id + 1;
    }
+}
+
+void ConnectionLotery::addSrc(const Terminal& t, const double distance)
+{
+    mSrc.insert({distance, t});
+}
+
+void ConnectionLotery::addDst(const Terminal& t, const double distance)
+{
+    mDst.insert({ distance, t });
+}
+
+bool ConnectionLotery::hasSrc()
+{
+    return !mSrc.empty();
+}
+
+bool ConnectionLotery::hasDst()
+{
+    return !mDst.empty();
+}
+
+Terminal ConnectionLotery::pickSrc()
+{
+    while (true)
+    {
+        for (auto iter = mSrc.begin(); iter != mSrc.end(); ++iter)
+        {
+            if (Rng::genProbability(0.25))
+            {
+                auto t = iter->second;
+                mSrc.erase(iter);
+                return t;
+            }
+        }
+    }
+}
+
+Terminal ConnectionLotery::pickDst()
+{
+    while (true)
+    {
+        for (auto iter = mDst.begin(); iter != mDst.end(); ++iter)
+        {
+            if (Rng::genProbability(0.25))
+            {
+                auto t = iter->second;
+                mDst.erase(iter);
+                return t;
+            }
+        }
+    }
+}
+
+Terminal Genom::genRandomTerminal(const bool isSrc) const
+{
+    Terminal result;
+
+    if (isSrc && Rng::genProbability(mNumInputs / (double)(mNumInputs + mNeurons.size())))
+    {
+        result.type = TerminalType::Input;
+        result.id = Rng::genChoise(mNumInputs);
+    }
+    else if (!isSrc && Rng::genProbability(mNumOutputs / (double)(mNumOutputs + mNeurons.size())))
+    {
+        result.type = TerminalType::Output;
+        result.id = Rng::genChoise(mNumOutputs);
+    }
+    else
+    {
+        result.type = TerminalType::Neuron;
+        result.id = Rng::genChoise(mNeurons.size());
+    }
+
+    return result;
 }
 
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <set>
 #include <variant>
 #include "neuroevolution/IPlayground.hpp"
 #include "neuroevolution/activation.hpp"
@@ -42,6 +43,8 @@ struct Terminal
    TerminalId id;
 };
 
+bool operator< (const Terminal& a, const Terminal& b);
+
 //Explicitly connects two terminals.
 struct ConnectTerminalsGene
 {
@@ -55,11 +58,26 @@ struct ConnectTerminalsGene
 struct SpawnNeuronGene
 {
    Point3D pos;
-   unsigned int id;
+   NeuronId id;
 
    //parameters:
    ActivationFunctionType af;
    double bias;
+};
+
+class ConnectionLotery
+{
+public:
+    void addSrc(const Terminal& t, const double distance);
+    void addDst(const Terminal& t, const double distance);
+    bool hasSrc();
+    bool hasDst();
+    Terminal pickSrc();
+    Terminal pickDst();
+
+private:
+    std::set<std::pair<double, Terminal>> mSrc;
+    std::set<std::pair<double, Terminal>> mDst;
 };
 
 //Note: 3D area's dimensions is 0..1
@@ -68,6 +86,7 @@ class Genom
 {
 public:
    friend class GenomDecoder;
+   friend class Exploitation;
    Genom(const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs);
 
    void operator= (const Genom& other);
@@ -76,6 +95,7 @@ public:
 
    void mutateStructure(const MutationConfig& mutationConfig);
    void mutateParameters(const MutationConfig& mutationConfig);
+   void crossoverParameters(const Genom& other);
 
    unsigned int getNumNeurons() const;
    unsigned int getComplexity() const;
@@ -85,15 +105,18 @@ public:
    static Genom loadState(std::ifstream& s, const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs);
    void saveState(std::ofstream& s) const;
 
-protected:
+//protected:
    std::vector<ConnectTerminalsGene> mConnections;
    std::vector<SpawnNeuronGene> mNeurons;
 
 private:
-   Terminal genRandomTerminal(const Point3D& srcPos, const bool isSrc) const;
+   ConnectionLotery createConnectionLotery(const SpawnNeuronGene& g) const;
+   NeuronId spawnNeuron();
+   Terminal genRandomTerminal(const bool isSrc) const;
    Point3D genPos() const;
    Point3D getPos(const Terminal& terminal) const;
    unsigned int genNeuronId();
+   void addConnection(Terminal A, Terminal B, double weight);
 
    const std::size_t mNumInputs;
    const std::size_t mNumOutputs;
