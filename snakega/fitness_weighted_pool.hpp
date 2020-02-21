@@ -46,6 +46,11 @@ public:
       }
    }
 
+   bool empty()
+   {
+       return mPool.empty();
+   }
+
 private:
    unsigned int mMaxAttermpts;
    neuroevolution::Fitness mBestFitness;

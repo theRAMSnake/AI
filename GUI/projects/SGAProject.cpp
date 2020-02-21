@@ -63,6 +63,11 @@ public:
       mAverageComplexity = totalComplexity / mSrc.size();
    }
 
+   double getTopFitness() const override
+   {
+       return mResults.popResults[0].fitness;
+   }
+
 private:
    SrcPopsType& mSrc;
    SpecieResults mResults;

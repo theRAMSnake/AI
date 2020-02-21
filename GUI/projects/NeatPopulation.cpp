@@ -57,3 +57,12 @@ NeatPopulation::NeatPopulation(const neat::Neat& src)
 {
 
 }
+
+double NeatPopulation::getTopFitness() const
+{
+    if (!mSrc.hasPopulation())
+    {
+        return 0;
+    }
+    return std::max_element(mSrc.getPopulation().begin(), mSrc.getPopulation().end(), [](auto x, auto y) {return x.maxFitness < y.maxFitness; })->maxFitness;
+}

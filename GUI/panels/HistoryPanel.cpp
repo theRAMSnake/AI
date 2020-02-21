@@ -12,10 +12,10 @@ HistoryPanel::HistoryPanel(nana::panel<true>& parent, ProjectManager& pm, Traine
    t1.color( nana::colors::blue );
 
    nana::plot::trace& t2 = mPlot->AddRealTimeTrace(500);
-   t2.color( nana::colors::red );
+   t2.color( nana::colors::green );
 
    trainer.signalStep.connect([&](auto x){
       t1.add(pm.getProject()->getPopulation().getAverageFitness());
-      t2.add(pm.getProject()->getPopulation().getAverageComplexity());
+      t2.add(pm.getProject()->getPopulation().getTopFitness());
    });
 }

@@ -9,6 +9,7 @@ public:
    NeatPopulation(const neat::Neat& src);
 
    double getAverageFitness() const override;
+   double getTopFitness() const override;
    double getAverageComplexity() const override;
    std::size_t size() const override;
    unsigned int getNumSpecies() const override;

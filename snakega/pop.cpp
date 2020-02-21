@@ -4,7 +4,7 @@ namespace snakega
 {
 
 Pop::Pop()
-: mGenom(0, 0)
+: mGenom({}, {})
 {
    throw -1;
 }

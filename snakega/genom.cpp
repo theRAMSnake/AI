@@ -2,315 +2,294 @@
 #include "neuroevolution/rng.hpp"
 #include <fstream>
 #include <iostream>
+#include <algorithm>
+#include <numeric>
 #include "logger/Logger.hpp"
 
 namespace snakega
 {
 
-Genom::Genom(const std::size_t numInputs, const std::size_t numOutputs)
-: mNumInputs(numInputs)
-, mNumOutputs(numOutputs)
+bool operator< (const Terminal& a, const Terminal& b)
+{
+    if (a.type == b.type)
+    {
+        return a.id < b.id;
+    }
+    else
+    {
+        return a.type < b.type;
+    }
+}
+
+Genom::Genom(const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs)
+: mNumInputs(inputs.size())
+, mNumOutputs(outputs.size())
+, mInputs(inputs)
+, mOutputs(outputs)
 {
 
 }
 
-Genom Genom::createHalfConnected(const std::size_t numInputs, const std::size_t numOutputs)
+NeuronId Genom::spawnNeuron()
 {
-   Genom result(numInputs, numOutputs);
+    auto id = genNeuronId();
+    mNeurons.push_back({
+       genPos(),
+       id,
+       static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
+       Rng::genReal() }
+    );
 
-   for(std::size_t i = 0; i < numInputs; ++i)
-   {
-      for(std::size_t j = 0; j < numOutputs; ++j)
-      {
-         if(Rng::genProbability(0.5))
-         {
-            result.mGenes.push_back(ConnectTerminalsGene{
-               {TerminalType::Input, static_cast<TerminalId>(i)}, 
-               {TerminalType::Output, static_cast<TerminalId>(j)},
-               Rng::genWeight()
-               });
-         }      
-      }
-   }
+    auto lottery = createConnectionLotery(mNeurons.back());
 
-   result.mGenes.push_back(PushGene{});
+    for (unsigned int x = 0; x < Rng::genChoise(5) && lottery.hasDst(); ++x)
+    {
+        addConnection(
+            { TerminalType::Neuron, id },
+            lottery.pickDst(),
+            Rng::genWeight()
+        );
+    }
+
+    for (unsigned int y = 0; y < Rng::genChoise(5) && lottery.hasSrc(); ++y)
+    {
+        addConnection(
+            lottery.pickSrc(),
+            { TerminalType::Neuron, id },
+            Rng::genWeight()
+        );
+    }
+
+    return id;
+}
+
+Genom Genom::createHalfConnected(const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs)
+{
+   Genom result(inputs, outputs);
+
+   result.spawnNeuron();
 
    return result;
 }
 
-Genom Genom::createGeometrical(const neuroevolution::DomainGeometry& geometry)
+bool operator == (Terminal A, Terminal B)
 {
-    Genom result(geometry.inputs.size(), geometry.outputs.size());
+    return A.type == B.type && A.id == B.id;
+}
 
-    //for (std::size_t i = 0; i < geometry.inputs.size(); ++i)
+bool operator != (Terminal A, Terminal B)
+{
+    return !(A == B);
+}
+
+void Genom::addConnection(Terminal A, Terminal B, double weight)
+{
+    if (std::find_if(mConnections.begin(), mConnections.end(), [&](auto x) {return x.A == A && x.B == B;}) == mConnections.end())
     {
-        //Creates neuron near the input
-        result.mGenes.push_back(SpawnNeuronGene{
-            result.genPos(),
-            Rng::genChoise(5) + 1, //1-5 inputs
-            Rng::genChoise(3) + 1, //1-3 outputs
-            Rng::gen32(),
-            static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
-            0.0,
-            Rng::gen32()
-            });
+        mConnections.push_back({A, B, weight});
     }
-
-    //result.mGenes.push_back(PushGene{});
-    result.updateNumNeurons();
-
-    return result;
 }
 
 void Genom::mutateStructure(const MutationConfig& mutationConfig)
 {
-   enum StructureMutationType
+   //Do exactly one change: AddConnection/RemoveConnection/RemoveRedundantNeuron/AddNeuron
+   switch (Rng::genChoise(4))
    {
-      Add,
-      Remove,
-      Swap,
-      Change
-   };
+   case 0:
+        if (!mNeurons.empty())
+        {
+            auto& n = mNeurons[Rng::genChoise(mNeurons.size())];
+            auto lottery = createConnectionLotery(n);
 
-   StructureMutationType choise = static_cast<StructureMutationType>(Rng::genChoise(4));
+            bool isSrc = Rng::genProbability(0.5);
+            if (isSrc)
+            {
+                if (lottery.hasSrc())
+                {
+                    addConnection(
+                        lottery.pickSrc(),
+                        { TerminalType::Neuron, n.id },
+                        Rng::genWeight()
+                    );
+                }
+            }
+            else
+            {
+                if (lottery.hasDst())
+                {
+                    addConnection(
+                        { TerminalType::Neuron, n.id },
+                        lottery.pickDst(),
+                        Rng::genWeight()
+                    );
+                }
+            }
+        }
+       break;
 
-   switch(choise)
-   {
-      case Add:
-         mutateAddGene(mutationConfig);
-         break;
-      case Remove:
-         mutateRemoveGene();
-         break;
-      case Swap:
-          mutateSwapGenes();
-         break;
-      case Change:
-         mutateChangeGene();
-         break;
+   case 1:
+       if (!mConnections.empty())
+       {
+          mConnections.erase(mConnections.begin() + Rng::genChoise(mConnections.size()));
+       }
+       break;
+
+   case 2:
+       spawnNeuron();
+       break;
+
+   case 3:
+       if (!mNeurons.empty())
+       {
+           auto pos = mNeurons.begin() + Rng::genChoise(mNeurons.size());
+
+           auto numLinks = std::accumulate(mConnections.begin(), mConnections.end(), 0, [&](auto c, auto x) {
+               if ((x.A.id == pos->id && x.A.type == TerminalType::Neuron) ||
+                   (x.B.id == pos->id && x.B.type == TerminalType::Neuron))
+               {
+                   return c + 1;
+               }
+
+               return c;
+           });
+
+           if (numLinks < 2)
+           {
+               mConnections.erase(std::remove_if(mConnections.begin(), mConnections.end(), [&](auto x) {
+                   return (x.A.id == pos->id && x.A.type == TerminalType::Neuron) ||
+                       (x.B.id == pos->id && x.B.type == TerminalType::Neuron); }),
+                   mConnections.end());
+
+               mNeurons.erase(pos);
+           }
+       }
+       break;
+
+   default:
+       break;
    }
+}
 
-   updateNumNeurons();
+double calculateDistance(const Point3D& srcPos, const Point3D& otherPos)
+{
+    return sqrt((srcPos.x - otherPos.x) * (srcPos.x - otherPos.x) +
+        (srcPos.y - otherPos.y) * (srcPos.y - otherPos.y) +
+        (srcPos.z - otherPos.z) * (srcPos.z - otherPos.z));
+}
+
+bool has(const std::vector<Terminal>& vec, const Terminal& t)
+{
+    return std::find(vec.begin(), vec.end(), t) != vec.end();
+}
+
+ConnectionLotery Genom::createConnectionLotery(const SpawnNeuronGene& g) const
+{
+    ConnectionLotery result;
+
+    std::vector<Terminal> srcConnections;
+    std::vector<Terminal> dstConnections;
+
+    for (auto& c : mConnections)
+    {
+        if (c.B == Terminal{ TerminalType::Neuron, g.id })
+        {
+            srcConnections.push_back(c.B);
+        }
+        if (c.A == Terminal{ TerminalType::Neuron, g.id })
+        {
+            dstConnections.push_back(c.A);
+        }
+    }
+
+    for (std::size_t i = 0; i < mInputs.size(); ++i)
+    {
+        auto otherPos = mInputs[i];
+        auto distance = calculateDistance(g.pos, otherPos);
+
+        if (!has(srcConnections, { TerminalType::Input, TerminalId(i)}))
+        {
+            result.addSrc({ TerminalType::Input, TerminalId(i) }, distance);
+        }
+    }
+
+    for (std::size_t i = 0; i < mOutputs.size(); ++i)
+    {
+        auto otherPos = mOutputs[i];
+        auto distance = calculateDistance(g.pos, otherPos);
+
+        if (!has(dstConnections, { TerminalType::Output, TerminalId(i) }))
+        {
+            result.addDst({ TerminalType::Output, TerminalId(i) }, distance);
+        }
+    }
+
+    for (auto& n : mNeurons)
+    {
+        auto otherPos = n.pos;
+        auto distance = calculateDistance(g.pos, otherPos);
+
+        if (!has(dstConnections, { TerminalType::Neuron, n.id }))
+        {
+            result.addDst({ TerminalType::Neuron, n.id }, distance);
+        }
+
+        if (!has(srcConnections, { TerminalType::Neuron, n.id }))
+        {
+            result.addSrc({ TerminalType::Neuron, n.id }, distance);
+        }
+    }
+
+    return result;
 }
 
 void Genom::mutateParameters(const MutationConfig& mutationConfig)
 {
-   for(auto& g : mGenes)
+   for(std::size_t i = 0; i < mConnections.size(); ++i)
    {
-      if(std::holds_alternative<ConnectTerminalsGene>(g))
-      {
-         if(Rng::genProbability(0.8))
-         {
-            std::get<ConnectTerminalsGene>(g).weight += Rng::genPerturbation();
-         }
-         else
-         {
-            std::get<ConnectTerminalsGene>(g).weight = Rng::genWeight();
-         }
-      }
-      else if(std::holds_alternative<SpawnNeuronGene>(g))
-      {
-         auto& spawnGene = std::get<SpawnNeuronGene>(g);
-
-         switch(Rng::genChoise(3))
-         {
-            case 0:
-               spawnGene.af = static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES));
-               break;
-
-            case 1:
-               spawnGene.bias += Rng::genPerturbation();
-               break;
-
-            case 2:
-               spawnGene.weightsSeed = Rng::gen32();
-               break;
-
-            default:
-               throw -1;
-         }
-      }
+       if (Rng::genProbability(0.2))
+       {
+           mConnections[i].weight = Rng::genWeight();
+       }
+       else
+       {
+           mConnections[i].weight += Rng::genPerturbation();
+       }
    }
 }
 
-void Genom::mutateAddGene(const MutationConfig& mutationConfig)
+void Genom::crossoverParameters(const Genom& other)
 {
-    LOG_FUNC
+    if (mConnections.size() != other.mConnections.size())
+    {
+        throw - 1;
+    }
 
-   //Configurate later
-   if(mNumNeurons > 0 && Rng::genProbability(0.5))
-   {
-      mGenes.push_back(ConnectTerminalsGene{
-         genRandomTerminal(true), 
-         genRandomTerminal(false),
-         Rng::genWeight()
-         });
-   }
-   if(Rng::genProbability(0.25))
-   {
-      mGenes.push_back(SpawnNeuronGene{
-         genPos(), 
-         Rng::genChoise(5) + 1, //1-5 inputs
-         Rng::genChoise(3) + 1, //1-3 outputs
-         Rng::gen32(),
-         static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES)),
-         0.0,
-         Rng::gen32()
-         });
-   }
-   if(Rng::genProbability(0.05))
-   {
-      mGenes.push_back(CopyWithOffsetGene{
-         genOffset()
-         });
-   }
-   if(Rng::genProbability(0.05))
-   {
-      mGenes.push_back(MirrorGene{
-         static_cast<Axis>(Rng::genChoise(3))
-         });
-   }
-   if(Rng::genProbability(0.1))
-   {
-      mGenes.push_back(PushGene{
-         });
-   }
+    for (std::size_t i = 0; i < mConnections.size(); ++i)
+    {
+        mConnections[i].weight = (mConnections[i].weight + other.mConnections[i].weight) / 2;
+    }
 }
 
-void Genom::mutateRemoveGene()
+Point3D Genom::getPos(const Terminal& terminal) const
 {
-    LOG_FUNC
-   if(!mGenes.empty())
+   switch(terminal.type)
    {
-      mGenes.erase(mGenes.begin() + Rng::genChoise(mGenes.size()));
-   }
-}
+      case TerminalType::Input:
+         return mInputs[terminal.id];
 
-void Genom::mutateSwapGenes()
-{
-   if(mGenes.size() > 1)
-   {
-       auto pos = (mGenes.begin() + Rng::genChoise(mGenes.size() - 1) + 1);
-       std::swap(*pos, *(pos - 1));
-   }
-}
+      case TerminalType::Output:
+         return mOutputs[terminal.id];
 
-void Genom::mutateChangeGene()
-{
-    LOG_FUNC
-   if(!mGenes.empty())
-   {
-      auto& gene = *(mGenes.begin() + Rng::genChoise(mGenes.size()));
-
-      if(std::holds_alternative<SpawnNeuronGene>(gene))
-      {
-         auto& spawnGene = std::get<SpawnNeuronGene>(gene);
-
-         //move pos slightly
-         spawnGene.pos += genSmallPosOffset();
-
-         //change seed
-         spawnGene.connectionsSeed += Rng::gen32();
-
-         //increase/decrease num connections by 1
-         if(spawnGene.numInputs == 0)
-         {
-            spawnGene.numInputs = 1;
-         }
-         else
-         {
-            spawnGene.numInputs += int(Rng::genChoise(3)) - 1;
-         }
-
-         if(spawnGene.numOutputs == 0)
-         {
-            spawnGene.numOutputs = 1;
-         }
-         else
-         {
-            spawnGene.numOutputs += int(Rng::genChoise(3)) - 1;
-         }
-      }
-      else if(std::holds_alternative<CopyWithOffsetGene>(gene))
-      {
-         std::get<CopyWithOffsetGene>(gene).deltaPos += genSmallPosOffset();
-      }
-   }
-}
-
-Terminal Genom::genRandomTerminal(const bool isSrc) const
-{
-   Terminal result;
-
-   if(isSrc && Rng::genProbability(mNumInputs / (double)(mNumInputs + mNumNeurons)))
-   {
-      result.type = TerminalType::Input;
-      result.id = Rng::genChoise(mNumInputs);
-   }
-   else if(!isSrc && Rng::genProbability(mNumOutputs / (double)(mNumOutputs + mNumNeurons)))
-   {
-      result.type = TerminalType::Output;
-      result.id = Rng::genChoise(mNumOutputs);
-   }
-   else
-   {
-      result.type = TerminalType::Neuron;
-      result.id = Rng::genChoise(mNumNeurons);
+      case TerminalType::Neuron:
+         return std::find_if(mNeurons.begin(), mNeurons.end(), [&](auto x){return x.id == terminal.id;})->pos;
    }
 
-   return result;
+   throw -1;
 }
 
 Point3D Genom::genPos() const
 {
    return {Rng::genReal(), Rng::genReal(), Rng::genReal()};
-}
-
-Point3D Genom::genOffset() const
-{
-   return {Rng::genReal() * 0.1 - 0.05, Rng::genReal() * 0.1 - 0.05, Rng::genReal() * 0.1 - 0.05};
-}
-
-Point3D Genom::genSmallPosOffset() const
-{
-   return {Rng::genReal() * 0.01 - 0.005, Rng::genReal() * 0.01 - 0.005, Rng::genReal() * 0.01 - 0.005};
-}
-
-void Genom::updateNumNeurons()
-{
-   mNumNeurons = 0;
-   mNumConnections = 0;
-
-   unsigned int currentBlockSize = 0;
-   unsigned int currentConnections = 0;
-   for(auto& g : mGenes)
-   {
-      if(std::holds_alternative<SpawnNeuronGene>(g))
-      {
-         currentBlockSize++;
-         currentConnections += std::get<SpawnNeuronGene>(g).numInputs + std::get<SpawnNeuronGene>(g).numOutputs;
-      }
-      else if(std::holds_alternative<MirrorGene>(g) ||
-         std::holds_alternative<CopyWithOffsetGene>(g))
-      {
-         currentBlockSize *= 2;  
-         currentConnections *= 2;
-      }
-      else if(std::holds_alternative<PushGene>(g))
-      {
-         mNumNeurons += currentBlockSize;
-         mNumConnections += currentConnections;
-         currentBlockSize = 0;
-         currentConnections = 0;
-      }
-      else if (std::holds_alternative<ConnectTerminalsGene>(g))
-      {
-          mNumConnections++;
-      }
-   }
-
-   mNumNeurons += currentBlockSize;
-   mNumConnections += currentConnections;
 }
 
 void Genom::operator= (const Genom& other)
@@ -319,20 +298,18 @@ void Genom::operator= (const Genom& other)
    {
       throw -1;
    }
-
-   mNumNeurons = other.mNumNeurons;
-   mNumConnections = other.mNumConnections;
-   mGenes = other.mGenes;
+   mNeurons = other.mNeurons;
+   mConnections = other.mConnections;
 }
 
 unsigned int Genom::getNumNeurons() const
 {
-   return mNumNeurons;
+   return mNeurons.size();
 }
 
 unsigned int Genom::getComplexity() const
 {
-   return mNumConnections;
+   return mConnections.size();
 }
 
 unsigned int Genom::getNumInputs() const
@@ -345,26 +322,120 @@ unsigned int Genom::getNumOutputs() const
    return mNumOutputs;
 }
 
-Genom Genom::loadState(std::ifstream& s, const std::size_t numInputs, const std::size_t numOutputs)
+Genom Genom::loadState(std::ifstream& s, const std::vector<Point3D>& inputs, const std::vector<Point3D>& outputs)
 {
-   Genom g(numInputs, numOutputs);
+   Genom g(inputs, outputs);
 
    std::size_t size = 0;
    s.read((char*)&size, sizeof(std::size_t));
 
-   g.mGenes.resize(size);
-   s.read(reinterpret_cast<char*>(&g.mGenes[0]), size * sizeof(Gene));
+   g.mNeurons.resize(size);
+   s.read(reinterpret_cast<char*>(&g.mNeurons[0]), size * sizeof(SpawnNeuronGene));
 
-   g.updateNumNeurons();
+   s.read((char*)&size, sizeof(std::size_t));
+
+   g.mConnections.resize(size);
+   s.read(reinterpret_cast<char*>(&g.mConnections[0]), size * sizeof(ConnectTerminalsGene));
 
    return g;
 }
 
 void Genom::saveState(std::ofstream& s) const
 {
-   auto sz = mGenes.size();
+   auto sz = mNeurons.size();
    s.write((char*)&sz, sizeof(std::size_t));  
-   s.write((char*)&mGenes[0], sizeof(Gene) * mGenes.size());  
+   s.write((char*)&mNeurons[0], sizeof(SpawnNeuronGene) * mNeurons.size());  
+
+   sz = mConnections.size();
+   s.write((char*)&sz, sizeof(std::size_t));  
+   s.write((char*)&mConnections[0], sizeof(ConnectTerminalsGene) * mConnections.size());  
+}
+
+unsigned int Genom::genNeuronId()
+{
+   if(mNeurons.empty())
+   {
+      return 0;
+   }
+   else
+   {
+      return mNeurons.back().id + 1;
+   }
+}
+
+void ConnectionLotery::addSrc(const Terminal& t, const double distance)
+{
+    mSrc.insert({distance, t});
+}
+
+void ConnectionLotery::addDst(const Terminal& t, const double distance)
+{
+    mDst.insert({ distance, t });
+}
+
+bool ConnectionLotery::hasSrc()
+{
+    return !mSrc.empty();
+}
+
+bool ConnectionLotery::hasDst()
+{
+    return !mDst.empty();
+}
+
+Terminal ConnectionLotery::pickSrc()
+{
+    while (true)
+    {
+        for (auto iter = mSrc.begin(); iter != mSrc.end(); ++iter)
+        {
+            if (Rng::genProbability(0.25))
+            {
+                auto t = iter->second;
+                mSrc.erase(iter);
+                return t;
+            }
+        }
+    }
+}
+
+Terminal ConnectionLotery::pickDst()
+{
+    while (true)
+    {
+        for (auto iter = mDst.begin(); iter != mDst.end(); ++iter)
+        {
+            if (Rng::genProbability(0.25))
+            {
+                auto t = iter->second;
+                mDst.erase(iter);
+                return t;
+            }
+        }
+    }
+}
+
+Terminal Genom::genRandomTerminal(const bool isSrc) const
+{
+    Terminal result;
+
+    if (isSrc && Rng::genProbability(mNumInputs / (double)(mNumInputs + mNeurons.size())))
+    {
+        result.type = TerminalType::Input;
+        result.id = Rng::genChoise(mNumInputs);
+    }
+    else if (!isSrc && Rng::genProbability(mNumOutputs / (double)(mNumOutputs + mNeurons.size())))
+    {
+        result.type = TerminalType::Output;
+        result.id = Rng::genChoise(mNumOutputs);
+    }
+    else
+    {
+        result.type = TerminalType::Neuron;
+        result.id = Rng::genChoise(mNeurons.size());
+    }
+
+    return result;
 }
 
 }

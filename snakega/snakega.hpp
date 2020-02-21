@@ -52,6 +52,9 @@ private:
    const neuroevolution::DomainGeometry mDomainGeometry; 
    neuroevolution::IFitnessEvaluator& mFitnessEvaluator;
    std::vector<Pop> mPopulation;
+   std::vector<Pop> mLastGeneration;
+   std::vector<Point3D> mInputs;
+   std::vector<Point3D> mOutputs;
 
    neuroevolution::Fitness mBestFitness;
 };
