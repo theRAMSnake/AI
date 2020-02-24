@@ -7,19 +7,18 @@ include_directories("..")
 
 add_executable(test 
 CrossoverTest.cpp
-MutationTest.cpp
-SpeciationTest.cpp
-NeuroNetTest.cpp
-RNNTest.cpp
-SpecieTest.cpp
-SaveLoadStateTest.cpp
-FitnessWeightedPoolTest.cpp
-SGA_genom_stress_test.cpp
+InterpreterTest.cpp
+#MutationTest.cpp
+#SpeciationTest.cpp
+#NeuroNetTest.cpp
+#RNNTest.cpp
+#SpecieTest.cpp
+#SaveLoadStateTest.cpp
 )
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-target_link_libraries(test neat snakega ${Boost_LIBRARIES})
+target_link_libraries(test neat snakega seg ${Boost_LIBRARIES})
 
 add_custom_command(
         TARGET test POST_BUILD
