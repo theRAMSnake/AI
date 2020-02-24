@@ -1,5 +1,6 @@
 #include "SpeciePanel.hpp"
-#include <filesystem>
+//#include <filesystem>
+#include <nana/filesystem/filesystem.hpp>
 #include <nana/gui/place.hpp>
 #include <nana/gui/filebox.hpp>
 #include <fstream>

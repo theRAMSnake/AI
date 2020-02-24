@@ -8,6 +8,8 @@ include_directories("..")
 add_executable(test 
 CrossoverTest.cpp
 InterpreterTest.cpp
+GraphTraversalTest.cpp
+GraphMutationTest.cpp
 #MutationTest.cpp
 #SpeciationTest.cpp
 #NeuroNetTest.cpp

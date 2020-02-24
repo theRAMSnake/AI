@@ -6,6 +6,7 @@
 namespace seg
 {
 
+using NodeId = std::size_t;
 struct GraphNode;
 enum class IfSign
 {
@@ -31,25 +32,26 @@ struct Compare
 
 struct Switch
 {
+    Expression A;
     std::vector<double> anchors;
 };
 
 struct RandomWeighted
 {
-    std::vector<double> weigths;
+    std::vector<double> weights;
 };
  
 struct Choise
 {
     std::variant<RandomEven, If, Compare, Switch, RandomWeighted> selector;
-    std::vector<GraphNode*> options;
+    std::vector<NodeId> options;
 };
 
 struct Operation
 {
     MemAddress addr;
     Expression expr;
-    GraphNode* next;
+    NodeId next;
 };
 
 struct Result
@@ -58,11 +60,11 @@ struct Result
 };
 
 using Action = std::variant<Result, Operation>;
-
+using Payload = std::variant<Choise, Action>;
 struct GraphNode
 {
     unsigned int id;
-    std::variant<Choise, Action> payload;
+    Payload payload;
 };
  
 }

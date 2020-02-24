@@ -8,6 +8,9 @@ include_directories("..")
 add_library(seg 
 interpreter.cpp
 functions.cpp
+graph_traverser.cpp
+graph.cpp
+mutator.cpp
 )
 
 target_link_libraries(seg neuroevolution logger pthread)

@@ -1,5 +1,5 @@
 #pragma once
-#include "node.hpp"
+#include "graph.hpp"
 #include "interpreter.hpp"
 
 namespace seg
@@ -9,14 +9,16 @@ class GraphTraverser
 {
 public:
     GraphTraverser(
-        const GraphNode& root,
+        const Graph& graph,
         Memory& memory
         );
 
     unsigned int traverseOnce(const double* input);
 
 private:
-    const GraphNode& mRoot;
+    const NodeId procChoise(const Choise& ch, Interpreter& inter);
+
+    const Graph& mGraph;
     Memory& mMemory;
 };
 
