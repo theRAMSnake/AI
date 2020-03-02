@@ -18,7 +18,7 @@ public:
    void mutateParameters(const MutationConfig& mutationConfig);
 
    Genom mGenom;
-   neuroevolution::Fitness mFitness;
+   neuroevolution::Fitness fitness;
 };
 
 }

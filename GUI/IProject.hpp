@@ -9,7 +9,7 @@ class IProject
 {
 public:
    virtual void step() = 0;
-   virtual void play(neuroevolution::NeuroNet& ann) = 0;
+   virtual void play(neuroevolution::IAgent& agent) = 0;
    virtual void saveState(const std::string& filename) = 0;
    virtual void loadState(const std::string& filename) = 0;
    virtual void updateConfig(const boost::property_tree::ptree& newCfg) = 0;

@@ -30,25 +30,25 @@ public:
       
    }
 
-   std::string play(neuroevolution::NeuroNet& ann)
+   std::string play(neuroevolution::IAgent& agent)
    {
       std::string result;
       int numSolved = 0;
 
+      double inputs[14];
+
+      int counter;
       for(auto &s: mSamples)
       {
          for(auto &m : s.measurements)
          {
-            auto inputIter = ann.begin_input();
+            auto inputIter = inputs;
 
             inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
             *inputIter = m.timeDelta;
 
-            ann.activate();
+            counter = agent.run(inputs) + 1;
          }
-
-         auto pos = std::max_element(ann.begin_output(), ann.end_output());
-         auto counter = std::distance(ann.begin_output(), pos) + 1;
 
          if(counter == s.result)
          {
@@ -71,24 +71,27 @@ public:
       return result;
    }
 
-   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
+   neuroevolution::Fitness evaluate(neuroevolution::IAgent& agent) override
    {
       neuroevolution::Fitness result = 0;
+
+      double inputs[14];
+
+      unsigned int dec = 0;
 
       for(auto &s: mSamples)
       {
          for(auto &m : s.measurements)
          {
-            auto inputIter = ann.begin_input();
+            auto inputIter = inputs;
 
             inputIter = std::copy(m.pscs, m.pscs + 13, inputIter);
             *inputIter = m.timeDelta;
 
-            ann.activate();
+            dec = agent.run(inputs);
          }
 
-         auto pos = std::max_element(ann.begin_output(), ann.end_output());
-         auto counter = std::distance(ann.begin_output(), pos) + 1;
+         int counter = dec + 1;
 
          if(counter == s.result)
          {
@@ -217,13 +220,13 @@ void CheckpointPG::step()
    mFitnessEvaluator->step();
 }
 
-void CheckpointPG::play(neuroevolution::NeuroNet& ann)
+void CheckpointPG::play(neuroevolution::IAgent& agent)
 {
    nana::form frm(nana::API::make_center(500, 800));
    frm.caption("Checkpoint output");
 
    nana::textbox tb(frm);
-   std::string out = mFitnessEvaluator->play(ann);
+   std::string out = mFitnessEvaluator->play(agent);
    tb.caption(out);
 
    nana::place layout(frm);

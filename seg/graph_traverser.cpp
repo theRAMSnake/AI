@@ -1,6 +1,7 @@
 #include "graph_traverser.hpp"
 #include "functions.hpp"
 #include <neuroevolution/rng.hpp>
+#include <iostream>
 
 namespace seg
 {
@@ -46,17 +47,29 @@ unsigned int GraphTraverser::traverseOnce(const double* input)
             else
             {
                 //Unknown action
+                std::cout << "Unknown action!";
+                std::cout.flush();
                 throw -1;
             }
         }
         else if(std::holds_alternative<Choise>(curNode.payload))
         {
             auto& ch = std::get<Choise>(curNode.payload);
+
+            if(ch.options.size() == 0)
+            {
+                std::cout << "broken choise: " << curNode.id;
+                std::cout.flush();
+                throw -1;
+            }
+
             curNodeId = procChoise(ch, inter);
         }
         else
         {
             //Unknown payload
+            std::cout << "Unknown payload! " << curNodeId;
+            std::cout.flush();
             throw -1;
         }
     }
@@ -72,7 +85,6 @@ const NodeId GraphTraverser::procChoise(const Choise& ch, Interpreter& inter)
         return ch.options[0];
     }
 
-    //Switch, RandomWeighted
     if(std::holds_alternative<RandomEven>(ch.selector))
     {
         return ch.options[Rng::genChoise(ch.options.size())];
@@ -154,6 +166,8 @@ const NodeId GraphTraverser::procChoise(const Choise& ch, Interpreter& inter)
     else 
     {
         //Unknown choise
+        std::cout << "Unknown choise!";
+        std::cout.flush();
         throw -1;
     }
 

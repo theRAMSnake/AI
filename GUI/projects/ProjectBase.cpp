@@ -26,9 +26,9 @@ const unsigned int ProjectBase::getAutosavePeriod() const
    return mConfig.get<unsigned int>("Basic.Autosave Period");
 }
 
-void ProjectBase::play(neuroevolution::NeuroNet& ann)
+void ProjectBase::play(neuroevolution::IAgent& agent)
 {
-   getPlayground().play(ann);
+   getPlayground().play(agent);
 }
 
 neuroevolution::IPlayground& ProjectBase::getPlayground()

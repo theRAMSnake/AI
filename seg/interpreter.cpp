@@ -63,14 +63,6 @@ double Interpreter::resolveValue(const VAL& val) const
         auto addr = std::get<InputAddress>(val);
         return mInputs[addr.addr];
     }
-    else if(std::holds_alternative<RandomNumber>(val))
-    {
-        return Rng::genReal();
-    }
-    else if(std::holds_alternative<AlwaysZero>(val))
-    {
-        return 0;
-    }
     else
     {
         throw -1;

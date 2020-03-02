@@ -1,5 +1,6 @@
 #pragma once
 #include <list>
+#include <neuroevolution/IPlayground.hpp>
 #include "node.hpp"
 
 namespace seg
@@ -10,6 +11,8 @@ class Graph
 public:
    //Create with random choise
    Graph(const unsigned int numCommands);
+
+   Graph(const Graph& other);
 
    GraphNode& root();
    GraphNode& get(const NodeId id);

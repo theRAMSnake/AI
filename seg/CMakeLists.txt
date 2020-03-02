@@ -11,6 +11,8 @@ functions.cpp
 graph_traverser.cpp
 graph.cpp
 mutator.cpp
+algorithm.cpp
+agent.cpp
 )
 
 target_link_libraries(seg neuroevolution logger pthread)

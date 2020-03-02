@@ -68,7 +68,8 @@ int Neat::evaluate(
 {
     for(auto iter = begin; iter != end; ++iter)
     {
-        (*iter)->fitness = eval->evaluate(*createAnn((*iter)->genotype));
+        auto agent = neuroevolution::NNAgent(mCfg.numInputs, mCfg.numOutputs, createAnn((*iter)->genotype));
+        (*iter)->fitness = eval->evaluate(agent);
     }
 
     return 0;

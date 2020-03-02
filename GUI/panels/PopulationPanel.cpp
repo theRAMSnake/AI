@@ -85,7 +85,7 @@ void PopulationPanel::exportAnn()
          std::ofstream f;
          f.open(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 
-         mPm.getProject()->getPopulation().createAnn(organism)->toBinaryStream(f);
+         mPm.getProject()->getPopulation().createAgent(organism)->toBinaryStream(f);
          f.close();
       }
    }
@@ -95,14 +95,14 @@ void PopulationPanel::play()
 {
    auto& organism = extractPopFromSelected();
 
-   mPm.getProject()->play(*mPm.getProject()->getPopulation().createAnn(organism));
+   mPm.getProject()->play(*mPm.getProject()->getPopulation().createAgent(organism));
 }
 
 void PopulationPanel::visualize()
 {
    auto& organism = extractPopFromSelected();
 
-   mNnView.reset(new Nn_view(std::move(mPm.getProject()->getPopulation().createAnn(organism))));
+   mNnView.reset(new Nn_view(std::move(mPm.getProject()->getPopulation().createAgent(organism))));
 }
 
 const PopResult PopulationPanel::extractPopFromSelected()

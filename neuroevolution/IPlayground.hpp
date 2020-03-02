@@ -28,11 +28,19 @@ struct DomainGeometry
 
 using Fitness = int;
 
-class NeuroNet;
+class IAgent
+{
+public:
+   virtual void reset() = 0;
+   virtual unsigned int run(const double* input) = 0;
+   virtual void toBinaryStream(std::ofstream& stream) const = 0;
+   virtual ~IAgent(){}
+};
+
 class IFitnessEvaluator
 {
 public:
-    virtual Fitness evaluate(NeuroNet& ann) = 0;
+    virtual Fitness evaluate(IAgent& agent) = 0;
 
     virtual ~IFitnessEvaluator(){}
 };
@@ -45,7 +53,7 @@ public:
    virtual DomainGeometry getDomainGeometry() const = 0;
 
    virtual void step() = 0;
-   virtual void play(NeuroNet& ann) = 0;
+   virtual void play(IAgent& agent) = 0;
 
    virtual unsigned int getNumInputs() const = 0;
    virtual unsigned int getNumOutputs() const = 0;

@@ -11,51 +11,46 @@
 class TetrisPlayer : public IPlayer
 {
 public:
-   TetrisPlayer(neuroevolution::NeuroNet& n)
-   : mNet(n)
+   TetrisPlayer(neuroevolution::IAgent& n)
+   : mAgent(n)
    {
 
    }
 
    IPlayer::Action getNextAction(bool view[BOARD_WIDTH][BOARD_HEIGHT], int piece, int xpos, int ypos) override
    {
-      auto inputIter = mNet.begin_input();
+      double viewAdapted[BOARD_WIDTH * BOARD_HEIGHT];
+      auto inputIter = viewAdapted;
 
       for (unsigned int i = 0; i < BOARD_WIDTH; i++)
       {
          for (unsigned int j = 0; j < BOARD_HEIGHT; j++)
          {
-            *inputIter = view[i][j];
+            *inputIter = view[i][j] ? 1.0 : 0.0;
             ++inputIter;
          }
       }
 
-      mNet.activate();
-
-      auto pos = std::max_element(mNet.begin_output(), mNet.end_output());
-      //if(*pos > 1.0)
+      switch(mAgent.run(viewAdapted))
       {
-         switch(std::distance(mNet.begin_output(), pos))
-         {
-            case 0:
-               return IPlayer::Action::MoveLeft;
+         case 0:
+            return IPlayer::Action::MoveLeft;
 
-            case 1:
-               return IPlayer::Action::MoveRight;
+         case 1:
+            return IPlayer::Action::MoveRight;
 
-            case 2:
-               return IPlayer::Action::Rotate;
+         case 2:
+            return IPlayer::Action::Rotate;
 
-            default:
-               return IPlayer::Action::DoNothing;
-         }
+         default:
+            return IPlayer::Action::DoNothing;
       }
 
       return IPlayer::Action::DoNothing;
    }
 
 private:
-   neuroevolution::NeuroNet& mNet;
+   neuroevolution::IAgent& mAgent;
 };
 
 class FakeIO : public IO
@@ -200,7 +195,7 @@ public:
        mSeed = Rng::gen32();
    }
 
-   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
+   neuroevolution::Fitness evaluate(neuroevolution::IAgent& agent) override
    {
       FakeIO io;
 
@@ -210,10 +205,10 @@ public:
       
       for (int i = 0; i < 10; ++i)
       {
-         ann.reset();
+         agent.reset();
 
          Tetris t(Mode::AI_Background);
-         TetrisPlayer p(ann);
+         TetrisPlayer p(agent);
 
          result += t.run(p, scoreLimit, io, Rng::gen32());
       }
@@ -253,7 +248,7 @@ void TetrisPG::step()
    mFitnessEvaluator->step();
 }
 
-void TetrisPG::play(neuroevolution::NeuroNet& ann)
+void TetrisPG::play(neuroevolution::IAgent& a)
 {  
    RealIO* io = new RealIO();
 
@@ -261,7 +256,7 @@ void TetrisPG::play(neuroevolution::NeuroNet& ann)
       const unsigned int scoreLimit = 10000000;
 
       Tetris t(Mode::AI);
-      TetrisPlayer p(ann);
+      TetrisPlayer p(a);
 
       t.run(p, scoreLimit, *io, Rng::gen32());
    });

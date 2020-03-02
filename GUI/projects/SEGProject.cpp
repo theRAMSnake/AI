@@ -1,15 +1,15 @@
-#include "SGAProject.hpp"
+#include "SEGProject.hpp"
+#include <seg/agent.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include "snakega/decoder.hpp"
 
-class SGAPopulation : public IPopulation
+class SEGPopulation : public IPopulation
 {
 public:
-   using SrcPopsType = decltype(((snakega::Algorithm*)nullptr)->getPopulation());
+   using SrcPopsType = decltype(((seg::Algorithm*)nullptr)->getPopulation());
 
-   SGAPopulation(SrcPopsType& src, neuroevolution::DomainGeometry geometry)
+   SEGPopulation(SrcPopsType& src, const unsigned int& memorySize)
    : mSrc(src)
-   , mGeometry(geometry)
+   , mMemSize(memorySize)
    {
       mResults.id = 0;
    }
@@ -41,11 +41,7 @@ public:
 
    virtual std::unique_ptr<neuroevolution::IAgent> createAgent(const PopResult& pop) const
    {
-      return std::make_unique<neuroevolution::NNAgent>(
-         mGeometry.inputs.size(),
-         mGeometry.outputs.size(),
-         snakega::GenomDecoder::decode(mGeometry, mSrc[pop.organismId].mGenom)
-         );
+      return std::make_unique<seg::Agent>(mSrc[pop.organismId].graph, mMemSize);
    }
 
    void update()
@@ -59,8 +55,8 @@ public:
       for(auto& p : mSrc)
       {
          totalFitness += p.fitness;
-         totalComplexity += p.mGenom.getComplexity();
-         mResults.popResults.push_back({0, popId++, p.fitness, p.mGenom.getComplexity(), p.mGenom.getNumNeurons()});
+         totalComplexity += p.graph.size();
+         mResults.popResults.push_back({0, popId++, p.fitness, p.graph.size(), p.graph.size()});
       }
 
       mResults.averageFitness = totalFitness / mSrc.size();
@@ -74,35 +70,34 @@ public:
 
 private:
    SrcPopsType& mSrc;
+   const unsigned int& mMemSize;
    SpecieResults mResults;
-   neuroevolution::DomainGeometry mGeometry;
    double mAverageComplexity;
 };
 
 //---------------------------------------------------------------------------------------------------
 
-snakega::Config toConfig(const boost::property_tree::ptree& cfg)
+static seg::Config toConfig(const boost::property_tree::ptree& cfg)
 {
-   snakega::Config result;
+   seg::Config result;
 
    result.championsKept = cfg.get<std::size_t>("Selection.Champions Kept");
-   result.exploitationDepth = cfg.get<std::size_t>("Exploitation.Depth");
-   result.exploitationSize = cfg.get<std::size_t>("Exploitation.Size");
    result.populationSize = cfg.get<std::size_t>("Basic.Population");
    result.survivalRate = cfg.get<double>("Selection.Survival Rate");
    result.numThreads = cfg.get<unsigned int>("Basic.Threads");
+   result.memorySize = cfg.get<unsigned int>("Basic.Memory Size");
    
    return result;
 }
 
-SGAProject::SGAProject(const boost::property_tree::ptree& cfg, neuroevolution::IPlayground& pg)
+SEGProject::SEGProject(const boost::property_tree::ptree& cfg, neuroevolution::IPlayground& pg)
 : ProjectBase(cfg, pg)
-, mImpl(toConfig(cfg), pg.getDomainGeometry(), pg.getFitnessEvaluator())
+, mImpl(toConfig(cfg), pg.getDomainGeometry().inputs.size(), pg.getDomainGeometry().outputs.size(), pg.getFitnessEvaluator())
 {
-   mPops = std::make_unique<SGAPopulation>(mImpl.getPopulation(), pg.getDomainGeometry());
+   mPops = std::make_unique<SEGPopulation>(mImpl.getPopulation(), cfg.get<unsigned int>("Basic.Memory Size"));
 }
 
-void SGAProject::step()
+void SEGProject::step()
 {
    getPlayground().step();
    mImpl.step();
@@ -110,32 +105,32 @@ void SGAProject::step()
    mGeneration++;
 }
 
-const IPopulation& SGAProject::getPopulation() const
+const IPopulation& SEGProject::getPopulation() const
 {
    return *mPops;
 }
 
-void SGAProject::saveState(const std::string& filename)
+void SEGProject::saveState(const std::string& filename)
 {
    mImpl.saveState(filename);
 }
 
-void SGAProject::loadState(const std::string& filename)
+void SEGProject::loadState(const std::string& filename)
 {
    mImpl.loadState(filename);
 }
 
-void SGAProject::reconfigure()
+void SEGProject::reconfigure()
 {
    mImpl.reconfigure(toConfig(getConfig()));
 }
 
-Engine SGAProject::getEngine() const
+Engine SEGProject::getEngine() const
 {
-   return Engine::SnakeGA;
+   return Engine::Seg;
 }
 
-void SGAProject::getRawOut(std::stringstream& out) const
+void SEGProject::getRawOut(std::stringstream& out) const
 {
    auto& pops = mImpl.getPopulation();
 
@@ -145,7 +140,7 @@ void SGAProject::getRawOut(std::stringstream& out) const
 
    for(std::size_t i = 0; i < 10 && i < pops.size(); ++i)
    {
-      out << "Pop[" << i << "]: F: " << pops[i].fitness << ", N: " << pops[i].mGenom.getNumNeurons() << ", C: " 
-         << pops[i].mGenom.getComplexity() << std::endl;
+      out << "Pop[" << i << "]: F: " << pops[i].fitness << ", C: " 
+         << pops[i].graph.size() << std::endl;
    }
 }

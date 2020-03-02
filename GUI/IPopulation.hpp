@@ -33,7 +33,7 @@ public:
    virtual unsigned int getNumSpecies() const = 0;
 
    virtual std::vector<SpecieResults> getSpecies() const = 0;
-   virtual std::unique_ptr<neuroevolution::NeuroNet> createAnn(const PopResult& pop) const = 0;
+   virtual std::unique_ptr<neuroevolution::IAgent> createAgent(const PopResult& pop) const = 0;
 
    virtual ~IPopulation(){}
 };

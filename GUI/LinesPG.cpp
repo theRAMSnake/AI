@@ -16,7 +16,7 @@ public:
        
    }
 
-   void genPicture(const bool vert, double picture[5][5])
+   void genPicture(const bool vert, double picture[25])
    {
       auto pos = Rng::genChoise(5);
 
@@ -24,7 +24,7 @@ public:
       {
          for(int j = 0; j < 5; ++j)
          {
-            picture[i][j] = 0.0;
+            picture[i * 5 + j] = 0.0;
          }
       }
 
@@ -32,50 +32,34 @@ public:
       {
          for(int i = 0; i < 5; ++i)
          {
-            picture[pos][i] = 1.0;
+            picture[pos * 5 + i] = 1.0;
          }
       }
       else
       {
          for(int i = 0; i < 5; ++i)
          {
-            picture[i][pos] = 1.0;
+            picture[i * 5 + pos] = 1.0;
          }
       }
    }
 
-   neuroevolution::Fitness evaluate(neuroevolution::NeuroNet& ann) override
+   neuroevolution::Fitness evaluate(neuroevolution::IAgent& agent) override
    {
         neuroevolution::Fitness result = 0;
 
-        double picture[5][5];
+        double picture[25];
 
         for(int i = 0; i < 100; ++i)
         {
-            ann.reset();
+            agent.reset();
 
             bool vert = Rng::genProbability(0.5);
             genPicture(vert, picture);
 
-            auto inputIter = ann.begin_input();
+            auto actRes = agent.run(picture);
 
-            for (unsigned int i = 0; i < 5; i++)
-            {
-               for (unsigned int j = 0; j < 5; j++)
-               {
-                  *inputIter = picture[i][j];
-                  ++inputIter;
-               }
-            }
-
-            ann.activate();
-
-            auto outputIter = ann.begin_output();
-            auto vertProb = *outputIter;
-            ++outputIter;
-            auto horzProb = *outputIter; 
-
-            if(vertProb > horzProb)
+            if(actRes)
             {
                 result += vert ? 1 : 0;
             }
@@ -115,7 +99,7 @@ void LinesPG::step()
    mFitnessEvaluator->step();
 }
 
-void LinesPG::play(neuroevolution::NeuroNet& ann)
+void LinesPG::play(neuroevolution::IAgent& agent)
 {  
    
 }

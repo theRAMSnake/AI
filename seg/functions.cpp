@@ -1,5 +1,6 @@
 #include "functions.hpp"
 #include <cmath>
+#include <neuroevolution/rng.hpp>
 
 namespace seg
 {
@@ -26,7 +27,7 @@ double div(double p[4])
 
 double mod(double p[4])
 {
-    return p[1] != 0 ? int(p[0]) % int(p[1]) : 0.0;
+    return int(p[1]) != 0 ? int(p[0]) % int(p[1]) : 0.0;
 }
 
 double and_func(double p[4])
@@ -82,6 +83,11 @@ double sin(double p[4])
     return std::sin(p[0]);
 }
 
+double rand_number(double p[4])
+{
+    return Rng::genWeight();
+}
+
 FunctionLibrary createExtensionLibrary()
 {
     FunctionLibrary result;
@@ -89,6 +95,7 @@ FunctionLibrary createExtensionLibrary()
     result.add(0, {2, max});
     result.add(1, {2, min});
     result.add(2, {1, sin});
+    result.add(3, {0, rand_number});
 
     return result;
 }

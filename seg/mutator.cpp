@@ -5,13 +5,13 @@
 namespace seg
 {
 
-#define SHOUT
+//#define SHOUT
 
-#ifdef SHOUT
-#define SH(x) std::cout << x;
-#elif
+//#ifdef SHOUT
+//#define SH(x) std::cout << x; std::cout.flush();
+//#elif
 #define SH(x)
-#endif
+//#endif
 
 bool isSaturated(const Choise& ch)
 {
@@ -54,7 +54,7 @@ void Mutator::insertActionOrLinkNode(const NodeId parentId)
       {
          desidedNodeId = mGraph.randomNode().id;
       }
-      while(desidedNodeId += parentId);
+      while(desidedNodeId == parentId);
    }
 
    auto& parent = mGraph.get(parentId);
@@ -85,20 +85,22 @@ void Mutator::mutateInsertion()
    //1. X is non saturated choise - expand with new option
    if(std::holds_alternative<Choise>(mGraph.get(currNodeId).payload) && !isSaturated(std::get<Choise>(mGraph.get(currNodeId).payload)))
    {
-      SH("INSERT.1");
+      SH(".1");
       insertActionOrLinkNode(currNodeId);
    }
 
    //2. X is saturated choise/operation/result - change to choise with X as a child
    else
    {
-      SH("INSERT.2");
-      auto nodeId = mGraph.addNode(mGraph.get(currNodeId).payload); //Old node is kept as copy, now we only need to reference it
+      SH(".2");
+      auto oldPayload = mGraph.get(currNodeId).payload;
+      auto nodeId = mGraph.addNode(oldPayload); //Old node is kept as copy, now we only need to reference it
 
       Choise newChoise;
 
       newChoise.options.push_back(nodeId);
-      insertActionOrLinkNode(currNodeId);
+
+      int genNewNodesAmount = 1;
 
       switch(Rng::genChoise(5))
       {
@@ -112,7 +114,7 @@ void Mutator::mutateInsertion()
 
          case 2:
             newChoise.selector = Compare{genExpression(), genExpression()};
-            insertActionOrLinkNode(currNodeId);
+            genNewNodesAmount++;
             break;
 
          case 3:
@@ -125,29 +127,35 @@ void Mutator::mutateInsertion()
       }
 
       mGraph.get(currNodeId).payload = newChoise;
+      for(int i = 0; i < genNewNodesAmount; ++i)
+      {
+         insertActionOrLinkNode(currNodeId);
+      }
    }
+
+   SH(" id:" + std::to_string(currNodeId));
 }
 
 void Mutator::mutateRemoval()
 {
    auto currNodeId = mGraph.randomNode().id;
-   auto payload = mGraph.get(currNodeId).payload;
+   auto& payload = mGraph.get(currNodeId).payload;
 
-   //1. X is shrinkable choise - remove one option
    if(std::holds_alternative<Choise>(payload))
    {
-      SH("REMOVE.1");
       auto& ch = std::get<Choise>(payload);
 
       auto& options = ch.options;
       auto pos = Rng::genChoise(options.size());
       auto id = *(options.begin() + pos);
 
+      //1. X is shrinkable choise - remove one option
       if((std::holds_alternative<RandomEven>(ch.selector) ||
          std::holds_alternative<Switch>(ch.selector) ||
          std::holds_alternative<RandomWeighted>(ch.selector)) &&
          ch.options.size() > 1)
       {
+         SH(".1: from " + std::to_string(currNodeId) + " option " + std::to_string(id));
          options.erase((options.begin() + pos));
 
          //clean Switch/RandomWeight element
@@ -160,40 +168,48 @@ void Mutator::mutateRemoval()
             std::get<RandomWeighted>(ch.selector).weights.erase(std::get<RandomWeighted>(ch.selector).weights.begin() + pos);
          }
 
-         mGraph.removeIfUnreferenced(id);  
+         mGraph.removeIfUnreferenced(id);
+         return;  
       }
       //2. X is non shrinkable choise - replace with one of the subtrees
       else
       {
-         SH("REMOVE.2");
-         auto copiedOptions = options;
-         options.clear();
+         SH(".2 id " + std::to_string(currNodeId));
 
-         for(auto o : copiedOptions)
+         if(id != currNodeId)
          {
-            mGraph.removeIfUnreferenced(o);
+            auto copiedOptions = options;
+            options.clear();
+
+            mGraph.get(currNodeId).payload = mGraph.get(id).payload;
+
+            for(auto o : copiedOptions)
+            {
+               mGraph.removeIfUnreferenced(o);
+            }
+
+            mGraph.fixReferences(id, currNodeId);
          }
 
-         mGraph.get(currNodeId).payload = mGraph.get(id).payload;
-         mGraph.fixReferences(id, currNodeId);
+         return;
       }
    }  
-
-   
    else
    {
       auto& action = std::get<Action>(payload);
       //3. X is operation - remove it, by replacing with next
       if(std::holds_alternative<Operation>(action))
       {
-         SH("REMOVE.3");
+         SH(".3");
          auto& op = std::get<Operation>(action);
          mGraph.fixReferences(currNodeId, op.next);
          mGraph.removeIfUnreferenced(currNodeId);
+         return;
       }
    }
 
    //4. other - cannot be removed
+   SH(".4 id:" + std::to_string(currNodeId));
 }
 
 void Mutator::mutateModification()
@@ -217,12 +233,19 @@ void Mutator::mutateModification()
       else if(std::holds_alternative<Switch>(ch.selector))
       {
          auto& sw = std::get<Switch>(ch.selector);
-         sw = Switch{genExpression(), {Rng::genWeight(), Rng::genWeight()}};
+         sw.A = genExpression();
+         for(auto& w : sw.anchors)
+         {
+            w = Rng::genWeight();
+         }
       }   
       else if(std::holds_alternative<RandomWeighted>(ch.selector))
       {
          auto& rw = std::get<RandomWeighted>(ch.selector);
-         rw = RandomWeighted{{Rng::genWeight(), Rng::genWeight()}};
+         for(auto& w : rw.weights)
+         {
+            w = Rng::genWeight();
+         }
       }
    }
    else
@@ -243,17 +266,17 @@ void Mutator::mutate()
 {
    if(Rng::genProbability(mCfg.insertChance))
    {
-      SH("INSERT");
+      SH("\nINSERT");
       mutateInsertion();
    }
-   else if(Rng::genProbability(mCfg.modifyChance))
+   if(Rng::genProbability(mCfg.modifyChance))
    {
-      SH("MODIFY");
+      SH("\nMODIFY");
       mutateModification();
    }
-   else if(Rng::genProbability(mCfg.removeChance))
+   if(Rng::genProbability(mCfg.removeChance))
    {
-      SH("REMOVE");
+      SH("\nREMOVE");
       mutateRemoval();
    }
 }
@@ -295,7 +318,7 @@ VAL Mutator::genValue()
 {
    VAL result;
 
-   switch(Rng::genChoise(5))
+   switch(Rng::genChoise(3))
    {
       case 0:
          result = Rng::genWeight();
@@ -307,14 +330,6 @@ VAL Mutator::genValue()
 
       case 2:
          result = InputAddress{Rng::genChoise(mNumInputs)};
-         break;
-
-      case 3:
-         result = RandomNumber{};
-         break;
-
-      case 4:
-         result = AlwaysZero{};
          break;
    }
 

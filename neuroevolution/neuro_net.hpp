@@ -7,6 +7,7 @@
 #include <boost/container/small_vector.hpp>
 #include <map>
 #include <memory>
+#include "IPlayground.hpp"
 
 namespace neuroevolution
 {
@@ -131,5 +132,22 @@ private:
 };
 
 std::vector<double> activate(NeuroNet& n, const std::vector<double>& input);
+
+class NNAgent : public IAgent
+{
+public:
+   NNAgent(const unsigned int numInputs, const unsigned int numOutputs, std::unique_ptr<NeuroNet>&& nn);
+
+   void reset() override;
+   unsigned int run(const double* input) override;
+   void toBinaryStream(std::ofstream& stream) const override;
+
+   NeuroNet& getNN();
+
+private:
+   const unsigned int mNumInputs;
+   const unsigned int mNumOutputs;
+   std::unique_ptr<NeuroNet> mNn;
+};
 
 }

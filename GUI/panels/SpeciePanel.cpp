@@ -322,17 +322,17 @@ void SpecieOverview::exportAnn()
       std::ofstream f;
       f.open(file, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
 
-      mPrj->getPopulation().createAnn(mTopPop)->toBinaryStream(f);
+      mPrj->getPopulation().createAgent(mTopPop)->toBinaryStream(f);
       f.close();
    }
 }
 
 void SpecieOverview::play()
 {
-   mPrj->play(*mPrj->getPopulation().createAnn(mTopPop));
+   mPrj->play(*mPrj->getPopulation().createAgent(mTopPop));
 }
 
 void SpecieOverview::visualize()
 {
-   mNnView.reset(new Nn_view(std::move(mPrj->getPopulation().createAnn(mTopPop))));
+   mNnView.reset(new Nn_view(std::move(mPrj->getPopulation().createAgent(mTopPop))));
 }

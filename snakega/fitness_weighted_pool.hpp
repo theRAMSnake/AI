@@ -1,15 +1,16 @@
 #pragma once
 #include <vector>
-#include "pop.hpp"
+#include "neuroevolution/IPlayground.hpp"
 #include "neuroevolution/rng.hpp"
 
 namespace snakega
 {
 
+template<class TPop>
 class FitnessWeightedPool
 {
 public:
-   FitnessWeightedPool(std::vector<Pop>::const_iterator begin, std::vector<Pop>::const_iterator end, neuroevolution::Fitness bestFitness)
+   FitnessWeightedPool(typename std::vector<TPop>::const_iterator begin, typename std::vector<TPop>::const_iterator end, neuroevolution::Fitness bestFitness)
    : mBestFitness(bestFitness)
    {
       for(auto iter = begin; iter != end; ++iter)
@@ -20,7 +21,7 @@ public:
       mMaxAttermpts = mPool.size() * 5;
    }
 
-   const Pop& pick()
+   const TPop& pick()
    {
       if(mPool.empty())
       {
@@ -34,7 +35,7 @@ public:
          if(mBestFitness != 0 && attempts++ < mMaxAttermpts) //Skip fitness check if we tried to many times - looks like only shity pops left,
                                                                 // so it is irrelevant what to pick
          {
-            if(!Rng::genProbability(double((*choise)->mFitness) / mBestFitness))
+            if(!Rng::genProbability(double((*choise)->fitness) / mBestFitness))
             {
                continue;
             }
@@ -54,7 +55,7 @@ public:
 private:
    unsigned int mMaxAttermpts;
    neuroevolution::Fitness mBestFitness;
-   std::vector<std::vector<Pop>::const_iterator> mPool;
+   typename std::vector<typename std::vector<TPop>::const_iterator> mPool;
 };
 
 }

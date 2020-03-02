@@ -14,7 +14,7 @@ public:
    std::size_t size() const override;
    unsigned int getNumSpecies() const override;
    std::vector<SpecieResults> getSpecies() const override;
-   std::unique_ptr<neuroevolution::NeuroNet> createAnn(const PopResult& pop) const override;
+   std::unique_ptr<neuroevolution::IAgent> createAgent(const PopResult& pop) const override;
 
 private:
    const neat::Neat& mSrc;

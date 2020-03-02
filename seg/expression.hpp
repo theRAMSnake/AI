@@ -4,11 +4,9 @@
 namespace seg
 {
 
-struct RandomNumber{};
-struct AlwaysZero{};
 struct MemAddress { unsigned int addr;};
 struct InputAddress { unsigned int addr;};
-using VAL = std::variant<double, MemAddress, InputAddress, RandomNumber, AlwaysZero>;
+using VAL = std::variant<double, MemAddress, InputAddress>;
 
 enum class FuncCategory {Primitive, Domain, Extension};
 struct FUNC

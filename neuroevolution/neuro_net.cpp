@@ -398,4 +398,45 @@ void NeuroNet::print()
    std::cout << std::endl;
 }
 
+NNAgent::NNAgent(const unsigned int numInputs, const unsigned int numOutputs, std::unique_ptr<NeuroNet>&& nn)
+: mNumInputs(numInputs)
+, mNumOutputs(numOutputs)
+, mNn(std::move(nn))
+{
+
+}
+
+void NNAgent::reset()
+{
+   mNn->reset();
+}
+
+unsigned int NNAgent::run(const double* input)
+{
+   auto oIter = mNn->begin_input();
+   auto iIter = input;
+   for(unsigned int i = 0; i < mNumInputs; ++i)
+   {
+      *oIter = *iIter;
+      ++oIter;
+      ++iIter;
+   }
+
+   mNn->activate();
+
+   auto pos = std::max_element(mNn->begin_output(), mNn->end_output());
+
+   return std::distance(mNn->begin_output(), pos);
+}
+
+void NNAgent::toBinaryStream(std::ofstream& stream) const
+{
+   mNn->toBinaryStream(stream);
+}
+
+NeuroNet& NNAgent::getNN()
+{
+   return *mNn;
+}
+
 }

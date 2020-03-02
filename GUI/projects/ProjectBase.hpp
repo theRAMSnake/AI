@@ -10,7 +10,7 @@ public:
 
    void setGeneration(const unsigned int generation) override;
    void updateConfig(const boost::property_tree::ptree& newCfg) override;
-   void play(neuroevolution::NeuroNet& ann) override;
+   void play(neuroevolution::IAgent& agent) override;
 
    const unsigned int getGeneration() const override;
    const boost::property_tree::ptree& getConfig() const override;

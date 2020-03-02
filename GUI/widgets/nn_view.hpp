@@ -6,11 +6,11 @@
 class Nn_view
 {
 public:
-   explicit Nn_view(std::unique_ptr<neuroevolution::NeuroNet>&& ann);
+   explicit Nn_view(std::unique_ptr<neuroevolution::IAgent>&& ann);
    ~Nn_view();
 
 private:
    nana::form mForm;
    nana::drawing mDraw;
-   std::unique_ptr<neuroevolution::NeuroNet> mAnn;
+   std::unique_ptr<neuroevolution::IAgent> mAnn;
 };

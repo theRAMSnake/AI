@@ -11,14 +11,14 @@ Pop::Pop()
 
 Pop::Pop(const Genom& genom)
 : mGenom(genom)
-, mFitness(0)
+, fitness(0)
 {
 
 }
 
 Pop& Pop::operator = (const Pop& other)
 {
-   mFitness = other.mFitness;
+   fitness = other.fitness;
    mGenom = other.mGenom;
 
    return *this;
@@ -26,13 +26,13 @@ Pop& Pop::operator = (const Pop& other)
 
 void Pop::mutateStructure(const MutationConfig& mutationConfig)
 {
-   mFitness = 0;
+   fitness = 0;
    mGenom.mutateStructure(mutationConfig);
 }   
 
 void Pop::mutateParameters(const MutationConfig& mutationConfig)
 {
-   mFitness = 0;
+   fitness = 0;
    mGenom.mutateParameters(mutationConfig);
 }
 

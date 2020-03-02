@@ -54,8 +54,9 @@ void MainMenuCtrl::play()
       f.open(file, std::ios_base::in | std::ios_base::binary);
       if (f.is_open())
       {
-         auto ann = neuroevolution::NeuroNet::fromBinaryStream(f);
-         mPm.getProject()->play(*ann);
+         auto dg = mPm.getProject()->getPlayground().getDomainGeometry();
+         neuroevolution::NNAgent agent(dg.inputs.size(), dg.outputs.size(), neuroevolution::NeuroNet::fromBinaryStream(f));
+         mPm.getProject()->play(agent);
 
          f.close();
       }

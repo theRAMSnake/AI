@@ -15,7 +15,7 @@ nana::colors colorByWeight(const double weight)
    return nana::colors::blue;
 }
 
-Nn_view::Nn_view(std::unique_ptr<neuroevolution::NeuroNet>&& ann)
+Nn_view::Nn_view(std::unique_ptr<neuroevolution::IAgent>&& ann)
 : mForm(nana::API::make_center(1000, 800))
 , mDraw(mForm)
 , mAnn(std::move(ann))
@@ -24,7 +24,7 @@ Nn_view::Nn_view(std::unique_ptr<neuroevolution::NeuroNet>&& ann)
 
    mDraw.draw([=](nana::paint::graphics& graph){
 		
-      auto topology = mAnn->createTopology();
+      auto topology = static_cast<neuroevolution::NNAgent&>(*mAnn).getNN().createTopology();
       std::map<neuroevolution::NodeId, nana::point> posPerNode;
 
       const int widthPerLayer = graph.width() / topology.getNumLayers();

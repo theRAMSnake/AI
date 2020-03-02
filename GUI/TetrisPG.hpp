@@ -11,7 +11,7 @@ public:
    neuroevolution::IFitnessEvaluator& getFitnessEvaluator() override;
 
    void step() override;
-   void play(neuroevolution::NeuroNet& ann) override;
+   void play(neuroevolution::IAgent& a) override;
    std::string getName() const override;
    neuroevolution::DomainGeometry getDomainGeometry() const override;
 

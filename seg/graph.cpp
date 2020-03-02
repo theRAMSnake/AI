@@ -8,7 +8,7 @@ namespace seg
 
 Graph::Graph(const unsigned int numCommands)
 {
-   Choise rootChoise;
+   /*Choise rootChoise;
    rootChoise.selector = RandomEven{};
 
    for(unsigned int i = 0; i < numCommands; ++i)
@@ -25,7 +25,11 @@ Graph::Graph(const unsigned int numCommands)
       mNodes.push_back({});
       mNodes.back().id = mNextNodeId++;
       mNodes.back().payload = Action(Result{i});
-   }
+   }*/
+
+   mNodes.push_back({});
+   mNodes.back().id = mNextNodeId++;
+   mNodes.back().payload = Action(Result{Rng::genChoise(numCommands)});
 }
 
 std::size_t Graph::size() const
@@ -40,7 +44,7 @@ const GraphNode& Graph::root() const
 
 const GraphNode& Graph::get(const NodeId id) const
 {
-   return mNodes[id];
+   return *std::find_if(mNodes.begin(), mNodes.end(), [=](auto x){return x.id == id;});
 }
 
 GraphNode& Graph::root()
@@ -93,7 +97,11 @@ void Graph::removeIfUnreferenced(const NodeId id)
       }
    }
 
-   mNodes.erase(std::find_if(mNodes.begin(), mNodes.end(), [=](auto x){return x.id == id;}));
+   auto pos = std::find_if(mNodes.begin(), mNodes.end(), [=](auto x){return x.id == id;});
+   if(pos != mNodes.end())
+   {
+      mNodes.erase(pos);
+   }
 }
 
 void Graph::fixReferences(const NodeId from, const NodeId to)
@@ -157,12 +165,10 @@ void Graph::print() const
          }
          else if(std::holds_alternative<Switch>(ch.selector))
          {
-            auto& sw = std::get<Switch>(ch.selector);
             std::cout << "Switch(?)";
          }   
          else if(std::holds_alternative<RandomWeighted>(ch.selector))
          {
-            auto& rw = std::get<RandomWeighted>(ch.selector);
             std::cout << "RandomWeighted(?)";
          }
 
@@ -177,7 +183,7 @@ void Graph::print() const
          if(std::holds_alternative<Operation>(action))
          {
             auto& op = std::get<Operation>(action);
-            std::cout << "operation([" << op.addr.addr << "] = " << to_string(op.expr) << ")";
+            std::cout << "operation([" << op.addr.addr << "] = " << to_string(op.expr) << ") -> " << op.next;
          }
          else
          {
@@ -188,6 +194,12 @@ void Graph::print() const
 
       std::cout << std::endl;
    }
+}
+
+Graph::Graph(const Graph& other)
+{
+   mNextNodeId = other.mNextNodeId;
+   mNodes = other.mNodes;
 }
 
 }

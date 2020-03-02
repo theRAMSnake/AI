@@ -46,10 +46,14 @@ std::vector<SpecieResults> NeatPopulation::getSpecies() const
     return results;
 }
 
-std::unique_ptr<neuroevolution::NeuroNet> NeatPopulation::createAnn(const PopResult& pop) const
+std::unique_ptr<neuroevolution::IAgent> NeatPopulation::createAgent(const PopResult& pop) const
 {
     auto iter = std::find_if(mSrc.getPopulation().begin(), mSrc.getPopulation().end(), [&](auto x) {return x.id == pop.specieId; });
-    return mSrc.createAnn(iter->population[pop.organismId].genotype);
+    auto& genotype = iter->population[pop.organismId].genotype;
+    return std::make_unique<neuroevolution::NNAgent>(
+        genotype.getNodeCount(neat::v2::Genom::NodeType::Input),
+        genotype.getNodeCount(neat::v2::Genom::NodeType::Output),
+        mSrc.createAnn(genotype));
 }
 
 NeatPopulation::NeatPopulation(const neat::Neat& src)
