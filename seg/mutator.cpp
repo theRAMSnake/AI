@@ -321,7 +321,7 @@ VAL Mutator::genValue()
    switch(Rng::genChoise(3))
    {
       case 0:
-         result = Rng::genWeight();
+         result = InputAddress{Rng::genChoise(mNumInputs)};
          break;
 
       case 1:

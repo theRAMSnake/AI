@@ -96,7 +96,6 @@ int Tetris::run(IPlayer& p, const unsigned int scoreLimit, IO& io, const unsigne
       else
       {
          board.StorePiece (game.mPosX, game.mPosY, game.mPiece, game.mRotation);
-         
          score += board.DeletePossibleLines();
 
          game.CreateNewPiece();

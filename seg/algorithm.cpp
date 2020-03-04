@@ -37,21 +37,7 @@ void Algorithm::step()
 
 std::vector<Pop> Algorithm::select() const
 {
-   LOG_FUNC
-   //Keep champions, and *survivalRate* selected randomly, weighted by fitness. Never pick same guy
-   std::vector<Pop> result;
-
-   std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
-
-   std::copy(mPopulation.begin(), mPopulation.begin() + numChampionsKept, std::back_inserter(result));
-   snakega::FitnessWeightedPool<Pop> pool(mPopulation.begin() + numChampionsKept, mPopulation.end(), mBestFitness);
-   
-   while(result.size() < mCfg.populationSize * mCfg.survivalRate && !pool.empty())
-   {
-      result.push_back(pool.pick());
-   }
-
-   return result;
+   return mPopulation;
 }
 
 int Algorithm::exploitRange(
@@ -105,16 +91,18 @@ void Algorithm::repopulate(const std::vector<Pop>& pops)
 {
    LOG_FUNC
    mPopulation.clear();
+   auto totalFitness = std::accumulate(pops.begin(), pops.end(), 0, [](auto a, auto p) {return a + p.fitness; });
 
-   std::copy(pops.begin(), pops.end(), std::back_inserter(mPopulation));
-   auto needOffspring = mCfg.populationSize - pops.size();
-   auto totalFitness = std::accumulate(mPopulation.begin(), mPopulation.end(), 0, [](auto a, auto p) {return a + p.fitness; });
+   for(std::size_t i = 0; i < mCfg.championsKept && i < pops.size(); ++i)
+   {
+      mPopulation.push_back(pops[i]);
+   }
 
    if (totalFitness != 0)
    {
        for (auto& p : pops)
        {
-           auto numOffspring = std::max(1, (int)(double(p.fitness) / totalFitness * needOffspring));
+           auto numOffspring = (double(p.fitness) / totalFitness) * mCfg.populationSize;
            for (int i = 0; i < numOffspring; ++i)
            {
                auto pop = p;

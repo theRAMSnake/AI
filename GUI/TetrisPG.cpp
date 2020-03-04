@@ -203,22 +203,22 @@ public:
 
       neuroevolution::Fitness result = 0;
       
-      for (int i = 0; i < 10; ++i)
+      //for (int i = 0; i < 10; ++i)
       {
          agent.reset();
 
          Tetris t(Mode::AI_Background);
          TetrisPlayer p(agent);
 
-         result += t.run(p, scoreLimit, io, Rng::gen32());
+         result = t.run(p, scoreLimit, io, mSeed);
       }
 
       return result;
    }
 
 private:
-    int mGen = 0;
-    unsigned int mSeed = 0;
+   int mGen = 0;
+   unsigned int mSeed = 0;
    std::vector<int> mValues;
 };
 
