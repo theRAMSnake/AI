@@ -6,6 +6,7 @@
 
 namespace snakega
 {
+
 struct Config
 {
    std::size_t populationSize;
@@ -13,8 +14,6 @@ struct Config
    std::size_t exploitationDepth;
    std::size_t exploitationSize;
    double survivalRate;
-
-   MutationConfig mutationConfig;
 
    std::size_t numThreads;
 };
@@ -38,7 +37,7 @@ public:
 
 private:
    std::vector<Pop> select() const;
-   void repopulate(const std::vector<Pop>& pops);
+   void repopulate(const std::vector<Pop>& selected);
    void exploit();
 
    int exploitRange(
@@ -49,12 +48,10 @@ private:
    void finalize();
 
    Config mCfg;
-   const neuroevolution::DomainGeometry mDomainGeometry; 
    neuroevolution::IFitnessEvaluator& mFitnessEvaluator;
    std::vector<Pop> mPopulation;
-   std::vector<Pop> mLastGeneration;
-   std::vector<Point3D> mInputs;
-   std::vector<Point3D> mOutputs;
+   std::size_t mNumInputs;
+   std::size_t mNumOutputs;
 
    neuroevolution::Fitness mBestFitness;
 };

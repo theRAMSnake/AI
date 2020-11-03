@@ -4,8 +4,7 @@ enum class Engine
 {
    Neat,
    HyperNeat,
-   SnakeGA,
-   Seg
+   SnakeGA
 };
 
 inline std::string to_string(const Engine engine)
@@ -21,10 +20,6 @@ inline std::string to_string(const Engine engine)
    else if(engine == Engine::SnakeGA)
    {
       return "SnakeGA";
-   }
-   else if(engine == Engine::Seg)
-   {
-      return "SEG";
    }
 
    throw -1;
@@ -43,10 +38,6 @@ inline Engine to_engine(const std::string& str)
    else if(str == "SnakeGA")
    {
       return Engine::SnakeGA;
-   }
-   else if(str == "SEG")
-   {
-      return Engine::Seg;
    }
 
    throw -1;

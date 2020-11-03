@@ -44,7 +44,7 @@ public:
       return std::make_unique<neuroevolution::NNAgent>(
          mGeometry.inputs.size(),
          mGeometry.outputs.size(),
-         snakega::GenomDecoder::decode(mGeometry, mSrc[pop.organismId].mGenom)
+         snakega::GenomDecoder::decode(mSrc[pop.organismId].mGenom)
          );
    }
 

@@ -1,7 +1,6 @@
 #include "snakega.hpp"
 #include "genom.hpp"
 #include "exploitation.hpp"
-#include "fitness_weighted_pool.hpp"
 #include "neuroevolution/rng.hpp"
 #include <algorithm>
 #include <numeric>
@@ -18,26 +17,14 @@ Algorithm::Algorithm(
    neuroevolution::IFitnessEvaluator& fitnessEvaluator
    )
    : mCfg(cfg)
-   , mDomainGeometry(domainGeometry)
    , mFitnessEvaluator(fitnessEvaluator)
+   , mNumInputs(domainGeometry.inputs.size())
+   , mNumOutputs(domainGeometry.outputs.size())
 {
-   //Put all inputz with z=0.
-   for(std::size_t i = 0; i < domainGeometry.inputs.size(); ++i)
-   {
-      auto& orig = domainGeometry.inputs[i];
-      mInputs.push_back({double(orig.x) / domainGeometry.size.x, double(orig.y) / domainGeometry.size.y, 0});
-   }
-
-   //Put all outputs with z=1.
-   for(std::size_t i = 0; i < domainGeometry.outputs.size(); ++i)
-   {
-      auto& orig = domainGeometry.outputs[i];
-      mOutputs.push_back({double(orig.x) / domainGeometry.size.x, double(orig.y) / domainGeometry.size.y, 1.0});
-   }
-
+   mPopulation.reserve(mCfg.populationSize);
    for(std::size_t i = 0; i < mCfg.populationSize; ++i)
    {
-      mPopulation.push_back(Genom::createHalfConnected(mInputs, mOutputs));
+      mPopulation.push_back(Genom::createMinimal(mNumInputs, mNumOutputs));
    }
 }
 
@@ -50,18 +37,19 @@ void Algorithm::step()
 
 std::vector<Pop> Algorithm::select() const
 {
-   LOG_FUNC
    //Keep champions, and *survivalRate* selected randomly, weighted by fitness. Never pick same guy
    std::vector<Pop> result;
+   result.reserve(mCfg.populationSize);
 
    std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
 
    std::copy(mPopulation.begin(), mPopulation.begin() + numChampionsKept, std::back_inserter(result));
-   FitnessWeightedPool<Pop> pool(mPopulation.begin() + numChampionsKept, mPopulation.end(), mBestFitness);
+   //TODO: replace with tournament
+   //FitnessWeightedPool<Pop> pool(mPopulation.begin() + numChampionsKept, mPopulation.end(), mBestFitness);
    
-   while(result.size() < mCfg.populationSize * mCfg.survivalRate && !pool.empty())
+   //while(result.size() < mCfg.populationSize * mCfg.survivalRate && !pool.empty())
    {
-      result.push_back(pool.pick());
+      //result.push_back(pool.pick());
    }
 
    return result;
@@ -72,13 +60,11 @@ int Algorithm::exploitRange(
    std::vector<Pop>::iterator end
    )
 {
-    LOG_FUNC
-   //Note: can be changed by more effective CMA-ES
    for(auto iter = begin; iter != end; ++iter)
    {
-      Exploitation exploitation(*iter, mCfg.exploitationSize);
+      Exploitation exploitation(*iter, mCfg.exploitationSize, mCfg.exploitationDepth);
 
-      *iter = exploitation.run(mCfg.exploitationDepth, mCfg.mutationConfig, mDomainGeometry, mFitnessEvaluator);
+      *iter = exploitation.run(mFitnessEvaluator);
    }
 
    return 0;
@@ -116,38 +102,43 @@ void Algorithm::exploit()
    }
 }
 
-void Algorithm::repopulate(const std::vector<Pop>& pops)
+void Algorithm::repopulate(const std::vector<Pop>& selected)
 {
-   LOG_FUNC
-   //mLastGeneration = mPopulation;
    mPopulation.clear();
 
-   std::copy(pops.begin(), pops.end(), std::back_inserter(mPopulation));
-   auto needOffspring = mCfg.populationSize - pops.size();
+   std::copy(selected.begin(), selected.end(), std::back_inserter(mPopulation));
+   auto needOffsprings = mCfg.populationSize - selected.size();
    auto totalFitness = std::accumulate(mPopulation.begin(), mPopulation.end(), 0, [](auto a, auto p) {return a + p.fitness; });
 
    if (totalFitness != 0)
    {
-       for (auto& p : pops)
-       {
-           auto numOffspring = std::max(1, (int)(double(p.fitness) / totalFitness * needOffspring));
-           for (int i = 0; i < numOffspring; ++i)
-           {
-               auto pop = p;
-               pop.mutateStructure(mCfg.mutationConfig);
+      std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
+      for (std::size_t i = 0; i < selected.size(); ++i)
+      {
+         auto& p = selected[i];
+         if(i < numChampionsKept)
+         {
+            mPopulation.push_back(p);
+         }
 
-               mPopulation.push_back(pop);
-           }
-       }
+         auto numOffspring = std::max(1, (int)(double(p.fitness) / totalFitness * needOffsprings));
+         for (int j = 0; j < numOffspring; ++j)
+         {
+            auto pop = p;
+            pop.mutateStructure();
+
+            mPopulation.push_back(pop);
+         }
+      }
    }
 
-    while (mPopulation.size() < mCfg.populationSize)
-    {
-        auto pop = pops[Rng::genChoise(pops.size())];
-        pop.mutateStructure(mCfg.mutationConfig);
+   while (mPopulation.size() < mCfg.populationSize)
+   {
+      auto pop = selected[Rng::genChoise(selected.size())];
+      pop.mutateStructure();
 
-        mPopulation.push_back(pop);
-    }
+      mPopulation.push_back(pop);
+   }
 }
 
 static bool comparePopsByFitness(const Pop& a, const Pop& b)
@@ -157,14 +148,6 @@ static bool comparePopsByFitness(const Pop& a, const Pop& b)
 
 void Algorithm::finalize()
 {
-   /*auto newFitness = std::accumulate(mPopulation.begin(), mPopulation.end(), 0, [](auto a, auto p) {return a + p.mFitness; });
-   auto oldFitness = std::accumulate(mLastGeneration.begin(), mLastGeneration.end(), 0, [](auto a, auto p) {return a + p.mFitness; });
-
-   if (newFitness < oldFitness)
-   {
-       mPopulation = mLastGeneration;
-   }*/
-
    std::sort(mPopulation.begin(), mPopulation.end(), comparePopsByFitness);
    mBestFitness = mPopulation[0].fitness;
 }
@@ -207,10 +190,10 @@ void Algorithm::loadState(const std::string& fileName)
 
    for(std::size_t i = 0; i < size; ++i)
    {
-      Pop p(Genom(mInputs, mOutputs));
+      Pop p(Genom(mNumInputs, mNumOutputs));
 
       ifile.read((char*)&p.fitness, sizeof(neuroevolution::Fitness));
-      p.mGenom = Genom::loadState(ifile, mInputs, mOutputs);
+      p.mGenom = Genom::loadState(ifile, mNumInputs, mNumInputs);
 
       mPopulation.push_back(p);
    }

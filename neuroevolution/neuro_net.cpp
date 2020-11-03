@@ -25,6 +25,7 @@ NeuroNet::NeuroNet(
    )
 {
    mNodes.reserve(inputNodes.size() + outputNodes.size() + hiddenNodes.size());
+   mValues.resize(inputNodes.size() + outputNodes.size() + hiddenNodes.size(), 0.0);
    mInputNodes.reserve(inputNodes.size());
    mOutputNodes.reserve(outputNodes.size());
    mHiddenNodes.reserve(hiddenNodes.size());
@@ -34,21 +35,22 @@ NeuroNet::NeuroNet(
    for(auto n : inputNodes)
    {
       idToIdxMap[n] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0.0, 0});
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0, 0.0, 0});
       mInputNodes.push_back(&mNodes.back());
    }
 
    for(auto n : outputNodes)
    {
       idToIdxMap[n] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0.0, 0.0, -1});
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0, 0.0, -1});
       mOutputNodes.push_back(&mNodes.back());
    }
 
    for(auto n : hiddenNodes)
    {
       idToIdxMap[n.id] = mNodes.size();
-      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), n.bias, n.bias, -1, {}, getPtr(n.acType), n.acType});
+      mValues[mNodes.size()] = n.bias;
+      mNodes.push_back(Node{static_cast<NodeId>(mNodes.size()), 0, n.bias, -1, {}, getPtr(n.acType), n.acType});
       mHiddenNodes.push_back(&mNodes.back());
    }
    
@@ -63,7 +65,7 @@ NeuroNet::NeuroNet(
            throw - 1;
        }
 
-      dst.inputs.push_back({src.id, c.weight});
+      dst.inputs.push_back({&mValues[src.id], c.weight});
 
       if(src.id != dst.id && (src.depth <= dst.depth || dst.depth == -1))//Otherwise recursive - lets not adapt
       {
@@ -86,11 +88,11 @@ void NeuroNet::activate()
       double totalInput = 0;
       for(auto& c: node->inputs)
       {
-         auto& input = mNodes[c.first];
-         totalInput += c.second * input.value;
+         auto& input = *c.first;
+         totalInput += c.second * input;
       }
 
-      node->value = node->func(totalInput);
+      mValues[node->id] = node->func(totalInput);
    }
 
    //Walk over ordered output nodes
@@ -99,11 +101,11 @@ void NeuroNet::activate()
       double totalInput = 0;
       for(auto& c: node->inputs)
       {
-         auto& input = mNodes[c.first];
-         totalInput += c.second * input.value;
+         auto& input = *c.first;
+         totalInput += c.second * input;
       }
 
-      node->value = totalInput;
+      mValues[node->id] = totalInput;
    }
 }  
 
@@ -165,7 +167,7 @@ NetworkTopology NeuroNet::createTopology() const
 {
    NetworkTopology result;
 
-   int maxDepth = std::max_element(mNodes.begin(), mNodes.end(), [](auto x, auto y){return x.depth < y.depth;})->depth;
+   /*int maxDepth = std::max_element(mNodes.begin(), mNodes.end(), [](auto x, auto y){return x.depth < y.depth;})->depth;
 
    for(auto &n: mNodes)
    {
@@ -177,7 +179,7 @@ NetworkTopology NeuroNet::createTopology() const
       {
          result.add(std::min(maxDepth - 1, std::max(n.depth, 0)), n.id, n.inputs);
       }
-   }
+   }*/
 
    return result;
 }
@@ -209,12 +211,12 @@ void NeuroNet::reset()
 {
    for(auto node : mHiddenNodes)
    {      
-      node->value = node->bias;
+      node->valuePh = node->bias;
    }
 
    for(auto node : mOutputNodes)
    {      
-      node->value = node->bias;
+      node->valuePh = node->bias;
    }
 }  
 
@@ -285,12 +287,12 @@ std::unique_ptr<NeuroNet> NeuroNet::fromBinaryStream(std::ifstream& stream)
       }
       else if(std::find(outputs.begin(), outputs.end(), id) != outputs.end())
       {
-         result->mNodes.push_back(Node{id, 0.0, bias, depth, links});
+         //result->mNodes.push_back(Node{id, 0.0, bias, depth, links});
          result->mOutputNodes.push_back(&result->mNodes.back());
       }
       else if(std::find(hiddens.begin(), hiddens.end(), id) != hiddens.end())
       {
-         result->mNodes.push_back(Node{id, 0.0, bias, depth, links, getPtr(actType), actType});
+         //result->mNodes.push_back(Node{id, 0.0, bias, depth, links, getPtr(actType), actType});
          result->mHiddenNodes.push_back(&result->mNodes.back());
       }
       else
@@ -366,7 +368,7 @@ void NeuroNet::print()
    std::cout << std::endl;
    for(auto& n : mNodes)
    {
-      std::cout << n.id << ' ' << static_cast<int>(n.accType) << ' ' << n.depth << ' ' << reinterpret_cast<long long int>(n.func) << ' ' << n.value << " [" ;
+      std::cout << n.id << ' ' << static_cast<int>(n.accType) << ' ' << n.depth << ' ' << reinterpret_cast<long long int>(n.func) << ' ' << n.valuePh << " [" ;
          
       for(auto& i : n.inputs)
       {

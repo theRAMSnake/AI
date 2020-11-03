@@ -2,14 +2,13 @@ cmake_minimum_required(VERSION 2.6)
 
 project(AI)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++17 -DNANA_FILESYSTEM_FORCE")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++17 -g")
 
 add_subdirectory(logger)
 add_subdirectory(neat)
 add_subdirectory(snakega)
 add_subdirectory(test)
-add_subdirectory(seg)
-add_subdirectory(seg_mutation)
 add_subdirectory(tetris)
 add_subdirectory(GUI)
 add_subdirectory(neuroevolution)
+add_subdirectory(profile)

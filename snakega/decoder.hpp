@@ -11,10 +11,10 @@ class Neuron3DMap;
 class GenomDecoder
 {
 public:
-   static std::unique_ptr<neuroevolution::NeuroNet> decode(const neuroevolution::DomainGeometry& domainGeometry, const Genom& src);
+   static std::unique_ptr<neuroevolution::NeuroNet> decode(const Genom& src);
 
 private:
-   GenomDecoder(const neuroevolution::DomainGeometry& domainGeometry, const Genom& src);
+   GenomDecoder(const Genom& src);
 
    void run();
 

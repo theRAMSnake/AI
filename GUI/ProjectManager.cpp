@@ -4,7 +4,6 @@
 #include "LinesPG.hpp"
 #include "projects/NeatProject.hpp"
 #include "projects/SGAProject.hpp"
-#include "projects/SEGProject.hpp"
 #include <filesystem>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -22,10 +21,6 @@ IProject* instantiateProject(const boost::property_tree::ptree& cfg, const Engin
    else if(engine == Engine::SnakeGA)
    {
       return new SGAProject(cfg, pg);
-   }
-   else if(engine == Engine::Seg)
-   {
-      return new SEGProject(cfg, pg);
    }
 
    throw -1;
@@ -76,12 +71,6 @@ void initiatializeConfig(const Engine engine, boost::property_tree::ptree& cfg)
       cfg.put("Selection.Survival Rate", 0.25);
       cfg.put("Exploitation.Depth", 10);
       cfg.put("Exploitation.Size", 25);
-   }
-   else if(engine == Engine::Seg)
-   {
-      cfg.put("Selection.Champions Kept", 5);
-      cfg.put("Selection.Survival Rate", 0.25);
-      cfg.put("Basic.Memory Size", 32);
    }
    else
    {
@@ -156,8 +145,7 @@ std::vector<Engine> ProjectManager::getEngineList() const
    return {
       Engine::Neat,
       Engine::HyperNeat,
-      Engine::SnakeGA,
-      Engine::Seg
+      Engine::SnakeGA
    };
 }
 

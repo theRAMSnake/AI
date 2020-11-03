@@ -24,16 +24,16 @@ Pop& Pop::operator = (const Pop& other)
    return *this;
 }
 
-void Pop::mutateStructure(const MutationConfig& mutationConfig)
+void Pop::mutateStructure()
 {
    fitness = 0;
-   mGenom.mutateStructure(mutationConfig);
+   mGenom.mutateStructure();
 }   
 
-void Pop::mutateParameters(const MutationConfig& mutationConfig)
+void Pop::mutateParameters()
 {
    fitness = 0;
-   mGenom.mutateParameters(mutationConfig);
+   mGenom.mutateParameters();
 }
 
 

@@ -14,8 +14,8 @@ public:
    
    Pop& operator = (const Pop& other);
 
-   void mutateStructure(const MutationConfig& mutationConfig);
-   void mutateParameters(const MutationConfig& mutationConfig);
+   void mutateStructure();
+   void mutateParameters();
 
    Genom mGenom;
    neuroevolution::Fitness fitness;

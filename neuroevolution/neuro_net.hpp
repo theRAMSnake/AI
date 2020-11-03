@@ -51,12 +51,12 @@ public:
 
       inline reference operator* ()
       {
-         return (*mNodePtr)->value;
+         return (*mNodePtr)->valuePh;
       }
 
       inline const reference operator* () const
       {
-         return (*mNodePtr)->value;
+         return (*mNodePtr)->valuePh;
       }
 
       inline NodeIterator& operator++ ()
@@ -116,10 +116,10 @@ private:
    struct Node
    {
       NodeId id;
-      double value;
+      double valuePh;
       double bias;
       int depth = -1;
-      boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
+      boost::container::small_vector<std::pair<double*, double>, 10> inputs;
       ActivationFunction func = nullptr;
       ActivationFunctionType accType;
    };
@@ -129,6 +129,7 @@ private:
    std::vector<Node*> mHiddenNodes;
    std::vector<Node*> mInputNodes;
    std::vector<Node*> mOutputNodes;
+   std::vector<double> mValues;
 };
 
 std::vector<double> activate(NeuroNet& n, const std::vector<double>& input);
