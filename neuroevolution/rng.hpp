@@ -10,4 +10,5 @@ public:
    static double genReal();
    static unsigned int genChoise(const unsigned int numOptions);
    static unsigned int gen32();
+   static unsigned int genProbabilities(const double chance, const unsigned int number);
 };

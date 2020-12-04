@@ -16,6 +16,19 @@ bool Rng::genProbability(const double chance)
    return realGen(rng) < chance;
 }
 
+unsigned int Rng::genProbabilities(const double chance, const unsigned int number)
+{
+   unsigned int result = 0;
+   for(unsigned int i = 0; i < number; ++i)
+   {
+      if(genProbability(chance))
+      {
+         result++;
+      }
+   }
+   return result;
+}
+
 double Rng::genWeight()
 {
    return doubleGen(rng);
