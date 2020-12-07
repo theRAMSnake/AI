@@ -32,7 +32,7 @@ Genom::Genom(const std::size_t numInputs, const std::size_t numOutputs)
 
 void Genom::mutateStructure()
 {
-   const double CONNECTION_TO_BLOCK_CHANCE = 0.005;
+   /*const double CONNECTION_TO_BLOCK_CHANCE = 0.005;
    const double NEW_DEFINITION_CHANCE = 0.2;
    const double LEAF_BLOCK_REMOVE_CHANCE = 0.02;
    const double NEW_NEURON_IN_DEFINITION_CHANCE = 0.05;
@@ -176,7 +176,7 @@ void Genom::mutateStructure()
    {
       erase(std::next(beginConnections(), Rng::genChoise(numCons)));
       numCons--;
-   }
+   }*/
 }
 
 Genom::GlobalNodeId Genom::getRandomSource() const
@@ -273,7 +273,7 @@ std::vector<Genom::NeuroBlock>::iterator Genom::createBlock(const NeuroBlockDefi
 
 void Genom::mutateParameters()
 {
-   const double PERTURBATION_CHANCE = 0.8;
+   /*const double PERTURBATION_CHANCE = 0.8;
 
    for(auto iter = beginConnections(); iter != endConnections(); ++iter)
    {
@@ -285,7 +285,22 @@ void Genom::mutateParameters()
       {
          updateWeight(iter, Rng::genWeight());
       }
-   }
+   }*/
+}
+
+void Genom::crossoverParametersFrom(const Genom& other)
+{
+   /*auto i1 = beginConnections();
+   auto e1 = endConnections();
+   auto i2 = other.beginConnections();
+
+   while(i1 != e1)
+   {
+      updateWeight(i1, (i1->weight + i2->weight) / 2.0);
+
+      ++i1;
+      ++i2;
+   }*/
 }
 
 void Genom::updateWeight(ConnectionsIterator iter, const double newWeight)
@@ -320,7 +335,7 @@ Genom Genom::createMinimal(const std::size_t numInputs, const std::size_t numOut
       GlobalNodeId input {GlobalNodeType::Input, 0, i};
       for(std::size_t j = 0; j < numOutputs; ++j)
       {
-         GlobalNodeId output {GlobalNodeType::Output, 0, i};
+         GlobalNodeId output {GlobalNodeType::Output, 0, j};
          g.mBlocks[0].externalConnections.push_back({input, output, Rng::genWeight()});
       }
    }
@@ -460,20 +475,14 @@ Genom::ConnectionsIterator::ConnectionsIterator(Genom& genom, const bool isEnd)
    if(!isEnd)
    {
       mBlockIter = mGenom->mBlocks.begin();
-      initFromBlock();
+      mDefIter = mGenom->mDefs.begin();
+      findSuitableBlock();
    }
    else
    {
       mBlockIter = mGenom->mBlocks.end();
       mDefIter = mGenom->mDefs.end();
    }
-}
-
-void Genom::ConnectionsIterator::initFromBlock()
-{
-   mDefIter = std::find_if(mGenom->mDefs.begin(), mGenom->mDefs.end(), [this](auto x){return x.id == mBlockIter->definitionId;});
-   mInternalIter = mDefIter->internalConnections.begin();
-   mExternalIter = mBlockIter->externalConnections.begin();
 }
 
 bool Genom::ConnectionsIterator::isExternal() const
@@ -505,20 +514,17 @@ Genom::ConnectionsIterator& Genom::ConnectionsIterator::operator ++()
    {
       mInternalIter++;
    }
-
-   if(mInternalIter == mDefIter->internalConnections.end())
+   else if(mInternalIter == mDefIter->internalConnections.end())
    {
       mExternalIter++;
    }
 
-   if(mExternalIter == mBlockIter->externalConnections.end())
+   if(mInternalIter == mDefIter->internalConnections.end() && mExternalIter == mBlockIter->externalConnections.end())
    {
       mBlockIter++;
+      mDefIter = std::find_if(mGenom->mDefs.begin(), mGenom->mDefs.end(), [this](auto x){return x.id == mBlockIter->definitionId;});
 
-      if(mBlockIter != mGenom->mBlocks.end())
-      {
-         initFromBlock();
-      }
+      findSuitableBlock();
    }
 
    return *this;
@@ -551,25 +557,37 @@ void Genom::ConnectionsIterator::updateValue() const
    }
 }
 
+void Genom::ConnectionsIterator::findSuitableBlock()
+{
+   while(mDefIter->internalConnections.empty() && mBlockIter->externalConnections.empty())
+   {
+      mBlockIter++;
+      if(mBlockIter == mGenom->mBlocks.end())
+      {
+         return;
+      } 
+
+      mDefIter = std::find_if(mGenom->mDefs.begin(), mGenom->mDefs.end(), [this](auto x){return x.id == mBlockIter->definitionId;});
+   }
+
+   mInternalIter = mDefIter->internalConnections.begin();
+   mExternalIter = mBlockIter->externalConnections.begin();
+}
+
 Genom::NodesIterator::NodesIterator(const Genom& genom, const bool isEnd)
 : mGenom(&genom)
 {
    if(!isEnd)
    {
       mBlockIter = mGenom->mBlocks.begin();
-      initFromBlock();
+      mDefIter = mGenom->mDefs.begin();
+      findSuitableBlock();
    }
    else
    {
       mBlockIter = mGenom->mBlocks.end();
       mDefIter = mGenom->mDefs.end();
    }
-}
-
-void Genom::NodesIterator::initFromBlock()
-{
-   mDefIter = std::find_if(mGenom->mDefs.begin(), mGenom->mDefs.end(), [this](auto x){return x.id == mBlockIter->definitionId;});
-   mNodeIter = mDefIter->neurons.begin();
 }
 
 bool Genom::NodesIterator::operator != (const NodesIterator& other) const
@@ -599,14 +617,28 @@ Genom::NodesIterator& Genom::NodesIterator::operator ++()
    if(mNodeIter == mDefIter->neurons.end())
    {
       mBlockIter++;
+      mDefIter = std::find_if(mGenom->mDefs.begin(), mGenom->mDefs.end(), [this](auto x){return x.id == mBlockIter->definitionId;});
 
-      if(mBlockIter != mGenom->mBlocks.end())
-      {
-         initFromBlock();
-      }
+      findSuitableBlock();
    }
 
    return *this;
+}
+
+void Genom::NodesIterator::findSuitableBlock()
+{
+   while(mDefIter->neurons.empty())
+   {
+      mBlockIter++;
+      if(mBlockIter == mGenom->mBlocks.end())
+      {
+         return;
+      } 
+
+      mDefIter = std::find_if(mGenom->mDefs.begin(), mGenom->mDefs.end(), [this](auto x){return x.id == mBlockIter->definitionId;});
+   }
+
+   mNodeIter = mDefIter->neurons.begin();
 }
 
 const Genom::GlobalNeuronDef* Genom::NodesIterator::operator -> () const
@@ -624,6 +656,14 @@ const Genom::GlobalNeuronDef& Genom::NodesIterator::operator *() const
 void Genom::NodesIterator::updateValue() const
 {
    mValue = GlobalNeuronDef{{GlobalNodeType::Local, mBlockIter->blockId, mNodeIter->id}, mNodeIter->acType};
+}
+
+Genom::GlobalNodeId::GlobalNodeId(const GlobalNodeType _type, const NeuroBlockId _blockId, const LocalNodeId _localId)
+: type(_type)
+, blockId(_blockId)
+, localId(_localId)
+{
+
 }
 
 }

@@ -16,6 +16,8 @@ public:
 private:
    GenomDecoder(const Genom& src);
 
+   neuroevolution::NodeId makeNodeId(const Genom::GlobalNodeId src) const;
+
    void run();
 
    std::vector<neuroevolution::NodeId> mInputNodes; //Always same can be optimized

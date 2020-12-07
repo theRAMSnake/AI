@@ -6,10 +6,11 @@ LIST(APPEND CMAKE_MODULE_PATH "..")
 include_directories("..")
 
 add_executable(test 
-CrossoverTest.cpp
+#CrossoverTest.cpp
 #MutationTest.cpp
 #SpeciationTest.cpp
-NeuroNetTest.cpp
+#NeuroNetTest.cpp
+SnakeGATest.cpp
 #RNNTest.cpp
 #SpecieTest.cpp
 #SaveLoadStateTest.cpp

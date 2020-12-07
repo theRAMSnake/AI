@@ -21,4 +21,6 @@ public:
    neuroevolution::Fitness fitness;
 };
 
+const Pop& selectTournament(const std::vector<Pop>& pops);
+
 }

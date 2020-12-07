@@ -12,6 +12,7 @@ class Genom
 {
 public:
    friend class GenomDecoder;
+   friend class SnakeGATest;
    Genom(const std::size_t numInputs, const std::size_t numOutputs);
 
    void operator= (const Genom& other);
@@ -20,6 +21,7 @@ public:
 
    void mutateStructure();
    void mutateParameters();
+   void crossoverParametersFrom(const Genom& other);
 
    std::size_t getNumNeurons() const;
    unsigned int getComplexity() const;
@@ -29,7 +31,10 @@ public:
    static Genom loadState(std::ifstream& s, const std::size_t numInputs, const std::size_t numOutputs);
    void saveState(std::ofstream& s) const;
 
+#ifndef TEST
 private:
+#endif
+
    const std::size_t mNumInputs;
    const std::size_t mNumOutputs;
 
@@ -51,6 +56,9 @@ private:
       GlobalNodeType type : 2;
       NeuroBlockId blockId : 14; //Local only
       LocalNodeId localId : 16;
+
+      GlobalNodeId() = default;
+      GlobalNodeId(const GlobalNodeType _type, const NeuroBlockId _blockId, const LocalNodeId _localId);
 
       bool operator == (const GlobalNodeId& other) const;
    };
@@ -117,6 +125,7 @@ private:
 
       void initFromBlock();
       void updateValue() const;
+      void findSuitableBlock();
 
       Genom* mGenom;
       std::vector<NeuroBlock>::iterator mBlockIter;
@@ -146,8 +155,8 @@ private:
       using reference = GlobalNeuronDef &;
       using iterator_category = std::forward_iterator_tag;
 
-      void initFromBlock();
       void updateValue() const;
+      void findSuitableBlock();
 
       const Genom* mGenom;
       std::vector<NeuroBlock>::const_iterator mBlockIter;

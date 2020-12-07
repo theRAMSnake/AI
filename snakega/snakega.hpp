@@ -36,7 +36,7 @@ public:
    void loadState(const std::string& fileName);
 
 private:
-   std::vector<Pop> select() const;
+   std::vector<Pop> select();
    void repopulate(const std::vector<Pop>& selected);
    void exploit();
 

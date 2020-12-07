@@ -6,6 +6,7 @@
 #include <numeric>
 #include <future>
 #include <fstream>
+#include <iostream>
 #include "logger/Logger.hpp"
 
 namespace snakega
@@ -20,6 +21,7 @@ Algorithm::Algorithm(
    , mFitnessEvaluator(fitnessEvaluator)
    , mNumInputs(domainGeometry.inputs.size())
    , mNumOutputs(domainGeometry.outputs.size())
+   , mBestFitness(0.0)
 {
    mPopulation.reserve(mCfg.populationSize);
    for(std::size_t i = 0; i < mCfg.populationSize; ++i)
@@ -35,21 +37,20 @@ void Algorithm::step()
    finalize();
 }
 
-std::vector<Pop> Algorithm::select() const
+std::vector<Pop> Algorithm::select()
 {
    //Keep champions, and *survivalRate* selected randomly, weighted by fitness. Never pick same guy
    std::vector<Pop> result;
    result.reserve(mCfg.populationSize);
 
-   std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
-
-   std::copy(mPopulation.begin(), mPopulation.begin() + numChampionsKept, std::back_inserter(result));
-   //TODO: replace with tournament
-   //FitnessWeightedPool<Pop> pool(mPopulation.begin() + numChampionsKept, mPopulation.end(), mBestFitness);
-   
-   //while(result.size() < mCfg.populationSize * mCfg.survivalRate && !pool.empty())
+   if(mBestFitness != 0)//Keep champions
    {
-      //result.push_back(pool.pick());
+      std::copy(mPopulation.begin(), mPopulation.begin() + mCfg.championsKept, std::back_inserter(result));
+   }
+   
+   while(result.size() < mCfg.populationSize * mCfg.survivalRate)
+   {
+      result.push_back(selectTournament(mPopulation));
    }
 
    return result;
@@ -112,11 +113,10 @@ void Algorithm::repopulate(const std::vector<Pop>& selected)
 
    if (totalFitness != 0)
    {
-      std::size_t numChampionsKept = mBestFitness == 0 ? 0 : mCfg.championsKept;
       for (std::size_t i = 0; i < selected.size(); ++i)
       {
          auto& p = selected[i];
-         if(i < numChampionsKept)
+         if(i < mCfg.championsKept)
          {
             mPopulation.push_back(p);
          }
@@ -134,7 +134,7 @@ void Algorithm::repopulate(const std::vector<Pop>& selected)
 
    while (mPopulation.size() < mCfg.populationSize)
    {
-      auto pop = selected[Rng::genChoise(selected.size())];
+      auto pop = selectTournament(selected);
       pop.mutateStructure();
 
       mPopulation.push_back(pop);
