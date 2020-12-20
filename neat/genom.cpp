@@ -619,54 +619,11 @@ const NodeGene& Genom::NodesIterator::operator *() const
     return *operator->();
 }
 
-std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g)
-{
-    std::vector<NodeId> inputNodes(g.getNodeCount(neat::v2::Genom::NodeType::Input)); //Always same can be optimized
-    std::vector<NodeId> outputNodes(g.getNodeCount(neat::v2::Genom::NodeType::Output)); //Always same can be optimized
-    std::vector<neuroevolution::NeuroNet::HiddenNodeDef> hiddenNodes(g.getNodeCount(neat::v2::Genom::NodeType::Hidden) +
-        g.getNodeCount(neat::v2::Genom::NodeType::Bias));
-    std::vector<neuroevolution::NeuroNet::ConnectionDef> connections(g.getComplexity());
-
-    std::transform(g.beginNodes(neat::v2::Genom::NodeType::Input),
-        g.endNodes(neat::v2::Genom::NodeType::Input),
-        inputNodes.begin(),
-        [](auto x){return x.id;}
-        );
-
-    std::transform(g.beginNodes(neat::v2::Genom::NodeType::Bias),
-        g.endNodes(neat::v2::Genom::NodeType::Bias),
-        hiddenNodes.begin(),
-        [](auto x){return neuroevolution::NeuroNet::HiddenNodeDef{x.id, ActivationFunctionType::IDENTITY, 1.0};}
-        );
-
-    std::transform(g.beginNodes(neat::v2::Genom::NodeType::Output),
-        g.endNodes(neat::v2::Genom::NodeType::Output),
-        outputNodes.begin(),
-        [](auto x){return x.id;}
-        );
-
-    std::transform(g.beginNodes(neat::v2::Genom::NodeType::Hidden),
-        g.endNodes(neat::v2::Genom::NodeType::Hidden),
-        hiddenNodes.begin(),
-        [](auto x){return neuroevolution::NeuroNet::HiddenNodeDef{x.id, x.acType, 0.0};}
-        );
-
-    std::transform(g.begin(),
-        g.end(),
-        connections.begin(),
-        [](auto x){return neuroevolution::NeuroNet::ConnectionDef{x.srcNodeId, x.dstNodeId, x.weight};}
-        );
-
-    return std::make_unique<neuroevolution::NeuroNet>(inputNodes, outputNodes, hiddenNodes, connections);
-}
-
-
 std::unique_ptr<neuroevolution::NeuroNet2> createAnn2(const Genom& g)
 {
     std::vector<NodeId> inputNodes(g.getNodeCount(neat::v2::Genom::NodeType::Input)); //Always same can be optimized
     std::vector<NodeId> outputNodes(g.getNodeCount(neat::v2::Genom::NodeType::Output)); //Always same can be optimized
-    std::vector<neuroevolution::NeuroNet2::HiddenNodeDef> hiddenNodes(g.getNodeCount(neat::v2::Genom::NodeType::Hidden) /*+
-        g.getNodeCount(neat::v2::Genom::NodeType::Bias)*/);
+    std::vector<neuroevolution::NeuroNet2::HiddenNodeDef> hiddenNodes(g.getNodeCount(neat::v2::Genom::NodeType::Hidden));
     std::vector<neuroevolution::NeuroNet2::ConnectionDef> connections(g.getComplexity());
 
     std::transform(g.beginNodes(neat::v2::Genom::NodeType::Input),
@@ -674,12 +631,6 @@ std::unique_ptr<neuroevolution::NeuroNet2> createAnn2(const Genom& g)
         inputNodes.begin(),
         [](auto x){return x.id;}
         );
-
-    /*std::transform(g.beginNodes(neat::v2::Genom::NodeType::Bias),
-        g.endNodes(neat::v2::Genom::NodeType::Bias),
-        hiddenNodes.begin(),
-        [](auto x){return neuroevolution::NeuroNet2::HiddenNodeDef{x.id, ActivationFunctionType::IDENTITY, 1.0};}
-        );*/
 
     std::transform(g.beginNodes(neat::v2::Genom::NodeType::Output),
         g.endNodes(neat::v2::Genom::NodeType::Output),

@@ -3,7 +3,6 @@
 #include <memory>
 #include "InnovationHistory.hpp"
 #include "neuroevolution/activation.hpp"
-#include "neuroevolution/neuro_net.hpp"
 #include "neuroevolution/neuro_net2.hpp"
 
 namespace neat
@@ -134,7 +133,6 @@ private:
 void mutateAddNode(Genom& a, InnovationHistory& history);
 void mutateAddConnection(Genom& a, InnovationHistory& history);
 
-std::unique_ptr<neuroevolution::NeuroNet> createAnn(const Genom& g);
 std::unique_ptr<neuroevolution::NeuroNet2> createAnn2(const Genom& g);
     
 }

@@ -39,13 +39,13 @@ void GenomDecoder::run()
    }
 }
 
-std::unique_ptr<neuroevolution::NeuroNet> GenomDecoder::decode(const Genom& src)
+std::unique_ptr<neuroevolution::NeuroNet2> GenomDecoder::decode(const Genom& src)
 {
    GenomDecoder decoder(src);
 
    decoder.run();
 
-   return std::make_unique<neuroevolution::NeuroNet>(decoder.mInputNodes, decoder.mOutputNodes, decoder.mHiddenNodes, decoder.mConnections);
+   return std::make_unique<neuroevolution::NeuroNet2>(decoder.mInputNodes, decoder.mOutputNodes, decoder.mHiddenNodes, decoder.mConnections);
 }
 
 }

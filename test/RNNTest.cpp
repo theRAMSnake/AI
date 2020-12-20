@@ -1,6 +1,6 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include "neat/genom.hpp"
 
 class RNNTest

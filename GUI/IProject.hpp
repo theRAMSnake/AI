@@ -1,7 +1,7 @@
 #pragma once
 
 #include <boost/property_tree/ptree.hpp>
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include "IPopulation.hpp"
 #include "Engine.hpp"
 

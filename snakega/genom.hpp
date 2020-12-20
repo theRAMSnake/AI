@@ -35,6 +35,11 @@ public:
 private:
 #endif
 
+   bool mutateNewDefinition();
+   void mutateRemoveLeafBlock();
+   void mutateNewNeuron();
+   void mutateNewConnection();
+
    const std::size_t mNumInputs;
    const std::size_t mNumOutputs;
 
@@ -175,9 +180,13 @@ private:
    void updateWeight(ConnectionsIterator iter, const double newWeight);
    GlobalNodeId getRandomSource() const;
    GlobalNodeId getRandomTarget() const;
+   std::vector<NeuroBlockId> getLeafBlocks() const;
+   std::vector<GlobalNodeId> getDisconnectedNeuronIds() const;
 
    void writeBlock(const NeuroBlock& block, std::ofstream& s) const;
    static void loadBlock(NeuroBlock& block, std::ifstream& s);
+
+   void print(const Genom::NeuroBlockDefinition& def);
 
    std::vector<NeuroBlockDefinition> mDefs;
    std::vector<NeuroBlock> mBlocks;

@@ -55,7 +55,7 @@ void MainMenuCtrl::play()
       if (f.is_open())
       {
          auto dg = mPm.getProject()->getPlayground().getDomainGeometry();
-         neuroevolution::NNAgent agent(dg.inputs.size(), dg.outputs.size(), neuroevolution::NeuroNet::fromBinaryStream(f));
+         neuroevolution::NNAgent agent(dg.inputs.size(), dg.outputs.size(), neuroevolution::NeuroNet2::fromBinaryStream(f));
          mPm.getProject()->play(agent);
 
          f.close();

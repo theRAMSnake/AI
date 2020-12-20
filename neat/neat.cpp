@@ -8,7 +8,7 @@
 #include <fstream>
 #include <set>
 #include "../logger/Logger.hpp"
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 
 namespace neat
 {
@@ -205,7 +205,7 @@ void Neat::reconfigure(const Config& cfg, const EvolutionStrategyType esType)
     }
 }
 
-std::unique_ptr<neuroevolution::NeuroNet> Neat::createAnn(const v2::Genom& src) const
+std::unique_ptr<neuroevolution::NeuroNet2> Neat::createAnn(const v2::Genom& src) const
 {
     if(mSubstrate)
     {
@@ -213,7 +213,7 @@ std::unique_ptr<neuroevolution::NeuroNet> Neat::createAnn(const v2::Genom& src) 
     }
     else
     {
-        return v2::createAnn(src);
+        return v2::createAnn2(src);
     }
 }
 

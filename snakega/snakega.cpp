@@ -78,6 +78,11 @@ void Algorithm::exploit()
 
    auto first = mPopulation.begin();
    auto last = first + numElementsByThread;
+   if(last > mPopulation.end())
+   {
+      last = mPopulation.end();
+   }
+
    for(std::size_t i = 0; i < mCfg.numThreads; ++i)
    {
       auto f = std::async(

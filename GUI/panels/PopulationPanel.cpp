@@ -13,7 +13,7 @@
 #include "../Trainer.hpp"
 #include "../ProjectManager.hpp"
 
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include <iostream>
 #include <fstream>
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <nana/gui.hpp>
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 
 class Nn_view
 {

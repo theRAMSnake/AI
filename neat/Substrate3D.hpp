@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <memory>
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include "neuroevolution/IPlayground.hpp"
 #include "genom.hpp"
 
@@ -13,7 +13,7 @@ class Substrate3D
 public:
    Substrate3D(const neuroevolution::DomainGeometry& domainGeometry);
 
-   std::unique_ptr<neuroevolution::NeuroNet> apply(const v2::Genom& src) const;
+   std::unique_ptr<neuroevolution::NeuroNet2> apply(const v2::Genom& src) const;
 
 private:
    const std::vector<neuroevolution::Point2D>& getLayer(const std::size_t n) const;

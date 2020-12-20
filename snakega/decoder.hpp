@@ -2,7 +2,7 @@
 #include <memory>
 #include "genom.hpp"
 #include <boost/random.hpp>
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 
 namespace snakega
 {
@@ -11,7 +11,7 @@ class Neuron3DMap;
 class GenomDecoder
 {
 public:
-   static std::unique_ptr<neuroevolution::NeuroNet> decode(const Genom& src);
+   static std::unique_ptr<neuroevolution::NeuroNet2> decode(const Genom& src);
 
 private:
    GenomDecoder(const Genom& src);
@@ -22,8 +22,8 @@ private:
 
    std::vector<neuroevolution::NodeId> mInputNodes; //Always same can be optimized
    std::vector<neuroevolution::NodeId> mOutputNodes; //Always same can be optimized
-   std::vector<neuroevolution::NeuroNet::HiddenNodeDef> mHiddenNodes;
-   std::vector<neuroevolution::NeuroNet::ConnectionDef> mConnections;
+   std::vector<neuroevolution::NeuroNet2::HiddenNodeDef> mHiddenNodes;
+   std::vector<neuroevolution::NeuroNet2::ConnectionDef> mConnections;
    const Genom& mSrc;
 };
 

@@ -1,5 +1,5 @@
 #include "TetrisPG.hpp"
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include "neuroevolution/rng.hpp"
 #include <boost/random.hpp>
 #include <future>
@@ -203,7 +203,7 @@ public:
 
       neuroevolution::Fitness result = 0;
       
-      for (int i = 0; i < 10; ++i)
+      //for (int i = 0; i < 10; ++i)
       {
          agent.reset();
 

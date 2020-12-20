@@ -63,8 +63,8 @@ void genConnections(
    const std::vector<neuroevolution::Point2D>& dst, 
    unsigned int dstLayer,
    const bool destinationIsOutput,
-   neuroevolution::NeuroNet& cpnn,
-   std::vector<neuroevolution::NeuroNet::ConnectionDef>& out,
+   neuroevolution::NeuroNet2& cpnn,
+   std::vector<neuroevolution::NeuroNet2::ConnectionDef>& out,
    std::set<neuroevolution::NodeId>& hiddenNodesSet
    )
 {
@@ -104,12 +104,12 @@ const std::vector<neuroevolution::Point2D>& Substrate3D::getLayer(const std::siz
    }
 }
 
-std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& src) const
+std::unique_ptr<neuroevolution::NeuroNet2> Substrate3D::apply(const v2::Genom& src) const
 {
-   auto srcAnn = v2::createAnn(src);
+   auto srcAnn = v2::createAnn2(src);
 
    //Restriction: only allow connections on the same or neighbour layers.
-   std::vector<neuroevolution::NeuroNet::ConnectionDef> connections;
+   std::vector<neuroevolution::NeuroNet2::ConnectionDef> connections;
    std::set<neuroevolution::NodeId> hiddenNodesSet;
 
    for(unsigned int srcLayer = 0; srcLayer != mGeometry.size.z - 1; ++srcLayer) //Exclude output layer
@@ -141,7 +141,7 @@ std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& sr
    //3. Connect last layer to outputs
    genConnections(mHiddenPlaneNodes, mGeometry.size.z - 2, mGeometry.outputs, mGeometry.size.z - 1, true, *srcAnn, connections, hiddenNodesSet);*/
 
-   std::vector<neuroevolution::NeuroNet::HiddenNodeDef> hiddenNodes;
+   std::vector<neuroevolution::NeuroNet2::HiddenNodeDef> hiddenNodes;
    for(auto& b : mBiasNodes)
    {
       hiddenNodes.push_back({b, ActivationFunctionType::IDENTITY, 1.0});
@@ -152,7 +152,7 @@ std::unique_ptr<neuroevolution::NeuroNet> Substrate3D::apply(const v2::Genom& sr
       hiddenNodes.push_back({n, ActivationFunctionType::SIGMOID, 0.0});
    }
 
-   return std::make_unique<neuroevolution::NeuroNet>(mInputNodes, mOutputNodes, hiddenNodes, connections);
+   return std::make_unique<neuroevolution::NeuroNet2>(mInputNodes, mOutputNodes, hiddenNodes, connections);
 }
 
 }

@@ -1,5 +1,5 @@
 
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include "neuroevolution/rng.hpp"
 #include "LinesPG.hpp"
 

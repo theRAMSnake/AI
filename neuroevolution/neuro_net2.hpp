@@ -8,7 +8,6 @@
 #include <map>
 #include <memory>
 #include "IPlayground.hpp"
-#include "neuro_net.hpp"
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
@@ -17,67 +16,28 @@ using namespace boost::numeric::ublas;
 namespace neuroevolution
 {
 
-class NeuroNet2
+using NodeId = unsigned int;
+
+class NetworkTopology
 {
-//private:
 public:
-   class Node;
-
-   struct Matrix
+   struct Node
    {
-      std::vector<std::uint16_t> colInd;
-      std::vector<std::uint16_t> rowInd;
-      std::vector<double> weights;
-
-      Matrix() = default;
-   
-      Matrix(const std::vector<Node>& mNodes, const std::size_t numConnections)
-      {
-         colInd.resize(mNodes.size() + 1);
-         weights.resize(numConnections);
-         rowInd.resize(numConnections);
-      
-         colInd[0] = 0;
-         std::size_t rowIndex = 0;
-         for(std::size_t i = 0; i < mNodes.size(); ++i)
-         {
-            auto& n = mNodes[i];
-      
-            for(auto& c : n.inputs)
-            {
-               rowInd[rowIndex] = c.first;
-               weights[rowIndex] = c.second;
-      
-               rowIndex++;
-            }
-      
-            colInd[i + 1] = colInd[i] + n.inputs.size();
-         }
-      }
-
-      void print()
-      {
-         std::cout << "COLS: [";
-         for(auto i : colInd)
-         {
-            std::cout << i << " ";
-         }
-         std::cout << "]\n";
-         std::cout << "ROWS: [";
-         for(auto i : rowInd)
-         {
-            std::cout << i << " ";
-         }
-         std::cout << "]\n";
-          std::cout << "WEIGHTS: [";
-         for(auto i : weights)
-         {
-            std::cout << i << " ";
-         }
-         std::cout << "]\n";
-      }
+      NodeId id;
+      boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
    };
-   
+
+   void add(const std::size_t layerIndex, const NodeId id, boost::container::small_vector<std::pair<NodeId, double>, 10> inputs);
+
+   const std::size_t getNumLayers() const;
+   std::vector<Node> getLayer(const std::size_t index) const;
+
+private:
+   std::map<std::size_t, std::vector<Node>> mLayers;
+};
+
+class NeuroNet2
+{  
 public:
    using NodeIterator = std::vector<double>::iterator;
    using ConstNodeIterator = std::vector<double>::const_iterator;
@@ -105,6 +65,8 @@ public:
 
    void activate();
    void reset();
+
+   NetworkTopology createTopology() const;
    
    NodeIterator begin_input();
    NodeIterator end_input();
@@ -112,8 +74,13 @@ public:
    ConstNodeIterator begin_output() const;
    ConstNodeIterator end_output() const;
 
-//private:
-public:
+   static std::unique_ptr<NeuroNet2> fromBinaryStream(std::ifstream& stream);
+   void toBinaryStream(std::ofstream& stream);
+
+#ifndef TEST
+private:
+#endif
+   NeuroNet2() = default;
    struct Node
    {
       NodeId id;
@@ -122,6 +89,18 @@ public:
       boost::container::small_vector<std::pair<NodeId, double>, 10> inputs;
       ActivationFunction func = nullptr;
       ActivationFunctionType accType;
+   };
+
+   struct Matrix
+   {
+      std::vector<std::uint16_t> colInd;
+      std::vector<std::uint16_t> rowInd;
+      std::vector<double> weights;
+
+      Matrix() = default;
+   
+      Matrix(const std::vector<Node>& mNodes, const std::size_t numConnections);
+      void print();
    };
 
    std::vector<Node> mNodes;
@@ -135,5 +114,22 @@ public:
 };
 
 std::vector<double> activate(NeuroNet2& n, const std::vector<double>& input);
+
+class NNAgent : public IAgent
+{
+public:
+   NNAgent(const unsigned int numInputs, const unsigned int numOutputs, std::unique_ptr<NeuroNet2>&& nn);
+
+   void reset() override;
+   unsigned int run(const double* input) override;
+   void toBinaryStream(std::ofstream& stream) const override;
+
+   NeuroNet2& getNN();
+
+private:
+   const unsigned int mNumInputs;
+   const unsigned int mNumOutputs;
+   std::unique_ptr<NeuroNet2> mNn;
+};
 
 }

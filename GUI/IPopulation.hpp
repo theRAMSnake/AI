@@ -1,6 +1,6 @@
 #pragma once
 
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include "neuroevolution/IPlayground.hpp"
 #include <memory>
 

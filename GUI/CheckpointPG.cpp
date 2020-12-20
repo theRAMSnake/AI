@@ -1,5 +1,5 @@
 #include "./CheckpointPG.hpp"
-#include "neuroevolution/neuro_net.hpp"
+#include "neuroevolution/neuro_net2.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <cmath>

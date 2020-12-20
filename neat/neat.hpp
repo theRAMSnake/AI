@@ -44,7 +44,7 @@ public:
     void loadState(const std::string& fileName);
 
     std::string getEsInfo() const;
-    std::unique_ptr<neuroevolution::NeuroNet> createAnn(const v2::Genom& src) const;
+    std::unique_ptr<neuroevolution::NeuroNet2> createAnn(const v2::Genom& src) const;
 
 private:
 
