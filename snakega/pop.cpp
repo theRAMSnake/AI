@@ -1,5 +1,6 @@
 #include "pop.hpp"
 #include "neuroevolution/rng.hpp"
+#include <iostream>
 
 namespace snakega
 {
@@ -7,7 +8,6 @@ namespace snakega
 Pop::Pop()
 : mGenom({}, {})
 {
-   throw -1;
 }
 
 Pop::Pop(const Genom& genom)
@@ -27,8 +27,8 @@ Pop& Pop::operator = (const Pop& other)
 
 void Pop::mutateStructure()
 {
-   fitness = 0;
-   mGenom.mutateStructure();
+    fitness = 0;
+    mGenom.mutateStructure();
 }   
 
 void Pop::mutateParameters()
@@ -60,6 +60,22 @@ const Pop& selectTournament(const std::vector<Pop>& pops)
     }
 
     return pops[indices[NUM_PARTICIPANTS - 1].first];
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Pop& p)
+{
+    out << p.fitness;
+    out << p.mGenom;
+
+    return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Pop& p)
+{
+    in >> p.fitness;
+    in >> p.mGenom;
+
+    return in;
 }
 
 }

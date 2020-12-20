@@ -6,7 +6,7 @@
 
 int main()
 {
-    std::vector<neuroevolution::NodeId> inputs;
+    /*std::vector<neuroevolution::NodeId> inputs;
     for(int i = 0; i < 1000; ++i)
     {
         inputs.push_back(i);
@@ -73,7 +73,7 @@ int main()
     c_end = std::clock();
 
     time_elapsed_ms = 1000.0 * (c_end-c_start) / CLOCKS_PER_SEC;
-    std::cout << "CPU time used: " << time_elapsed_ms << " ms\n";
+    std::cout << "CPU time used: " << time_elapsed_ms << " ms\n";*/
 
     return 0;
 }

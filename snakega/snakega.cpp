@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <numeric>
 #include <future>
-#include <fstream>
+#include "neuroevolution/BinaryIO.hpp"
 #include <iostream>
 #include "logger/Logger.hpp"
 
@@ -169,39 +169,16 @@ const std::vector<Pop>& Algorithm::getPopulation() const
 
 void Algorithm::saveState(const std::string& fileName)
 {
-   //Quick for now
-   std::ofstream ofile(fileName, std::ios::binary | std::ios::trunc);
+   neuroevolution::BinaryOutput out(fileName);
 
-   auto size = mPopulation.size();
-   ofile.write((char*)&size, sizeof(std::size_t));
-
-   for(auto& p : mPopulation)
-   {
-      ofile.write((char*)&p.fitness, sizeof(neuroevolution::Fitness));
-      p.mGenom.saveState(ofile);
-   }
+   out << mPopulation;
 }
 
 void Algorithm::loadState(const std::string& fileName)
 {
-   //Quick for now
-   std::ifstream ifile(fileName, std::ios::binary);
+   neuroevolution::BinaryInput in(fileName);
 
-   std::size_t size = 0;
-   ifile.read((char*)&size, sizeof(std::size_t));
-
-   mPopulation.clear();
-   mPopulation.reserve(size);
-
-   for(std::size_t i = 0; i < size; ++i)
-   {
-      Pop p(Genom(mNumInputs, mNumOutputs));
-
-      ifile.read((char*)&p.fitness, sizeof(neuroevolution::Fitness));
-      p.mGenom = Genom::loadState(ifile, mNumInputs, mNumInputs);
-
-      mPopulation.push_back(p);
-   }
+   in >> mPopulation;
 
    mBestFitness = mPopulation[0].fitness;
 }

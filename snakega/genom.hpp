@@ -4,6 +4,7 @@
 #include <variant>
 #include "neuroevolution/IPlayground.hpp"
 #include "neuroevolution/activation.hpp"
+#include "neuroevolution/BinaryIO.hpp"
 
 namespace snakega
 {
@@ -16,6 +17,7 @@ public:
    Genom(const std::size_t numInputs, const std::size_t numOutputs);
 
    void operator= (const Genom& other);
+   bool operator==(const Genom& other) const;
 
    static Genom createMinimal(const std::size_t numInputs, const std::size_t numOutputs);
 
@@ -28,20 +30,8 @@ public:
    unsigned int getNumInputs() const;
    unsigned int getNumOutputs() const;
 
-   static Genom loadState(std::ifstream& s, const std::size_t numInputs, const std::size_t numOutputs);
-   void saveState(std::ofstream& s) const;
-
-#ifndef TEST
-private:
-#endif
-
-   bool mutateNewDefinition();
-   void mutateRemoveLeafBlock();
-   void mutateNewNeuron();
-   void mutateNewConnection();
-
-   const std::size_t mNumInputs;
-   const std::size_t mNumOutputs;
+   static void loadState(neuroevolution::BinaryInput& in, Genom& g);
+   void saveState(neuroevolution::BinaryOutput& out) const;
 
    using NeuroBlockDefinitionId = std::size_t;
    const NeuroBlockDefinitionId ROOT_ID = 0;
@@ -73,6 +63,11 @@ private:
       GlobalNodeId srcNodeId;
       GlobalNodeId dstNodeId;
       double weight;
+
+      bool operator == (const ExtConnectionDef& other) const
+      {
+         return srcNodeId == other.srcNodeId && dstNodeId == other.dstNodeId && weight == other.weight;
+      }
    };
 
    struct IntConnectionDef
@@ -80,12 +75,22 @@ private:
       LocalNodeId srcNodeId;
       LocalNodeId dstNodeId;
       double weight;
+
+      bool operator == (const IntConnectionDef& other) const
+      {
+         return srcNodeId == other.srcNodeId && dstNodeId == other.dstNodeId && weight == other.weight;
+      }
    };
 
    struct LocalNeuronDef
    {
       LocalNodeId id;
       ActivationFunctionType acType;
+
+      bool operator == (const LocalNeuronDef& other) const
+      {
+         return id == other.id && acType == other.acType;
+      }
    };
 
    struct GlobalNeuronDef
@@ -99,6 +104,11 @@ private:
       NeuroBlockDefinitionId id;
       std::vector<LocalNeuronDef> neurons;
       std::vector<IntConnectionDef> internalConnections;
+
+      bool operator == (const NeuroBlockDefinition& other) const
+      {
+         return id == other.id && neurons == other.neurons && internalConnections == other.internalConnections;
+      }
    };
 
    struct NeuroBlock
@@ -107,7 +117,25 @@ private:
       NeuroBlockId parentBlockId;
       NeuroBlockDefinitionId definitionId;
       std::vector<ExtConnectionDef> externalConnections;
+
+      bool operator == (const NeuroBlock& other) const
+      {
+         return blockId == other.blockId && parentBlockId == other.parentBlockId && 
+            definitionId == other.definitionId && externalConnections == other.externalConnections;
+      }
    };
+
+#ifndef TEST
+private:
+#endif
+
+   bool mutateNewDefinition();
+   void mutateRemoveLeafBlock();
+   void mutateNewNeuron();
+   void mutateNewConnection();
+
+   std::size_t mNumInputs;
+   std::size_t mNumOutputs;
 
    class ConnectionsIterator
    {
@@ -183,13 +211,29 @@ private:
    std::vector<NeuroBlockId> getLeafBlocks() const;
    std::vector<GlobalNodeId> getDisconnectedNeuronIds() const;
 
-   void writeBlock(const NeuroBlock& block, std::ofstream& s) const;
-   static void loadBlock(NeuroBlock& block, std::ifstream& s);
-
-   void print(const Genom::NeuroBlockDefinition& def);
-
    std::vector<NeuroBlockDefinition> mDefs;
    std::vector<NeuroBlock> mBlocks;
 };
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom& g);
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::NeuroBlockDefinition& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::NeuroBlockDefinition& g);
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::NeuroBlock& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::NeuroBlock& g);
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::IntConnectionDef& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::IntConnectionDef& g);
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::ExtConnectionDef& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::ExtConnectionDef& g);
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::GlobalNodeId& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::GlobalNodeId& g);
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::LocalNeuronDef& g);
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::LocalNeuronDef& g);
 
 }

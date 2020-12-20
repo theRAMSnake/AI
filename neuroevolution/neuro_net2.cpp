@@ -141,7 +141,7 @@ NetworkTopology NeuroNet2::createTopology() const
 {
    NetworkTopology result;
 
-   /*int maxDepth = std::max_element(mNodes.begin(), mNodes.end(), [](auto x, auto y){return x.depth < y.depth;})->depth;
+   int maxDepth = std::max_element(mNodes.begin(), mNodes.end(), [](auto x, auto y){return x.depth < y.depth;})->depth;
 
    for(auto &n: mNodes)
    {
@@ -153,7 +153,7 @@ NetworkTopology NeuroNet2::createTopology() const
       {
          result.add(std::min(maxDepth - 1, std::max(n.depth, 0)), n.id, n.inputs);
       }
-   }*/
+   }
 
    return result;
 }

@@ -508,3 +508,36 @@ BOOST_FIXTURE_TEST_CASE( MutateNewConnection, SnakeGATest )
         }
     }
 }
+
+BOOST_FIXTURE_TEST_CASE( SaveLoadTest, SnakeGATest )
+{
+    snakega::Config cfg{10, 3, 3, 10, 0.25, 1};
+    neuroevolution::DomainGeometry dg {{1, 1, 1}, {{1, 1}, {1, 1}, {1, 1}, {1, 1}}, {{1, 1}, {1, 1}, {1, 1}, {1, 1}}};
+    TestFitnessEvaluator eval;
+
+    snakega::Algorithm alg(cfg, dg, eval);
+
+    for(int i = 0; i < 25; ++i)
+    {
+        alg.step();
+    }
+
+    alg.saveState("test.state");
+    
+    {
+        snakega::Algorithm alg2(cfg, dg, eval);
+        alg2.loadState("test.state");
+
+        auto& p1 = alg.getPopulation();
+        auto& p2 = alg2.getPopulation();
+
+        BOOST_CHECK_EQUAL(p1.size(), p2.size());
+
+        for(std::size_t i = 0; i < p1.size(); ++i)
+        {
+            BOOST_CHECK_EQUAL(p1[i].fitness, p2[i].fitness);
+
+            BOOST_CHECK(p1[i].mGenom == p2[i].mGenom);
+        }
+    }
+}

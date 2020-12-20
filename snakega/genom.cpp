@@ -30,18 +30,6 @@ Genom::Genom(const std::size_t numInputs, const std::size_t numOutputs)
    mDefs.push_back({ROOT_ID});
 }
 
-void Genom::print(const Genom::NeuroBlockDefinition& def)
-{
-   std::cout << "DEF: {" << def.id << " CONS: ";
-
-   for(auto& x : def.internalConnections)
-   {
-      std::cout << "(" << x.srcNodeId << "-" << x.dstNodeId << ")";
-   }
-   
-   std::cout << "}" << std::endl;
-}
-
 bool Genom::mutateNewDefinition()
 {
    const double NEW_DEFINITION_CHANCE = 0.2;
@@ -145,7 +133,7 @@ void Genom::mutateNewNeuron()
 
    if(d.neurons.empty())
    {
-      auto newId = 1;
+      LocalNodeId newId = 1;
       d.neurons.push_back({newId, static_cast<ActivationFunctionType>(Rng::genChoise(NUM_ACTIVATION_FUNCTION_TYPES))});
    }
    else
@@ -209,7 +197,7 @@ void Genom::mutateStructure()
    
    //1. Turn a connection to a block (Either new def or copy def)
    auto numCons = getComplexity();
-   auto numMutations = Rng::genProbabilities(numCons, CONNECTION_TO_BLOCK_CHANCE);
+   auto numMutations = Rng::genProbabilities(CONNECTION_TO_BLOCK_CHANCE, numCons);
    for(unsigned int i = 0; i < numMutations; ++i)
    {
       mutateNewDefinition();
@@ -217,14 +205,14 @@ void Genom::mutateStructure()
    
    //2. Remove leaf block (and clean up definition possibly)
    auto leafBlocks = getLeafBlocks();
-   numMutations = Rng::genProbabilities(leafBlocks.size(), LEAF_BLOCK_REMOVE_CHANCE);
+   numMutations = Rng::genProbabilities(LEAF_BLOCK_REMOVE_CHANCE, leafBlocks.size());
    for(unsigned int i = 0; i < numMutations; ++i)
    {
       mutateRemoveLeafBlock();
    }
 
    //3. Extend definition with a neuron
-   numMutations = Rng::genProbabilities(mDefs.size(), NEW_NEURON_IN_DEFINITION_CHANCE);
+   numMutations = Rng::genProbabilities(NEW_NEURON_IN_DEFINITION_CHANCE, mDefs.size());
    for(unsigned int i = 0; i < numMutations; ++i)
    {
       mutateNewNeuron();
@@ -242,14 +230,14 @@ void Genom::mutateStructure()
 
    //5. Add connection
    auto numNeurons = getNumNeurons();
-   numMutations = Rng::genProbabilities(numNeurons, CONNECT);
+   numMutations = Rng::genProbabilities(CONNECT, numNeurons);
    for(unsigned int i = 0; i < numMutations; ++i)
    {
       mutateNewConnection();
    }
 
    //6. Remove connection
-   numMutations = Rng::genProbabilities(numCons, DISCONNECT);
+   numMutations = Rng::genProbabilities(DISCONNECT, numCons);
    for(unsigned int i = 0; i < numMutations; ++i)
    {
       auto numCons = getComplexity();
@@ -422,13 +410,22 @@ void Genom::updateWeight(ConnectionsIterator iter, const double newWeight)
 
 void Genom::operator= (const Genom& other)
 {
-   if(other.mNumInputs != mNumInputs || other.mNumOutputs != mNumOutputs)
-   {
-      throw -1;
-   }
-
+   mNumInputs = other.mNumInputs;
+   mNumOutputs = other.mNumOutputs;
    mDefs = other.mDefs;
    mBlocks = other.mBlocks;
+}
+
+bool Genom::operator==(const Genom& other) const
+{
+   bool result = false;
+
+   if(mNumOutputs == other.mNumOutputs && mNumInputs == other.mNumInputs && mDefs.size() == other.mDefs.size() && mBlocks.size() == other.mBlocks.size())
+   {
+      result = mDefs == other.mDefs && mBlocks == other.mBlocks;
+   }
+
+   return result;
 }
 
 Genom Genom::createMinimal(const std::size_t numInputs, const std::size_t numOutputs)
@@ -468,88 +465,38 @@ unsigned int Genom::getNumOutputs() const
    return mNumOutputs;
 }
 
-Genom Genom::loadState(std::ifstream& s, const std::size_t numInputs, const std::size_t numOutputs)
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom& g)
 {
-   /*Genom g(numInputs, numOutputs);
-
-   loadBlock(g.mRoot, s);
-
-   return g;*/
-   throw -1;
+   g.saveState(out);
+   return out;
 }
 
-void Genom::loadBlock(NeuroBlock& block, std::ifstream& s)
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom& g)
 {
-   /*s.read((char*)&block.blockId, sizeof(NeuroBlockId));
-   s.read((char*)&block.definitionId, sizeof(NeuroBlockDefinitionId));
-
-   std::size_t sz = 0;
-   s.read((char*)&sz, sizeof(std::size_t));
-   block.externalConnections.resize(sz);
-   s.read((char*)block.externalConnections.data(), sizeof(ConnectionDef) * sz);
-
-   s.read((char*)&sz, sizeof(std::size_t));
-   block.subBlockDefinitions.resize(sz);
-   for(std::size_t k = 0; k < sz; ++k)
-   {
-      auto p = &block.subBlockDefinitions[k];
-      s.read((char*)p, sizeof(NeuroBlockDefinitionId));
-
-      std::size_t ssz = 0;
-      s.read((char*)&ssz, sizeof(std::size_t));
-      p->internalConnections.resize(sz);
-      s.read((char*) p->internalConnections.data(), sizeof(ConnectionDef) * ssz);
-
-      s.read((char*)&ssz, sizeof(std::size_t));
-      p->neurons.resize(sz);
-      s.read((char*) p->neurons.data(), sizeof(NeuronDef) * ssz);
-   }
-
-   s.read((char*)&sz, sizeof(std::size_t));
-   block.subBlocks.resize(sz);
-
-   for(std::size_t k = 0; k < sz; ++k)
-   {
-      loadBlock(block.subBlocks[k], s);
-   }*/
+   Genom::loadState(in, g);
+   return in;
 }
 
-void Genom::saveState(std::ofstream& s) const
+void Genom::loadState(neuroevolution::BinaryInput& in, Genom& g)
 {
-   //writeBlock(mRoot, s);
+   std::size_t ins = 0;
+   std::size_t outs = 0;
+
+   in >> ins;
+   in >> outs;
+
+   g = Genom(ins, outs);
+
+   in >> g.mDefs;
+   in >> g.mBlocks;
 }
 
-void Genom::writeBlock(const NeuroBlock& block, std::ofstream& s) const
+void Genom::saveState(neuroevolution::BinaryOutput& out) const
 {
-   /*s.write((char*)&block.blockId, sizeof(NeuroBlockId));
-   s.write((char*)&block.definitionId, sizeof(NeuroBlockDefinitionId));
-
-   auto sz = block.externalConnections.size();
-   s.write((char*)&sz, sizeof(std::size_t));
-   s.write((char*)block.externalConnections.data(), sizeof(ConnectionDef) * block.externalConnections.size());
-
-   sz = block.subBlockDefinitions.size();
-   s.write((char*)&sz, sizeof(std::size_t));
-
-   for(auto& d : block.subBlockDefinitions)
-   {
-      s.write((char*)&d.id, sizeof(NeuroBlockDefinitionId));
-
-      sz = d.internalConnections.size();
-      s.write((char*)&sz, sizeof(std::size_t));
-      s.write((char*)d.internalConnections.data(), sizeof(ConnectionDef) * d.internalConnections.size());
-
-      sz = d.neurons.size();
-      s.write((char*)&sz, sizeof(std::size_t));
-      s.write((char*)d.neurons.data(), sizeof(NeuronDef) * d.neurons.size());
-   }
-
-   sz = block.subBlocks.size();
-   s.write((char*)&sz, sizeof(std::size_t));
-   for(auto& b : block.subBlocks)
-   {
-      writeBlock(b, s);
-   }*/
+   out << mNumInputs;
+   out << mNumOutputs;
+   out << mDefs;
+   out << mBlocks;
 }
 
 Genom::ConnectionsIterator Genom::beginConnections() const
@@ -773,6 +720,124 @@ Genom::GlobalNodeId::GlobalNodeId(const GlobalNodeType _type, const NeuroBlockId
 , localId(_localId)
 {
 
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::NeuroBlockDefinition& g)
+{
+   out << g.id;
+   out << g.internalConnections;
+   out << g.neurons;
+
+   return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::NeuroBlockDefinition& g)
+{
+   in >> g.id;
+   in >> g.internalConnections;
+   in >> g.neurons;
+
+   return in;
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::NeuroBlock& g)
+{
+   out << g.blockId;
+   out << g.definitionId;
+   out << g.parentBlockId;
+   out << g.externalConnections;
+
+   return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::NeuroBlock& g)
+{
+   in >> g.blockId;
+   in >> g.definitionId;
+   in >> g.parentBlockId;
+   in >> g.externalConnections;
+
+   return in;
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::IntConnectionDef& g)
+{
+   out << g.srcNodeId;
+   out << g.dstNodeId;
+   out << g.weight;
+
+   return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::IntConnectionDef& g)
+{
+   in >> g.srcNodeId;
+   in >> g.dstNodeId;
+   in >> g.weight;
+
+   return in;
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::ExtConnectionDef& g)
+{
+   out << g.srcNodeId;
+   out << g.dstNodeId;
+   out << g.weight;
+
+   return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::ExtConnectionDef& g)
+{
+   in >> g.srcNodeId;
+   in >> g.dstNodeId;
+   in >> g.weight;
+
+   return in;
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::GlobalNodeId& g)
+{
+   out << static_cast<int>(g.type);
+   out << g.blockId;
+   out << g.localId;
+
+   return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::GlobalNodeId& g)
+{
+   int tmp;
+   in >> tmp;
+   g.type = static_cast<Genom::GlobalNodeType>(tmp);
+
+   std::size_t v;
+   in >> v;
+   g.blockId = v;
+   
+   in >> v;
+   g.localId = v;
+
+   return in;
+}
+
+neuroevolution::BinaryOutput& operator << (neuroevolution::BinaryOutput& out, const Genom::LocalNeuronDef& g)
+{
+   out << static_cast<int>(g.acType);
+   out << g.id;
+
+   return out;
+}
+
+neuroevolution::BinaryInput& operator >> (neuroevolution::BinaryInput& in, Genom::LocalNeuronDef& g)
+{
+   int tmp;
+   in >> tmp;
+   g.acType = static_cast<ActivationFunctionType>(tmp);
+
+   in >> g.id;
+
+   return in;
 }
 
 }
