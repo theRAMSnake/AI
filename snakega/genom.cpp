@@ -188,12 +188,12 @@ void Genom::mutateNewConnection()
 
 void Genom::mutateStructure()
 {
-   const double CONNECTION_TO_BLOCK_CHANCE = 0.005;
+   const double CONNECTION_TO_BLOCK_CHANCE = 0.001;
    const double LEAF_BLOCK_REMOVE_CHANCE = 0.02;
-   const double NEW_NEURON_IN_DEFINITION_CHANCE = 0.03;
+   const double NEW_NEURON_IN_DEFINITION_CHANCE = 0.02;
    const double REMOVE_UNCONNECTED_NEURON_CHANCE = 0.1;
-   const double CONNECT = 0.005;
-   const double DISCONNECT = 0.005;
+   const double CONNECT = 0.002;
+   const double DISCONNECT = 0.002;
    
    //1. Turn a connection to a block (Either new def or copy def)
    auto numCons = getComplexity();
@@ -229,7 +229,7 @@ void Genom::mutateStructure()
    }
 
    //5. Add connection
-   auto numNeurons = getNumNeurons();
+   auto numNeurons = getNumNeurons() + mNumInputs + mNumOutputs;
    numMutations = Rng::genProbabilities(CONNECT, numNeurons);
    for(unsigned int i = 0; i < numMutations; ++i)
    {
