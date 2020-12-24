@@ -104,10 +104,16 @@ SGAProject::SGAProject(const boost::property_tree::ptree& cfg, neuroevolution::I
 
 void SGAProject::step()
 {
+   auto start = std::chrono::high_resolution_clock::now(); 
+
    getPlayground().step();
    mImpl.step();
    mPops->update();
    mGeneration++;
+
+   auto stop = std::chrono::high_resolution_clock::now(); 
+
+   mLastGenTime = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
 }
 
 const IPopulation& SGAProject::getPopulation() const
@@ -142,6 +148,7 @@ void SGAProject::getRawOut(std::stringstream& out) const
    out << "Generation: " << getGeneration() << std::endl;
    out << "Total population: " << pops.size() << std::endl;
    out << "Average fitness: " << mPops->getAverageFitness() << std::endl;
+   out << "Last generation time: " << mLastGenTime.count() << "s" << std::endl;
 
    for(std::size_t i = 0; i < 10 && i < pops.size(); ++i)
    {

@@ -3,6 +3,7 @@
 #include "ProjectBase.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include "snakega/snakega.hpp"
+#include <chrono>
 
 class SGAPopulation;
 class SGAProject : public ProjectBase
@@ -22,5 +23,6 @@ private:
    void reconfigure() override;
 
    std::unique_ptr<SGAPopulation> mPops;
+   std::chrono::seconds mLastGenTime;
    snakega::Algorithm mImpl;
 };
