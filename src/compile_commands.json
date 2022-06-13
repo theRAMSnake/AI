@@ -1,0 +1,207 @@
+[
+{
+  "directory": "/home/snake/AI/build/logger",
+  "command": "/usr/bin/c++    -Wall -pedantic -std=c++17 -o CMakeFiles/logger.dir/Logger.cpp.o -c /home/snake/AI/src/logger/Logger.cpp",
+  "file": "/home/snake/AI/src/logger/Logger.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/neat",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/neat/..  -Wall -pedantic -std=c++17 -o CMakeFiles/neat.dir/genom.cpp.o -c /home/snake/AI/src/neat/genom.cpp",
+  "file": "/home/snake/AI/src/neat/genom.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/neat",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/neat/..  -Wall -pedantic -std=c++17 -o CMakeFiles/neat.dir/neat.cpp.o -c /home/snake/AI/src/neat/neat.cpp",
+  "file": "/home/snake/AI/src/neat/neat.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/neat",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/neat/..  -Wall -pedantic -std=c++17 -o CMakeFiles/neat.dir/population.cpp.o -c /home/snake/AI/src/neat/population.cpp",
+  "file": "/home/snake/AI/src/neat/population.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/neat",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/neat/..  -Wall -pedantic -std=c++17 -o CMakeFiles/neat.dir/InnovationHistory.cpp.o -c /home/snake/AI/src/neat/InnovationHistory.cpp",
+  "file": "/home/snake/AI/src/neat/InnovationHistory.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/snake4",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/snake4/..  -Wall -pedantic -std=c++17 -o CMakeFiles/snake4.dir/snake4.cpp.o -c /home/snake/AI/src/snake4/snake4.cpp",
+  "file": "/home/snake/AI/src/snake4/snake4.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/snake4",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/snake4/..  -Wall -pedantic -std=c++17 -o CMakeFiles/snake4.dir/system.cpp.o -c /home/snake/AI/src/snake4/system.cpp",
+  "file": "/home/snake/AI/src/snake4/system.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/snake4",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/snake4/..  -Wall -pedantic -std=c++17 -o CMakeFiles/snake4.dir/pop.cpp.o -c /home/snake/AI/src/snake4/pop.cpp",
+  "file": "/home/snake/AI/src/snake4/pop.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/CrossoverTest.cpp.o -c /home/snake/AI/src/test/CrossoverTest.cpp",
+  "file": "/home/snake/AI/src/test/CrossoverTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/MutationTest.cpp.o -c /home/snake/AI/src/test/MutationTest.cpp",
+  "file": "/home/snake/AI/src/test/MutationTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/NeuroNetTest.cpp.o -c /home/snake/AI/src/test/NeuroNetTest.cpp",
+  "file": "/home/snake/AI/src/test/NeuroNetTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/RNNTest.cpp.o -c /home/snake/AI/src/test/RNNTest.cpp",
+  "file": "/home/snake/AI/src/test/RNNTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/SpecieTest.cpp.o -c /home/snake/AI/src/test/SpecieTest.cpp",
+  "file": "/home/snake/AI/src/test/SpecieTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/SaveLoadStateTest.cpp.o -c /home/snake/AI/src/test/SaveLoadStateTest.cpp",
+  "file": "/home/snake/AI/src/test/SaveLoadStateTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/NaturalSelectionTest.cpp.o -c /home/snake/AI/src/test/NaturalSelectionTest.cpp",
+  "file": "/home/snake/AI/src/test/NaturalSelectionTest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/test",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -DBOOST_UNIT_TEST_FRAMEWORK_DYN_LINK -DBOOST_UNIT_TEST_FRAMEWORK_NO_LIB -I/home/snake/AI/src/test/..  -Wall -pedantic -std=c++17 -o CMakeFiles/test.dir/SnakeGATest.cpp.o -c /home/snake/AI/src/test/SnakeGATest.cpp",
+  "file": "/home/snake/AI/src/test/SnakeGATest.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/tetris",
+  "command": "/usr/bin/c++  -I/usr/include/SDL  -Wall -pedantic -std=c++17 -o CMakeFiles/tetris.dir/Board.cpp.o -c /home/snake/AI/src/tetris/Board.cpp",
+  "file": "/home/snake/AI/src/tetris/Board.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/tetris",
+  "command": "/usr/bin/c++  -I/usr/include/SDL  -Wall -pedantic -std=c++17 -o CMakeFiles/tetris.dir/Game.cpp.o -c /home/snake/AI/src/tetris/Game.cpp",
+  "file": "/home/snake/AI/src/tetris/Game.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/tetris",
+  "command": "/usr/bin/c++  -I/usr/include/SDL  -Wall -pedantic -std=c++17 -o CMakeFiles/tetris.dir/Pieces.cpp.o -c /home/snake/AI/src/tetris/Pieces.cpp",
+  "file": "/home/snake/AI/src/tetris/Pieces.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/tetris",
+  "command": "/usr/bin/c++  -I/usr/include/SDL  -Wall -pedantic -std=c++17 -o CMakeFiles/tetris.dir/Tetris.cpp.o -c /home/snake/AI/src/tetris/Tetris.cpp",
+  "file": "/home/snake/AI/src/tetris/Tetris.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/main.cpp.o -c /home/snake/AI/src/GUI/main.cpp",
+  "file": "/home/snake/AI/src/GUI/main.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/MainMenuCtrl.cpp.o -c /home/snake/AI/src/GUI/MainMenuCtrl.cpp",
+  "file": "/home/snake/AI/src/GUI/MainMenuCtrl.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/ControlPanelCtrl.cpp.o -c /home/snake/AI/src/GUI/ControlPanelCtrl.cpp",
+  "file": "/home/snake/AI/src/GUI/ControlPanelCtrl.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/ProjectManager.cpp.o -c /home/snake/AI/src/GUI/ProjectManager.cpp",
+  "file": "/home/snake/AI/src/GUI/ProjectManager.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/Trainer.cpp.o -c /home/snake/AI/src/GUI/Trainer.cpp",
+  "file": "/home/snake/AI/src/GUI/Trainer.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/panels/HistoryPanel.cpp.o -c /home/snake/AI/src/GUI/panels/HistoryPanel.cpp",
+  "file": "/home/snake/AI/src/GUI/panels/HistoryPanel.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/panels/PopulationPanel.cpp.o -c /home/snake/AI/src/GUI/panels/PopulationPanel.cpp",
+  "file": "/home/snake/AI/src/GUI/panels/PopulationPanel.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/panels/RawOutPanel.cpp.o -c /home/snake/AI/src/GUI/panels/RawOutPanel.cpp",
+  "file": "/home/snake/AI/src/GUI/panels/RawOutPanel.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/panels/SpeciePanel.cpp.o -c /home/snake/AI/src/GUI/panels/SpeciePanel.cpp",
+  "file": "/home/snake/AI/src/GUI/panels/SpeciePanel.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/widgets/plot.cpp.o -c /home/snake/AI/src/GUI/widgets/plot.cpp",
+  "file": "/home/snake/AI/src/GUI/widgets/plot.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/widgets/propertygrid.cpp.o -c /home/snake/AI/src/GUI/widgets/propertygrid.cpp",
+  "file": "/home/snake/AI/src/GUI/widgets/propertygrid.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/widgets/pgitems.cpp.o -c /home/snake/AI/src/GUI/widgets/pgitems.cpp",
+  "file": "/home/snake/AI/src/GUI/widgets/pgitems.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/widgets/nn_view.cpp.o -c /home/snake/AI/src/GUI/widgets/nn_view.cpp",
+  "file": "/home/snake/AI/src/GUI/widgets/nn_view.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/projects/NeatProject.cpp.o -c /home/snake/AI/src/GUI/projects/NeatProject.cpp",
+  "file": "/home/snake/AI/src/GUI/projects/NeatProject.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/projects/NeatPopulation.cpp.o -c /home/snake/AI/src/GUI/projects/NeatPopulation.cpp",
+  "file": "/home/snake/AI/src/GUI/projects/NeatPopulation.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/GUI",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/GUI/..  -Wall -pedantic -std=c++17 -o CMakeFiles/gui.dir/projects/ProjectBase.cpp.o -c /home/snake/AI/src/GUI/projects/ProjectBase.cpp",
+  "file": "/home/snake/AI/src/GUI/projects/ProjectBase.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/gacommon",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB   -Wall -pedantic -std=c++17 -o CMakeFiles/gacommon.dir/neuro_net2.cpp.o -c /home/snake/AI/src/gacommon/neuro_net2.cpp",
+  "file": "/home/snake/AI/src/gacommon/neuro_net2.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/gacommon",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB   -Wall -pedantic -std=c++17 -o CMakeFiles/gacommon.dir/activation.cpp.o -c /home/snake/AI/src/gacommon/activation.cpp",
+  "file": "/home/snake/AI/src/gacommon/activation.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/gacommon",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB   -Wall -pedantic -std=c++17 -o CMakeFiles/gacommon.dir/rng.cpp.o -c /home/snake/AI/src/gacommon/rng.cpp",
+  "file": "/home/snake/AI/src/gacommon/rng.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/playgrounds",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/playgrounds/..  -Wall -pedantic -std=c++17 -o CMakeFiles/playgrounds.dir/TetrisPG.cpp.o -c /home/snake/AI/src/playgrounds/TetrisPG.cpp",
+  "file": "/home/snake/AI/src/playgrounds/TetrisPG.cpp"
+},
+{
+  "directory": "/home/snake/AI/build/playgrounds",
+  "command": "/usr/bin/c++ -DBOOST_SERIALIZATION_DYN_LINK -DBOOST_SERIALIZATION_NO_LIB -I/home/snake/AI/src/playgrounds/..  -Wall -pedantic -std=c++17 -o CMakeFiles/playgrounds.dir/LogicalPG.cpp.o -c /home/snake/AI/src/playgrounds/LogicalPG.cpp",
+  "file": "/home/snake/AI/src/playgrounds/LogicalPG.cpp"
+}
+]
