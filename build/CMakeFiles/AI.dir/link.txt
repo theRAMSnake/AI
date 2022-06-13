@@ -1,1 +1,0 @@
-/usr/bin/g++  -g  -rdynamic CMakeFiles/AI.dir/main.cpp.o CMakeFiles/AI.dir/neat/neat.cpp.o  -o AI -lboost_filesystem 

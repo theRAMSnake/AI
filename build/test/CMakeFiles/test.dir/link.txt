@@ -1,1 +1,0 @@
-/usr/bin/g++   -Wall -pedantic -std=c++17 -g  -rdynamic CMakeFiles/test.dir/CrossoverTest.cpp.o  -o test ../neat/libneat.a -lboost_unit_test_framework -lboost_filesystem 

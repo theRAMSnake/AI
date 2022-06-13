@@ -1,2 +1,0 @@
-/usr/bin/ar qc libAI.a  CMakeFiles/AI.dir/genom.cpp.o CMakeFiles/AI.dir/neat.cpp.o
-/usr/bin/ranlib libAI.a

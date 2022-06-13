@@ -1,2 +1,0 @@
-/usr/bin/ar qc libneat.a  CMakeFiles/neat.dir/genom.cpp.o CMakeFiles/neat.dir/neat.cpp.o
-/usr/bin/ranlib libneat.a

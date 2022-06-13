@@ -1,8 +1,0 @@
-/home/snake/AI/build/CMakeFiles/rebuild_cache.dir
-/home/snake/AI/build/CMakeFiles/edit_cache.dir
-/home/snake/AI/build/neat/CMakeFiles/rebuild_cache.dir
-/home/snake/AI/build/neat/CMakeFiles/neat.dir
-/home/snake/AI/build/neat/CMakeFiles/edit_cache.dir
-/home/snake/AI/build/test/CMakeFiles/rebuild_cache.dir
-/home/snake/AI/build/test/CMakeFiles/test.dir
-/home/snake/AI/build/test/CMakeFiles/edit_cache.dir
