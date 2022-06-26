@@ -13,7 +13,7 @@ public:
    virtual v2::MutationConfig getAllowedMutations() const = 0;
    virtual std::string getInfo() const = 0;
 
-   ~IEvolutionStrategy()
+   virtual ~IEvolutionStrategy()
    {
 
    }

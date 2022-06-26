@@ -135,8 +135,6 @@ public:
    NeuroNet2& getNN();
 
 private:
-   const unsigned int mNumInputs;
-   const unsigned int mNumOutputs;
    std::unique_ptr<NeuroNet2> mNn;
 };
 

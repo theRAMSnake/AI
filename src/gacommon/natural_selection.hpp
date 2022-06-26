@@ -68,6 +68,7 @@ public:
    {
        boost::property_tree::ptree ar;
        ar.put("best_fitness", mBestFitness);
+       ar.put("generation", mGeneration);
 
        boost::property_tree::ptree pops;
        for(const auto& p : mPopulation)
@@ -89,10 +90,16 @@ public:
        boost::property_tree::read_json(fileName, ar);
 
        mBestFitness = ar.get<gacommon::Fitness>("best_fitness");
+       mGeneration = ar.get<std::size_t>("generation");
        for(const auto& popState : ar.get_child("population"))
        {
            mPopulation.push_back(Pop::loadState(popState.second));
        }
+   }
+
+   std::size_t getGenerationNumber() const
+   {
+       return mGeneration;
    }
 
 private:
@@ -225,6 +232,7 @@ private:
    std::vector<Pop> mPopulation;
 
    gacommon::Fitness mBestFitness;
+   std::size_t mGeneration = 1;
 };
 
 }

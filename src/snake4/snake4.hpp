@@ -20,6 +20,7 @@ public:
    void reconfigure(const gacommon::Config& cfg);
 
    const std::vector<Pop>& getPopulation() const;
+   std::size_t getGenerationNumber() const;
 
    void saveState(const std::string& fileName);
    void loadState(const std::string& fileName);

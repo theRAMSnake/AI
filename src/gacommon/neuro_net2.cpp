@@ -184,9 +184,7 @@ std::vector<NetworkTopology::Node> NetworkTopology::getLayer(const std::size_t i
 }
 
 NNAgent::NNAgent(const unsigned int numInputs, const unsigned int numOutputs, std::unique_ptr<NeuroNet2>&& nn)
-: mNumInputs(numInputs)
-, mNumOutputs(numOutputs)
-, mNn(std::move(nn))
+: mNn(std::move(nn))
 {
 
 }

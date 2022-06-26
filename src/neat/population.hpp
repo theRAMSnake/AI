@@ -116,7 +116,6 @@ private:
 
    Config mCfg;
 
-   double mBestFitness = 0.0;
    double mMaxComplexity = 0.0;
    unsigned int mNumStagnantGenerations = 0;
    std::shared_ptr<IEvolutionStrategy> mEs;

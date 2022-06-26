@@ -43,5 +43,10 @@ void Algorithm::loadState(const std::string& fileName)
     mImpl.loadState(fileName);
 }
 
+std::size_t Algorithm::getGenerationNumber() const
+{
+    return mImpl.getGenerationNumber();
+}
+
 }
 

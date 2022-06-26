@@ -39,16 +39,6 @@ public:
                std::visit([&outputs, this](auto && arg){return processForce(outputs, arg);}, b.force);
            }
        }
-
-       for(std::size_t i = 0; i < outputs.size(); ++i)
-       {
-           if(std::holds_alternative<gacommon::ChoiceIO>(outputs[i]))
-           {
-               auto votes = mChoiceVotes[i];
-               auto mostVoted = std::distance(votes.begin(), std::max_element(votes.begin(), votes.end()));
-               std::get<gacommon::ChoiceIO>(outputs[i]).selection = mostVoted;
-           }
-       }
    }
 
    void toBinaryStream(std::ofstream& stream) const override
@@ -119,9 +109,10 @@ private:
        }
    }
 
-   void processForce(std::vector<gacommon::IOElement>& outputs, const ChoiceVoteManipulator& manip)
+   void processForce(std::vector<gacommon::IOElement>& outputs, const SetChoiceManipulator& manip)
    {
-       mChoiceVotes[manip.outputIdx][manip.selection]++;
+       auto& destination = std::get<gacommon::ChoiceIO>(outputs[manip.outputIdx]);
+       destination.selection = manip.selection;
    }
 
    const std::vector<BlockDefinition>& mBlocks;

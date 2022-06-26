@@ -93,9 +93,9 @@ void serialize(const SetValueManipulator& act, boost::property_tree::ptree& ar)
     ar.put("funcType", static_cast<int>(act.funcType));
     ar.put("outputIdx", act.outputIdx);
 }
-void serialize(const ChoiceVoteManipulator& act, boost::property_tree::ptree& ar)
+void serialize(const SetChoiceManipulator& act, boost::property_tree::ptree& ar)
 {
-    ar.put("type", "ChoiceVoteManipulator");
+    ar.put("type", "SetChoiceManipulator");
     ar.put("selection", act.selection);
     ar.put("outputIdx", act.outputIdx);
 }
@@ -126,9 +126,9 @@ SetValueManipulator deserialize(const SetValueManipulator& act, const boost::pro
 
     return result;
 }
-ChoiceVoteManipulator deserialize(const ChoiceVoteManipulator& act, const boost::property_tree::ptree& ar)
+SetChoiceManipulator deserialize(const SetChoiceManipulator& act, const boost::property_tree::ptree& ar)
 {
-    ChoiceVoteManipulator result;
+    SetChoiceManipulator result;
     result.outputIdx = ar.get<std::size_t>("outputIdx");
     result.selection = ar.get<std::size_t>("selection");
 
@@ -194,9 +194,9 @@ Pop Pop::loadState(const boost::property_tree::ptree& ar)
         {
             newBlock.force = deserialize(SetValueManipulator(),force);
         }
-        else if(type == "ChoiceVoteManipulator")
+        else if(type == "SetChoiceManipulator")
         {
-            newBlock.force = deserialize(ChoiceVoteManipulator(), force);
+            newBlock.force = deserialize(SetChoiceManipulator(), force);
         }
         else
         {

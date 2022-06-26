@@ -3,8 +3,8 @@
 #include "gacommon/rng.hpp"
 #include <boost/random.hpp>
 #include <future>
-#include <nana/gui.hpp>
-#include <nana/gui/timer.hpp>
+//#include <nana/gui.hpp>
+//#include <nana/gui/timer.hpp>
 #include "tetris/Tetris.hpp"
 #include "logger/Logger.hpp"
 

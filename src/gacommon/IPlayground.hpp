@@ -71,7 +71,7 @@ public:
    virtual std::vector<IOElement> getInputs() const = 0;
    virtual std::vector<IOElement> getOutputs() const = 0;
 
-   ~IPlayground(){}
+   virtual ~IPlayground(){}
 };
 
 }

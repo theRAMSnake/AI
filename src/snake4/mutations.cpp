@@ -73,7 +73,7 @@ ForceDefinition generateRandomManipulator(const gacommon::IODefinition& def)
     else if(std::holds_alternative<gacommon::ChoiceIO>(output))
     {
         const auto& out = std::get<gacommon::ChoiceIO>(output);
-        return ChoiceVoteManipulator{
+        return SetChoiceManipulator{
             outputIdx,
             Rng::genChoise(out.options)
         };
@@ -128,7 +128,7 @@ void tweak(SetValueManipulator& object, const gacommon::IODefinition& def, const
     }
 }
 
-void tweak(ChoiceVoteManipulator& object, const gacommon::IODefinition& def, const bool isMajor)
+void tweak(SetChoiceManipulator& object, const gacommon::IODefinition& def, const bool isMajor)
 {
     if(isMajor)
     {
@@ -172,7 +172,7 @@ std::vector<BlockDefinition> mutate(const gacommon::IODefinition& def, const std
     constexpr double REPLACE_FORCE_CHANCE = 0.02;
     constexpr double REPLACE_ACTIVATOR_CHANCE = 0.02;
     constexpr double INSERT_NODE_CHANCE = 0.01;
-    constexpr double CLONE_NODE_CHANCE = 0.01;
+    constexpr double CLONE_NODE_CHANCE = 0.05;
     constexpr double DESTROY_NODE_CHANCE = 0.01;
 
     std::vector<BlockDefinition> newBlocks;
@@ -181,11 +181,11 @@ std::vector<BlockDefinition> mutate(const gacommon::IODefinition& def, const std
     {
         if(!Rng::genProbability(DESTROY_NODE_CHANCE) || newBlocks.empty())
         {
-            /*if(Rng::genProbability(CLONE_NODE_CHANCE))
+            if(Rng::genProbability(CLONE_NODE_CHANCE))
             {
                 newBlocks.push_back(b);
                 observer.onCloneNode(newBlocks.size() - 1);
-            }*/
+            }
 
             if(Rng::genProbability(INSERT_NODE_CHANCE))
             {

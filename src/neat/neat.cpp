@@ -35,6 +35,11 @@ std::string Neat::getEsInfo() const
     return mEs->getInfo();
 }
 
+std::size_t Neat::getGenerationNumber() const
+{
+    return mGeneration;
+}
+
 void Neat::step()
 {
     if(!mPopulation)
@@ -54,6 +59,7 @@ void Neat::step()
     }
 
     updateFitness();
+    mGeneration++;
 }
 
 bool Neat::hasPopulation() const
@@ -151,6 +157,7 @@ void Neat::saveState(const std::string& fileName)
 {
     std::ofstream ofile(fileName, std::ios::binary | std::ios::trunc);
 
+    ofile << mGeneration;
     mHistory.saveState(ofile);
     if(mPopulation)
     {
@@ -162,6 +169,7 @@ void Neat::loadState(const std::string& fileName)
 {
     std::ifstream ifile(fileName, std::ios::binary);
 
+    ifile >> mGeneration;
     mHistory.loadState(ifile);
     mHistory.buildCache();
     mPopulation.emplace(mCfg.populationCfg);

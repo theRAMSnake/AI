@@ -39,6 +39,8 @@ public:
     std::string getEsInfo() const;
     std::unique_ptr<gacommon::NeuroNet2> createAnn(const v2::Genom& src) const;
 
+    std::size_t getGenerationNumber() const;
+
 private:
 
     void updateFitness();
@@ -56,6 +58,7 @@ private:
     std::shared_ptr<IEvolutionStrategy> mEs;
     std::optional<Population> mPopulation;
     InnovationHistory mHistory;
+    std::size_t mGeneration = 1;
 };
 
 }

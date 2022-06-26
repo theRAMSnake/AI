@@ -165,11 +165,11 @@ BOOST_FIXTURE_TEST_CASE( TestChoiceManipulator, SnakeGATest )
         {gacommon::ChoiceIO{5, 0}, gacommon::ChoiceIO{3, 0}, gacommon::ChoiceIO{4, 0}}
     };
     std::vector<BlockDefinition> blocks = {
-        {AlwaysActivator(), ChoiceVoteManipulator{0, 3}},
-        {AlwaysActivator(), ChoiceVoteManipulator{0, 2}},
-        {AlwaysActivator(), ChoiceVoteManipulator{0, 3}},
-        {AlwaysActivator(), ChoiceVoteManipulator{1, 1}},
-        {AlwaysActivator(), ChoiceVoteManipulator{1, 1}},
+        {AlwaysActivator(), SetChoiceManipulator{0, 3}},
+        {AlwaysActivator(), SetChoiceManipulator{0, 2}},
+        {AlwaysActivator(), SetChoiceManipulator{0, 3}},
+        {AlwaysActivator(), SetChoiceManipulator{1, 1}},
+        {AlwaysActivator(), SetChoiceManipulator{1, 1}},
     };
 
     snake4::createAgentImpl(def, blocks)->run(def.inputs, def.outputs);
@@ -277,7 +277,7 @@ bool cmp(const snake4::SetValueManipulator& a, const snake4::SetValueManipulator
 {
     return a.funcType == b.funcType && a.outputIdx == b.outputIdx;
 }
-bool cmp(const snake4::ChoiceVoteManipulator& a, const snake4::ChoiceVoteManipulator& b)
+bool cmp(const snake4::SetChoiceManipulator& a, const snake4::SetChoiceManipulator& b)
 {
     return a.selection == b.selection && a.outputIdx == b.outputIdx;
 }

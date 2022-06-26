@@ -52,13 +52,13 @@ struct SetValueManipulator
     FunctionType funcType;
 };
 
-struct ChoiceVoteManipulator
+struct SetChoiceManipulator
 {
     std::size_t outputIdx;
     std::size_t selection;
 };
 
-using ForceDefinition = std::variant<SetValueManipulator, ChoiceVoteManipulator>;
+using ForceDefinition = std::variant<SetValueManipulator, SetChoiceManipulator>;
 
 struct BlockDefinition
 {
