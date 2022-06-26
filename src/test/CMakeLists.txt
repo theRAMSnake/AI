@@ -6,14 +6,14 @@ LIST(APPEND CMAKE_MODULE_PATH "..")
 include_directories("..")
 
 add_executable(test 
-CrossoverTest.cpp
-MutationTest.cpp
-NeuroNetTest.cpp
-RNNTest.cpp
-SpecieTest.cpp
-SaveLoadStateTest.cpp
 NaturalSelectionTest.cpp
 SnakeGATest.cpp
+#    CrossoverTest.cpp
+    #MutationTest.cpp
+    #NeuroNetTest.cpp
+    #RNNTest.cpp
+    #SpecieTest.cpp
+#SaveLoadStateTest.cpp
 )
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)

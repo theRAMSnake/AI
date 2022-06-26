@@ -146,7 +146,7 @@ public:
         auto [specieId, localId] = parsePopId(id);
         for(const auto& s : mImpl.getPopulation())
         {
-            if(s.id == specieId && s.population.size() < localId)
+            if(s.id == specieId && s.population.size() > localId)
             {
                 gacommon::NNAgent agent(getRawNumIOs(mPlayground->getInputs()) ,getRawNumIOs(mPlayground->getInputs()), mImpl.createAnn(s.population[localId].genotype));
                 std::ostringstream out;
@@ -179,7 +179,7 @@ public:
 private:
     PopId makePopId(const unsigned int specieId, const unsigned int localPopId) const
     {
-        return static_cast<PopId>(specieId) << 32 | localPopId;
+        return (static_cast<PopId>(specieId) << 32) | localPopId;
     }
 
     std::tuple<unsigned int, unsigned int> parsePopId(const PopId id) const

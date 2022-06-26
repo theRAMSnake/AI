@@ -35,7 +35,17 @@ struct SensoricActivatorForChoice
     bool inversion;
 };
 
-using ActivatorDefinition = std::variant<AlwaysActivator, SensoricActivatorForValue, SensoricActivatorForChoice>;
+struct ConsumeActivator
+{
+    std::string left;
+    std::string right;
+};
+
+struct ChainActivator
+{
+};
+
+using ActivatorDefinition = std::variant<AlwaysActivator, SensoricActivatorForValue, SensoricActivatorForChoice, ConsumeActivator, ChainActivator>;
 
 struct SetValueManipulator
 {
@@ -58,7 +68,37 @@ struct SetChoiceManipulator
     std::size_t selection;
 };
 
-using ForceDefinition = std::variant<SetValueManipulator, SetChoiceManipulator>;
+struct CombineForce
+{
+};
+
+struct SinkForce
+{
+};
+
+struct ProduceForce
+{
+    std::string primitive;
+};
+
+struct DecomposeForce
+{
+    std::size_t pos = 0;
+};
+
+struct BlockForce
+{
+    std::size_t values = 0;
+};
+
+using ForceDefinition = std::variant<
+    SetValueManipulator,
+    SetChoiceManipulator,
+    CombineForce,
+    SinkForce,
+    ProduceForce,
+    DecomposeForce,
+    BlockForce>;
 
 struct BlockDefinition
 {

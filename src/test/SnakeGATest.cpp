@@ -3,6 +3,7 @@
 #include <variant>
 #define BOOST_TEST_DYN_LINK
 #define TEST
+#define BOOST_TEST_MODULE 1
 #include <boost/test/unit_test.hpp>
 #include "snake4/system.hpp"
 #include "snake4/pop.hpp"
@@ -179,7 +180,7 @@ BOOST_FIXTURE_TEST_CASE( TestChoiceManipulator, SnakeGATest )
     BOOST_CHECK_EQUAL(0, std::get<1>(def.outputs[2]).selection);
 }
 
-BOOST_FIXTURE_TEST_CASE( Test1000Generations, SnakeGATest )
+BOOST_FIXTURE_TEST_CASE( Test500Generations, SnakeGATest )
 {
     using namespace snake4;
     gacommon::IODefinition def{
@@ -221,7 +222,7 @@ BOOST_FIXTURE_TEST_CASE( Test1000Generations, SnakeGATest )
         }
         void printStats()
         {
-            std::cout << "Mutation stats for 1000 generations:" << std::endl;
+            std::cout << "Mutation stats for 500 generations:" << std::endl;
             std::cout << "Minor tweaks: " << mutationStats.numMinor << std::endl;
             std::cout << "Major tweaks: " << mutationStats.numMajor << std::endl;
             std::cout << "Replace force: " << mutationStats.numReplaceForce << std::endl;
@@ -244,10 +245,14 @@ BOOST_FIXTURE_TEST_CASE( Test1000Generations, SnakeGATest )
 
     } testObserver;
 
-    for(int i = 0; i < 1000; ++i)
+    for(int i = 0; i < 500; ++i)
     {
         blocks = mutate(def, blocks, testObserver);
         snake4::createAgentImpl(def, blocks)->run(def.inputs, def.outputs);
+        if(i % 100 == 0)
+        {
+            std::cout << "=" << std::endl;
+        }
     }
 
     BOOST_CHECK_EQUAL(1 + testObserver.mutationStats.numInserts + testObserver.mutationStats.numClone - testObserver.mutationStats.numDestroy, blocks.size());
@@ -327,7 +332,7 @@ BOOST_FIXTURE_TEST_CASE( TestSerialization, SnakeGATest )
     };
 
     Pop pop = Pop::createMinimal(def);
-    for(int i = 0; i < 1000; ++i)
+    for(int i = 0; i < 100; ++i)
     {
         pop = pop.cloneMutated(def);
     }

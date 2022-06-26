@@ -7,6 +7,15 @@
 namespace snake4
 {
 
+std::string generatePrimitive()
+{
+    static const std::vector<std::string> options = {
+        "A", "B", "C", "D", "E", "F"
+    };
+
+    return options[Rng::genChoise(6)];
+}
+
 ActivatorDefinition generateRandomSensor(const gacommon::IODefinition& def)
 {
     auto inputIdx = Rng::genChoise(def.inputs.size());
@@ -41,21 +50,47 @@ ActivatorDefinition generateRandomSensor(const gacommon::IODefinition& def)
 
 ActivatorDefinition generateActivator(const gacommon::IODefinition& def)
 {
-    switch(Rng::genChoise(2))
+    switch(Rng::genChoise(4))
     {
         case 0:
             return AlwaysActivator();
 
         case 1:
             return generateRandomSensor(def);
+
+        case 2:
+            return ChainActivator{};
+
+        case 3:
+            return ConsumeActivator{generatePrimitive(), generatePrimitive()};
     }
 
     throw std::runtime_error("Internal error");
 }
 
-ForceDefinition generateForce(const gacommon::IODefinition& def)
+ForceDefinition generateForce(const gacommon::IODefinition& def, activator)
 {
-    return generateRandomManipulator(def);
+    switch(Rng::genChoise(6))
+    {
+        case 0:
+            return generateRandomManipulator(def);
+
+        case 1:
+            return CombineForce{};
+
+        case 2:
+            return SinkForce{};
+
+        case 3:
+            return ProduceForce{generatePrimitive()};
+
+        case 4:
+            return BlockForce{1};
+
+        case 5:
+            return DecomposeForce{1};
+    }
+    throw std::runtime_error("Internal error");
 }
 
 ForceDefinition generateRandomManipulator(const gacommon::IODefinition& def)
@@ -100,6 +135,51 @@ void tweak(AlwaysActivator& object, const gacommon::IODefinition& def, const boo
 {
 }
 
+void tweak(ChainActivator& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+}
+
+void tweak(ConsumeActivator& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+    if(isMajor)
+    {
+        const bool grow = Rng::genProbability(0.5);
+        if(Rng::genProbability(0.5))
+        {
+            if(grow || object.left.size() < 2)
+            {
+                object.left += generatePrimitive();
+            }
+            else
+            {
+                object.left.pop_back();
+            }
+        }
+        else
+        {
+            if(grow || object.right.size() < 2)
+            {
+                object.right += generatePrimitive();
+            }
+            else
+            {
+                object.right.pop_back();
+            }
+        }
+    }
+    else
+    {
+        if(Rng::genProbability(0.5))
+        {
+            object.left[Rng::genChoise(object.left.size())] = generatePrimitive()[0];
+        }
+        else
+        {
+            object.right[Rng::genChoise(object.right.size())] = generatePrimitive()[0];
+        }
+    }
+}
+
 void tweak(SensoricActivatorForValue& object, const gacommon::IODefinition& def, const bool isMajor)
 {
     tweak(object.a, isMajor);
@@ -134,6 +214,56 @@ void tweak(SetChoiceManipulator& object, const gacommon::IODefinition& def, cons
     {
         const auto& in = std::get<gacommon::ChoiceIO>(def.outputs[object.outputIdx]);
         object.selection = Rng::genChoise(in.options);
+    }
+}
+
+void tweak(CombineForce& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+}
+
+void tweak(SinkForce& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+}
+
+void tweak(ProduceForce& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+    if(isMajor)
+    {
+        object.primitive = generatePrimitive();
+    }
+}
+
+void tweak(DecomposeForce& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+    if(!isMajor)
+    {
+        return;
+    }
+    const bool grow = Rng::genProbability(0.5);
+    if(grow || object.pos < 2)
+    {
+        object.pos++;
+    }
+    else
+    {
+        object.pos--;
+    }
+}
+
+void tweak(BlockForce& object, const gacommon::IODefinition& def, const bool isMajor)
+{
+    if(!isMajor)
+    {
+        return;
+    }
+    const bool grow = Rng::genProbability(0.5);
+    if(grow || object.values < 2)
+    {
+        object.values++;
+    }
+    else
+    {
+        object.values--;
     }
 }
 
@@ -172,7 +302,7 @@ std::vector<BlockDefinition> mutate(const gacommon::IODefinition& def, const std
     constexpr double REPLACE_FORCE_CHANCE = 0.02;
     constexpr double REPLACE_ACTIVATOR_CHANCE = 0.02;
     constexpr double INSERT_NODE_CHANCE = 0.01;
-    constexpr double CLONE_NODE_CHANCE = 0.05;
+    constexpr double CLONE_NODE_CHANCE = 0.02;
     constexpr double DESTROY_NODE_CHANCE = 0.01;
 
     std::vector<BlockDefinition> newBlocks;
@@ -181,6 +311,8 @@ std::vector<BlockDefinition> mutate(const gacommon::IODefinition& def, const std
     {
         if(!Rng::genProbability(DESTROY_NODE_CHANCE) || newBlocks.empty())
         {
+            auto subject = b;
+
             if(Rng::genProbability(CLONE_NODE_CHANCE))
             {
                 newBlocks.push_back(b);
@@ -192,8 +324,6 @@ std::vector<BlockDefinition> mutate(const gacommon::IODefinition& def, const std
                 newBlocks.push_back({generateActivator(def), generateForce(def)});
                 observer.onInsertNode(newBlocks.size() - 1);
             }
-
-            auto subject = b;
 
             if(Rng::genProbability(MINOR_TWEAK_CHANCE))
             {

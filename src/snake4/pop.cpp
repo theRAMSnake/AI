@@ -87,6 +87,16 @@ void serialize(const SensoricActivatorForChoice& act, boost::property_tree::ptre
     ar.put("inputIdx", act.inputIdx);
     ar.put("values", toBitString(act.values));
 }
+void serialize(const ConsumeActivator& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "ConsumeActivator");
+    ar.put("left", act.left);
+    ar.put("right", act.right);
+}
+void serialize(const ChainActivator& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "ChainActivator");
+}
 void serialize(const SetValueManipulator& act, boost::property_tree::ptree& ar)
 {
     ar.put("type", "SetValueManipulator");
@@ -98,6 +108,29 @@ void serialize(const SetChoiceManipulator& act, boost::property_tree::ptree& ar)
     ar.put("type", "SetChoiceManipulator");
     ar.put("selection", act.selection);
     ar.put("outputIdx", act.outputIdx);
+}
+void serialize(const CombineForce& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "CombineForce");
+}
+void serialize(const SinkForce& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "SinkForce");
+}
+void serialize(const ProduceForce& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "ProduceForce");
+    ar.put("primitive", act.primitive);
+}
+void serialize(const DecomposeForce& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "DecomposeForce");
+    ar.put("pos", act.pos);
+}
+void serialize(const BlockForce& act, boost::property_tree::ptree& ar)
+{
+    ar.put("type", "BlockForce");
+    ar.put("values", act.values);
 }
 SensoricActivatorForValue deserialize(const SensoricActivatorForValue& act, const boost::property_tree::ptree& ar)
 {
@@ -118,6 +151,14 @@ SensoricActivatorForChoice deserialize(const SensoricActivatorForChoice& act, co
 
     return result;
 }
+ConsumeActivator deserialize(const ConsumeActivator& act, const boost::property_tree::ptree& ar)
+{
+    ConsumeActivator result;
+    result.left = ar.get<std::string>("left");
+    result.right = ar.get<std::string>("right");
+
+    return result;
+}
 SetValueManipulator deserialize(const SetValueManipulator& act, const boost::property_tree::ptree& ar)
 {
     SetValueManipulator result;
@@ -131,6 +172,27 @@ SetChoiceManipulator deserialize(const SetChoiceManipulator& act, const boost::p
     SetChoiceManipulator result;
     result.outputIdx = ar.get<std::size_t>("outputIdx");
     result.selection = ar.get<std::size_t>("selection");
+
+    return result;
+}
+ProduceForce deserialize(const ProduceForce& act, const boost::property_tree::ptree& ar)
+{
+    ProduceForce result;
+    result.primitive = ar.get<std::string>("primitive");
+
+    return result;
+}
+DecomposeForce deserialize(const DecomposeForce& act, const boost::property_tree::ptree& ar)
+{
+    DecomposeForce result;
+    result.pos = ar.get<std::size_t>("pos");
+
+    return result;
+}
+BlockForce deserialize(const BlockForce& act, const boost::property_tree::ptree& ar)
+{
+    BlockForce result;
+    result.values = ar.get<std::size_t>("values");
 
     return result;
 }
@@ -183,6 +245,14 @@ Pop Pop::loadState(const boost::property_tree::ptree& ar)
         {
             newBlock.activator = deserialize(SensoricActivatorForChoice(), activator);
         }
+        else if(type == "ConsumeActivator")
+        {
+            newBlock.activator = deserialize(ConsumeActivator(), activator);
+        }
+        else if(type == "ChainActivator")
+        {
+            newBlock.activator = ChainActivator();
+        }
         else
         {
             throw std::runtime_error("Failed to deserialize type: " + type);
@@ -197,6 +267,26 @@ Pop Pop::loadState(const boost::property_tree::ptree& ar)
         else if(type == "SetChoiceManipulator")
         {
             newBlock.force = deserialize(SetChoiceManipulator(), force);
+        }
+        else if(type == "CombineForce")
+        {
+            newBlock.force = CombineForce();
+        }
+        else if(type == "SinkForce")
+        {
+            newBlock.force = SinkForce();
+        }
+        else if(type == "ProduceForce")
+        {
+            newBlock.force = deserialize(ProduceForce(), force);
+        }
+        else if(type == "DecomposeForce")
+        {
+            newBlock.force = deserialize(DecomposeForce(), force);
+        }
+        else if(type == "BlockForce")
+        {
+            newBlock.force = deserialize(BlockForce(), force);
         }
         else
         {
