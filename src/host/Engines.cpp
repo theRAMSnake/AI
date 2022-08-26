@@ -2,6 +2,7 @@
 #include "neat/neat.hpp"
 #include "snake4/snake4.hpp"
 #include <boost/filesystem.hpp>
+#include <numeric>
 
 unsigned int getRawNumIOs(const std::vector<gacommon::IOElement>& inputs)
 {
@@ -41,7 +42,7 @@ neat::Config makeNeatConfig(const boost::property_tree::ptree& orig, gacommon::I
     result.numThreads = orig.get<unsigned int>("num_threads");
 
     result.populationCfg.size = orig.get<unsigned int>("population");
-    result.populationCfg.mCompatibilityFactor = orig.get<double>("neat_compatibility_factor", 3.0);
+    result.populationCfg.mCompatibilityFactor = orig.get<double>("neat_compatibility_factor", 5.0);
     result.populationCfg.minterspecieCrossoverPercentage = orig.get<double>("neat_interspecie_crossover_percentage", 1);
     result.populationCfg.mC1_C2 = orig.get<double>("neat_c1_c2", 1);
     result.populationCfg.mC3 = orig.get<double>("neat_c3", 0.3);
@@ -169,11 +170,17 @@ public:
         {
             mImpl.reconfigure(makeNeatConfig(cfg, *mPlayground), neat::EvolutionStrategyType::Blend);
         }
+        mCfg = cfg;
     }
 
     void saveState(const std::string& fileName) override
     {
         mImpl.saveState(fileName);
+    }
+
+    double getAverageComplexity() const override
+    {
+        return mImpl.getPopulation().getAverageComplexity();
     }
 
 private:
@@ -295,11 +302,18 @@ public:
     void reconfigure(const boost::property_tree::ptree& cfg) override
     {
         mImpl.reconfigure(makeS4Config(cfg));
+        mCfg = cfg;
     }
 
     void saveState(const std::string& fileName) override
     {
         mImpl.saveState(fileName);
+    }
+
+    double getAverageComplexity() const override
+    {
+        auto totalComplexity = std::accumulate(mImpl.getPopulation().begin(), mImpl.getPopulation().end(), 0, [](auto x, auto y){return y.blocks.size() + x;});
+        return totalComplexity / mImpl.getPopulation().size();
     }
 
 private:

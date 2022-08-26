@@ -41,8 +41,6 @@ public:
       
       for(auto c : mChallenges)
       {
-          agent.reset();
-
           auto inputs = getInputs();
           auto outputs = getOutputs();
 
@@ -52,6 +50,7 @@ public:
 
           auto expected = runChallenge(c);
 
+          agent.reset();
           agent.run(inputs, outputs);
 
           if(expected == std::get<gacommon::ChoiceIO>(outputs[0]).selection)

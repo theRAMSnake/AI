@@ -21,6 +21,7 @@ public:
     virtual void saveState(const std::string& fileName) = 0;
     virtual gacommon::Fitness getBestFitness() const = 0;
     virtual std::size_t getGenerationNumber() const = 0;
+    virtual double getAverageComplexity() const = 0;
 
     virtual std::vector<PopInfo> describePopulation() const = 0;
     virtual std::vector<std::byte> exportIndividual(const PopId id) const = 0;

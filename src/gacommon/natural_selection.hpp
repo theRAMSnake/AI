@@ -52,6 +52,7 @@ public:
        auto newGen = select();
        repopulate(newGen);
        evaluate();
+       mGeneration++;
    }
 
    void reconfigure(const Config& cfg)
@@ -86,6 +87,8 @@ public:
 
    void loadState(const std::string& fileName)
    {
+       mPopulation.clear();
+
        boost::property_tree::ptree ar;
        boost::property_tree::read_json(fileName, ar);
 

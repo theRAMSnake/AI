@@ -6,9 +6,10 @@ LIST(APPEND CMAKE_MODULE_PATH "..")
 include_directories("..")
 
 add_executable(test 
-NaturalSelectionTest.cpp
-SnakeGATest.cpp
-#    CrossoverTest.cpp
+    #NaturalSelectionTest.cpp
+    #SnakeGATest.cpp
+    SoriCompsTest.cpp
+    #CrossoverTest.cpp
     #MutationTest.cpp
     #NeuroNetTest.cpp
     #RNNTest.cpp
@@ -18,7 +19,7 @@ SnakeGATest.cpp
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-target_link_libraries(test neat snake4 ${Boost_LIBRARIES})
+target_link_libraries(test neat snake4 sori ${Boost_LIBRARIES})
 
 add_custom_command(
         TARGET test POST_BUILD

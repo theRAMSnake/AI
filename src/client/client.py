@@ -71,10 +71,17 @@ def sendReceive(message):
     sock.send(bytearray(sizes))
     sock.sendall(bytearray(message, 'utf-8'))
 
-    recv_len = sock.recv(2)
-    to_receive = recv_len[0] | (recv_len[1] << 8)
+    recv_len = sock.recv(4)
+    to_receive = recv_len[0] | (recv_len[1] << 8) | (recv_len[2] << 16) | (recv_len[3] << 24)
     result = sock.recv(to_receive).decode("utf-8")
     sock.close()
+    return result
+
+def decodeString(string):
+    result = ""
+    for x in string.split():
+        result += chr(int(x))
+
     return result
 
 def main():
@@ -83,6 +90,9 @@ def main():
             message = {"operation": "getLastSnapshot"}
             print(sendReceive(json.dumps(message)))
             time.sleep(5)
+    elif sys.argv[1] == "exportIndividual":
+        message = parseMessageFromParams()
+        print(decodeString(sendReceive(message)))
     else:
         message = parseMessageFromParams()
         print(sendReceive(message))

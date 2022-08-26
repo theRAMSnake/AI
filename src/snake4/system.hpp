@@ -28,6 +28,11 @@ struct SensoricActivatorForValue
     double b;
 };
 
+struct MultipleSensoricActivatorForValue
+{
+    std::size_t inputIdx;
+};
+
 struct SensoricActivatorForChoice
 {
     std::size_t inputIdx;
@@ -45,7 +50,7 @@ struct ChainActivator
 {
 };
 
-using ActivatorDefinition = std::variant<AlwaysActivator, SensoricActivatorForValue, SensoricActivatorForChoice, ConsumeActivator, ChainActivator>;
+using ActivatorDefinition = std::variant<AlwaysActivator, SensoricActivatorForValue, MultipleSensoricActivatorForValue, SensoricActivatorForChoice, ConsumeActivator, ChainActivator>;
 
 struct SetValueManipulator
 {
@@ -91,6 +96,11 @@ struct BlockForce
     std::size_t values = 0;
 };
 
+struct MultiplicationForce
+{
+    std::size_t value = 1;
+};
+
 using ForceDefinition = std::variant<
     SetValueManipulator,
     SetChoiceManipulator,
@@ -98,7 +108,8 @@ using ForceDefinition = std::variant<
     SinkForce,
     ProduceForce,
     DecomposeForce,
-    BlockForce>;
+    BlockForce,
+    MultiplicationForce>;
 
 struct BlockDefinition
 {

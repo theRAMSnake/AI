@@ -24,8 +24,9 @@ struct PreviewSnapshot
 {
     gacommon::Fitness bestFitness = 0;
     std::size_t generation = 0;
-    std::chrono::seconds lastGenerationTime;
+    std::chrono::milliseconds lastGenerationTime;
     std::chrono::minutes totalTime;
+    double averageComplexity = 0.0;
 };
 
 class Host

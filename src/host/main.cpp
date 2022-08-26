@@ -11,6 +11,7 @@
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 #include <boost/algorithm/string.hpp>
+#include "gacommon/rng.hpp"
 
 #include "Host.hpp"
 
@@ -62,6 +63,7 @@ std::string to_string(const PreviewSnapshot& src)
     tree.put("generation", src.generation);
     tree.put("lastTime", src.lastGenerationTime.count());
     tree.put("totalTime", src.totalTime.count());
+    tree.put("avgComplexity", src.averageComplexity);
 
     std::stringstream str;
     boost::property_tree::write_json(str, tree);
@@ -218,15 +220,17 @@ private:
         {
             std::cout << "Input message: " << mInputBuffer << std::endl;
             auto responce = handleMessage(mInputBuffer);
-            if(responce.size() > 65535)
+            if(responce.size() > 4294967294)
             {
                 std::cout << "Responce size is to big, send error instead" << std::endl;
                 responce = "Error: responce is to big";
             }
-            mOutBuffer.resize(responce.size() + 2);
+            mOutBuffer.resize(responce.size() + 4);
             mOutBuffer[0] = static_cast<unsigned int>(responce.size()) & 0xFF;
             mOutBuffer[1] = (static_cast<unsigned int>(responce.size()) >> 8) & 0xFF;
-            std::copy(responce.begin(), responce.end(), mOutBuffer.begin() + 2);
+            mOutBuffer[2] = (static_cast<unsigned int>(responce.size()) >> 16) & 0xFF;
+            mOutBuffer[3] = (static_cast<unsigned int>(responce.size()) >> 24) & 0xFF;
+            std::copy(responce.begin(), responce.end(), mOutBuffer.begin() + 4);
 
             boost::asio::async_write(mSocket, boost::asio::buffer(mOutBuffer),
                 boost::bind(&Connection::handleWrite, shared_from_this(), boost::asio::placeholders::error));
@@ -293,6 +297,7 @@ private:
 
 int main()
 {
+    Rng::seed(time(0));
     try
     {
         boost::asio::io_service service;

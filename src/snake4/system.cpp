@@ -13,12 +13,17 @@ public:
    Agent(const std::vector<BlockDefinition>& blocks)
        : mBlocks(blocks)
        , mPrevActivated(false)
+       , mNextActivationsAttempts(1)
    {
    }
 
    void reset() override
    {
-
+       mPrevActivated = false;
+       mElements.clear();
+       mBlockedSteps = 0;
+       mForceMultiplier = 0;
+       mNextActivationsAttempts = 1;
    }
 
    void run(const std::vector<gacommon::IOElement>& inputs, std::vector<gacommon::IOElement>& outputs) override
@@ -29,17 +34,24 @@ public:
            {
                mPrevActivated = false;
                mBlockedSteps--;
+               mNextActivationsAttempts = 0;
                continue;
            }
 
-           if(std::visit([&inputs, this](auto && arg){return processActivator(inputs, arg);}, b.activator))
+           auto thisActivationAttempts = mNextActivationsAttempts;
+           mNextActivationsAttempts = 1;
+           for(int i = 0; i < thisActivationAttempts; i++)
            {
-               mPrevActivated = true;
-               std::visit([&outputs, this](auto && arg){return processForce(outputs, arg);}, b.force);
-           }
-           else
-           {
-               mPrevActivated = false;
+               mForceMultiplier = 1;
+               if(std::visit([&inputs, this](auto && arg){return processActivator(inputs, arg);}, b.activator))
+               {
+                   mPrevActivated = true;
+                   std::visit([&outputs, this](auto && arg){return processForce(outputs, arg);}, b.force);
+               }
+               else
+               {
+                   mPrevActivated = false;
+               }
            }
        }
    }
@@ -64,9 +76,14 @@ private:
    bool processActivator(const std::vector<gacommon::IOElement>& inputs, const ConsumeActivator& act)
    {
        auto pos1 = mElements.find(act.left);
-       auto pos2 = mElements.find(act.left);
+       auto pos2 = mElements.find(act.right);
        if(pos1 != mElements.end() && pos2 != mElements.end() && pos1->second > 0 && pos2->second > 0)
        {
+           if(pos1 == pos2 && pos1->second < 2)
+           {
+               return false;
+           }
+
            pos1->second--;
            pos2->second--;
            mLastConsumed1 = pos1->first;
@@ -100,6 +117,14 @@ private:
        }
    }
 
+   bool processActivator(const std::vector<gacommon::IOElement>& inputs, const MultipleSensoricActivatorForValue& act)
+   {
+       auto& io = inputs[act.inputIdx];
+       auto value = std::get<gacommon::ValueIO>(io).value;
+       mForceMultiplier = std::max(0, static_cast<int>(value));
+       return value != 0;
+   }
+
    bool processActivator(const std::vector<gacommon::IOElement>& inputs, const SensoricActivatorForChoice& act)
    {
        auto& io = inputs[act.inputIdx];
@@ -120,11 +145,11 @@ private:
        }
        else if(manip.funcType == SetValueManipulator::FunctionType::Inc)
        {
-           destination.value++;
+           destination.value += mForceMultiplier;
        }
        else if(manip.funcType == SetValueManipulator::FunctionType::Dec)
        {
-           destination.value--;
+           destination.value -= mForceMultiplier;
        }
        else
        {
@@ -149,7 +174,7 @@ private:
 
    void processForce(std::vector<gacommon::IOElement>& outputs, const ProduceForce& force)
    {
-       mElements[force.primitive]++;
+       mElements[force.primitive] += 2 * mForceMultiplier;
    }
 
    void processForce(std::vector<gacommon::IOElement>& outputs, const DecomposeForce& force)
@@ -159,21 +184,36 @@ private:
            mElements[mLastConsumed1.substr(0, force.pos)]++;
            mElements[mLastConsumed1.substr(force.pos, std::string::npos)]++;
        }
+       else
+       {
+           mElements[mLastConsumed1]++;
+       }
        if(force.pos < mLastConsumed2.size())
        {
            mElements[mLastConsumed2.substr(0, force.pos)]++;
            mElements[mLastConsumed2.substr(force.pos, std::string::npos)]++;
        }
+       else
+       {
+           mElements[mLastConsumed2]++;
+       }
    }
 
    void processForce(std::vector<gacommon::IOElement>& outputs, const BlockForce& force)
    {
-       mBlockedSteps = force.values;
+       mBlockedSteps = force.values * mForceMultiplier;
+   }
+
+   void processForce(std::vector<gacommon::IOElement>& outputs, const MultiplicationForce& force)
+   {
+       mNextActivationsAttempts = force.value * mForceMultiplier;
    }
 
    const std::vector<BlockDefinition>& mBlocks;
    bool mPrevActivated;
    std::size_t mBlockedSteps = 0;
+   std::size_t mNextActivationsAttempts = 1;
+   unsigned int mForceMultiplier = 0;
    std::string mLastConsumed1;
    std::string mLastConsumed2;
    std::map<std::string, std::size_t> mElements;

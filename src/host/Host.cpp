@@ -34,7 +34,7 @@ boost::property_tree::ptree makeDefaultProjectConfig()
 {
     boost::property_tree::ptree result;
 
-    result.put("population", 500);
+    result.put("population", 1000);
     result.put("autosave_period", 10);
     result.put("num_threads", std::thread::hardware_concurrency() / 2);
 
@@ -142,8 +142,9 @@ void Host::threadFunc(const StopCondition condition)
         PreviewSnapshot newSnapshot {
             mCurrentProject->getBestFitness(),
             mCurrentProject->getGenerationNumber(),
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - generationTime),
-            std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now() - startTime)
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - generationTime),
+            std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now() - startTime),
+            mCurrentProject->getAverageComplexity()
         };
         bestFitness = newSnapshot.bestFitness;
         {
