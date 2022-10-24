@@ -9,6 +9,16 @@ struct Point
 {
     std::uint16_t x = 0;
     std::uint16_t y = 0;
+
+    bool operator==(const Point& other) const
+    {
+        return x == other.x && y == other.y;
+    }
+
+    bool operator!=(const Point& other) const
+    {
+        return !operator==(other);
+    }
 };
 
 struct Size

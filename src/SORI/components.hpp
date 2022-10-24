@@ -51,9 +51,10 @@ public:
 
    virtual std::shared_ptr<Unit> clone(const UnitId newId) const = 0;
    virtual void mutate() = 0;
-   virtual std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) = 0;
 
 protected:
+   virtual std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) = 0;
+
    std::vector<UnitId> mOutputs;
    std::vector<Message> mMessages;
    const UnitId mId;
@@ -66,11 +67,11 @@ public:
    CursorManipulator(const UnitId id);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    static Image sProjection;
    Point mPos;
 };
@@ -82,11 +83,11 @@ public:
    ScreenReader(const UnitId id, const Size& sz);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    Point mBottomLeftPos;
    Size mSize;
 };
@@ -98,11 +99,11 @@ public:
    ConstantGenerator(const UnitId id);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    std::shared_ptr<Data> mConstant;
 };
 
@@ -113,11 +114,11 @@ public:
    RandomGenerator(const UnitId id);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    double mChance = 0.0;
    std::size_t mLen = 0;
 };
@@ -129,11 +130,11 @@ public:
    PhasicGenerator(const UnitId id);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    std::uint8_t mStep = 0;
    std::uint8_t mPhase = 0;
    std::shared_ptr<Data> mConstant;
@@ -146,27 +147,28 @@ public:
    Storage(const UnitId id);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    std::shared_ptr<Data> mSlot;
 };
 
-// Splits data
-class Splitter : public Unit
+// Extracts data
+class Extractor : public Unit
 {
 public:
-   Splitter(const UnitId id);
+   Extractor(const UnitId id, const std::size_t begin, const std::size_t end);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
-   std::size_t mPos;
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
+   std::size_t mBegin = 0;
+   std::size_t mEnd = 0;
 };
 
 // Combines data
@@ -176,52 +178,48 @@ public:
    Combiner(const UnitId id);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
+private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 };
 
 // Applies bitmask on data
 class Filter : public Unit
 {
 public:
-   Filter(const UnitId id);
+   Filter(const UnitId id, const Data& bitmask);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    Data mBitmask;
 };
 
-// Propagates 1 if input1 matches input2 above threshold.
+// Propagates 1 if input1 matches input2 above threshold, else propagates 0
 class Matcher : public Unit
 {
 public:
-   Matcher(const UnitId id);
+   Matcher(const UnitId id, const double threshold);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
 
    static std::shared_ptr<Unit> createRandom(const UnitId id);
 
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    double mThreshold = 0.0;
-   std::shared_ptr<Data> mSignal;
+   std::shared_ptr<Data> mSignalTrue;
+   std::shared_ptr<Data> mSignalFalse;
 };
 
 // Executes logical operation on data.
 class LogicalOp : public Unit
 {
 public:
-   LogicalOp(const UnitId id);
-   std::shared_ptr<Unit> clone(const UnitId newId) const override;
-   void mutate() override;
-   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-
-   static std::shared_ptr<Unit> createRandom(const UnitId id);
    enum class Type
    {
        And,
@@ -230,7 +228,13 @@ public:
        Xor
    };
 
+   LogicalOp(const UnitId id, const Type t);
+   std::shared_ptr<Unit> clone(const UnitId newId) const override;
+   void mutate() override;
+
+   static std::shared_ptr<Unit> createRandom(const UnitId id);
 private:
+   std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    Type mType = Type::And;
 };
 
@@ -241,7 +245,7 @@ using AllUnitTypes = boost::mpl::vector<
     RandomGenerator,
     PhasicGenerator,
     Storage,
-    Splitter,
+    Extractor,
     Combiner,
     Filter,
     Matcher,

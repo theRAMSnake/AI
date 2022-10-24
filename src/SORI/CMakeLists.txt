@@ -8,6 +8,7 @@ include_directories("..")
 add_library(sori
     sori.cpp
     pop.cpp
+    data.cpp
     environment.cpp
     components.cpp
 )
