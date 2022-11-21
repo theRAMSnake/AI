@@ -31,6 +31,18 @@ BOOST_FIXTURE_TEST_CASE( ReadTest, SoriDataTest )
     BOOST_CHECK_EQUAL(2, values[2]);
 }
 
+BOOST_FIXTURE_TEST_CASE( ReadCappedTest, SoriDataTest )
+{
+    auto src = std::make_shared<sori::Data>(1);
+    (*src)[0] = 1;
+
+    sori::DataReader<std::uint8_t, 2> reader(*src);
+    std::vector<std::uint8_t> values;
+    std::copy(reader.begin(), reader.end(), std::back_inserter(values));
+
+    BOOST_CHECK_EQUAL(0, values.size());
+}
+
 BOOST_FIXTURE_TEST_CASE( ReadTest2, SoriDataTest )
 {
     auto src = std::make_shared<sori::Data>(28);

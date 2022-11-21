@@ -5,7 +5,7 @@ project(AI)
 include_directories(.)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++20 -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -std=c++20 -g")
 
 add_subdirectory(logger)
 add_subdirectory(host)

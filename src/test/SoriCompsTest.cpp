@@ -19,7 +19,7 @@ public:
         mLastClickPos = pos;
     }
 
-    int getErrorRating() const override
+    int getScore() const override
     {
         return 0;
     }
@@ -54,7 +54,7 @@ BOOST_FIXTURE_TEST_CASE( BasicTest, SoriCompsTest )
     unit->removeConnections(8);
     BOOST_CHECK_EQUAL(2, unit->getNumConnections());
 
-    sori::Message msg({std::make_shared<sori::Data>(1), 3});
+    sori::Message msg({sori::Data(1), 3});
     unit->postMessage(msg);
 
     auto result = unit->activate(ctx);
@@ -68,8 +68,7 @@ class MessageStream
 public:
     explicit MessageStream(sori::Unit& destination)
         : mDestination(destination)
-        , mCurMsg({std::make_shared<sori::Data>(), 0})
-        , mCurWritter(*mCurMsg.data)
+        , mCurWritter(mCurMsg.data)
     {
     }
 
@@ -82,8 +81,8 @@ public:
     void flush()
     {
         mDestination.postMessage(mCurMsg);
-        mCurMsg.data = std::make_shared<sori::Data>();
-        new (&mCurWritter) sori::DataWritter<T,Size>(*mCurMsg.data);
+        mCurMsg.data.clear();
+        new (&mCurWritter) sori::DataWritter<T,Size>(mCurMsg.data);
     }
 
 private:
@@ -225,9 +224,9 @@ BOOST_FIXTURE_TEST_CASE( ScreenReaderTest, SoriCompsTest )
     BOOST_CHECK_EQUAL(2, result.size());
 
     //Expect results are the same image
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
 
-    auto& data = *(result[0].data);
+    auto& data = (result[0].data);
     BOOST_CHECK_EQUAL(data.size(), 5 * 10 * 3 * 8);
 
     sori::DataReader<std::uint8_t> reader(data);
@@ -262,9 +261,9 @@ BOOST_FIXTURE_TEST_CASE( ConstantGeneratorTest, SoriCompsTest )
     unit->connect(7);
     auto result = unit->activate(ctx);
     BOOST_CHECK_EQUAL(2, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
 
-    auto& data = *(result[0].data);
+    auto& data = (result[0].data);
     BOOST_CHECK_EQUAL(data.size(), 1);
 }
 
@@ -281,9 +280,9 @@ BOOST_FIXTURE_TEST_CASE( RandomGeneratorTest, SoriCompsTest )
         if(result.size() > 0)
         {
             BOOST_CHECK_EQUAL(2, result.size());
-            BOOST_CHECK(*(result[0].data) == *(result[1].data));
+            BOOST_CHECK((result[0].data) == (result[1].data));
 
-            auto& data = *(result[0].data);
+            auto& data = (result[0].data);
             BOOST_CHECK_EQUAL(data.size(), 1);
 
             break;
@@ -306,9 +305,9 @@ BOOST_FIXTURE_TEST_CASE( PhasicGeneratorTest, SoriCompsTest )
         if(result.size() > 0)
         {
             BOOST_CHECK_EQUAL(2, result.size());
-            BOOST_CHECK(*(result[0].data) == *(result[1].data));
+            BOOST_CHECK((result[0].data) == (result[1].data));
 
-            auto& data = *(result[0].data);
+            auto& data = (result[0].data);
             BOOST_CHECK_EQUAL(data.size(), 1);
 
             numPhases++;
@@ -352,12 +351,12 @@ BOOST_FIXTURE_TEST_CASE( StorageTest, SoriCompsTest )
 
     auto result = unit->activate(ctx);
     BOOST_CHECK_EQUAL(6, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
-    BOOST_CHECK(*(result[4].data) == *(result[5].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
+    BOOST_CHECK((result[4].data) == (result[5].data));
 
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 3);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -368,7 +367,7 @@ BOOST_FIXTURE_TEST_CASE( StorageTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(1, readData[2]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 3);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -379,7 +378,7 @@ BOOST_FIXTURE_TEST_CASE( StorageTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(1, readData[2]);
     }
     {
-        auto& data = *(result[4].data);
+        auto& data = (result[4].data);
         BOOST_CHECK_EQUAL(data.size(), 3);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -409,11 +408,11 @@ BOOST_FIXTURE_TEST_CASE( ExtractorTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(6, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
-    BOOST_CHECK(*(result[4].data) == *(result[5].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
+    BOOST_CHECK((result[4].data) == (result[5].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -423,7 +422,7 @@ BOOST_FIXTURE_TEST_CASE( ExtractorTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(1, readData[1]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -433,7 +432,7 @@ BOOST_FIXTURE_TEST_CASE( ExtractorTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(0, readData[1]);
     }
     {
-        auto& data = *(result[4].data);
+        auto& data = (result[4].data);
         BOOST_CHECK_EQUAL(data.size(), 3);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -464,9 +463,9 @@ BOOST_FIXTURE_TEST_CASE( CombinerTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(2, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
 
-    auto& data = *(result[0].data);
+    auto& data = (result[0].data);
     BOOST_CHECK_EQUAL(data.size(), 15);
 
     sori::DataReader<std::uint8_t, 1> reader(data);
@@ -507,11 +506,11 @@ BOOST_FIXTURE_TEST_CASE( FilterTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(6, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
-    BOOST_CHECK(*(result[4].data) == *(result[5].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
+    BOOST_CHECK((result[4].data) == (result[5].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -521,7 +520,7 @@ BOOST_FIXTURE_TEST_CASE( FilterTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(1, readData[1]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 5);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -534,7 +533,7 @@ BOOST_FIXTURE_TEST_CASE( FilterTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(0, readData[4]);
     }
     {
-        auto& data = *(result[4].data);
+        auto& data = (result[4].data);
         BOOST_CHECK_EQUAL(data.size(), 9);
 
         sori::DataReader<std::uint8_t, 1> reader(data);
@@ -582,27 +581,27 @@ BOOST_FIXTURE_TEST_CASE( MatcherTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(8, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
-    BOOST_CHECK(*(result[4].data) == *(result[5].data));
-    BOOST_CHECK(*(result[6].data) == *(result[7].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
+    BOOST_CHECK((result[4].data) == (result[5].data));
+    BOOST_CHECK((result[6].data) == (result[7].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 1);
         BOOST_CHECK(!data[0]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 1);
         BOOST_CHECK(data[0]);
     }
     {
-        auto& data = *(result[4].data);
+        auto& data = (result[4].data);
         BOOST_CHECK_EQUAL(data.size(), 1);
         BOOST_CHECK(!data[0]);
     }
     {
-        auto& data = *(result[6].data);
+        auto& data = (result[6].data);
         BOOST_CHECK_EQUAL(data.size(), 1);
         BOOST_CHECK(data[0]);
     }
@@ -628,12 +627,12 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpNotTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(8, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
-    BOOST_CHECK(*(result[4].data) == *(result[5].data));
-    BOOST_CHECK(*(result[6].data) == *(result[7].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
+    BOOST_CHECK((result[4].data) == (result[5].data));
+    BOOST_CHECK((result[6].data) == (result[7].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -642,7 +641,7 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpNotTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(0, readData[1]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -651,7 +650,7 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpNotTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(0, readData[1]);
     }
     {
-        auto& data = *(result[4].data);
+        auto& data = (result[4].data);
         BOOST_CHECK_EQUAL(data.size(), 5);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -663,7 +662,7 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpNotTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(0, readData[4]);
     }
     {
-        auto& data = *(result[6].data);
+        auto& data = (result[6].data);
         BOOST_CHECK_EQUAL(data.size(), 8);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -698,10 +697,10 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpAndTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(4, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -710,7 +709,7 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpAndTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(1, readData[1]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 8);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -745,10 +744,10 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpOrTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(4, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -757,7 +756,7 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpOrTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(1, readData[1]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 8);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -792,10 +791,10 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpXorTest, SoriCompsTest )
 
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(4, result.size());
-    BOOST_CHECK(*(result[0].data) == *(result[1].data));
-    BOOST_CHECK(*(result[2].data) == *(result[3].data));
+    BOOST_CHECK((result[0].data) == (result[1].data));
+    BOOST_CHECK((result[2].data) == (result[3].data));
     {
-        auto& data = *(result[0].data);
+        auto& data = (result[0].data);
         BOOST_CHECK_EQUAL(data.size(), 2);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;
@@ -804,7 +803,7 @@ BOOST_FIXTURE_TEST_CASE( LogicalOpXorTest, SoriCompsTest )
         BOOST_CHECK_EQUAL(0, readData[1]);
     }
     {
-        auto& data = *(result[2].data);
+        auto& data = (result[2].data);
         BOOST_CHECK_EQUAL(data.size(), 8);
         sori::DataReader<std::uint8_t, 1> reader(data);
         std::vector<std::uint8_t> readData;

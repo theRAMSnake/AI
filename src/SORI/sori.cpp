@@ -3,8 +3,9 @@
 namespace sori
 {
 
-Sori::Sori(const Config& cfg)
+Sori::Sori(const Config& cfg, ITaskManager& taskManager)
 : mCfg(cfg)
+, mTaskManager(taskManager)
 {
   for(std::size_t i = 0; i < mCfg.populationSize; ++i)
   {
@@ -12,9 +13,58 @@ Sori::Sori(const Config& cfg)
   }
 }
 
-void Sori::addTask(std::shared_ptr<ITask> task)
+Sori::Sori(ITaskManager& taskManager, Database& db)
+    : mTaskManager(taskManager)
 {
-    mTasks.push_back(task);
+    mCfg.environmentSize.x = db.loadParameter<std::uint16_t>("env_size_x");
+    mCfg.environmentSize.y = db.loadParameter<std::uint16_t>("env_size_y");
+    mCfg.numThreads = db.loadParameter<std::size_t>("num_threads");
+    mCfg.populationSize = db.loadParameter<std::size_t>("population_size");
+    mCfg.survivalRate = db.loadParameter<double>("survival_rate");
+    mGeneration = db.loadParameter<std::size_t>("generation");
+    mCurrentEnergyLimit = db.loadParameter<std::size_t>("current_energy_limit");
+    mGlobalTaskScores = db.loadScores();
+    mPopulation = db.loadPops();
+}
+
+void Sori::checkpoint(Database& db)
+{
+    db.saveParameter("env_size_x", mCfg.environmentSize.x);
+    db.saveParameter("env_size_y", mCfg.environmentSize.y);
+    db.saveParameter("num_threads", mCfg.numThreads);
+    db.saveParameter("population_size", mCfg.populationSize);
+    db.saveParameter("survival_rate", mCfg.survivalRate);
+    db.saveParameter("generation", mGeneration);
+    db.saveParameter("current_energy_limit", mCurrentEnergyLimit);
+
+    db.saveScores(mGlobalTaskScores);
+    db.savePops(mPopulation);
+}
+
+Config Sori::getConfig() const
+{
+    return mCfg;
+}
+
+std::size_t Sori::getGeneration() const
+{
+    return mGeneration;
+}
+
+int Sori::getLastTaskScore(const std::string& taskName) const
+{
+    auto pos = mGlobalTaskScores.find(taskName);
+    if(pos != mGlobalTaskScores.end())
+    {
+        return pos->second;
+    }
+
+    throw std::runtime_error("No such task " + taskName);
+}
+
+const std::list<Pop>& Sori::getPopulation() const
+{
+    return mPopulation;
 }
 
 void Sori::step()
@@ -29,7 +79,7 @@ void Sori::select()
    //Expected to be sorted after evaluation
    std::list<Pop> selected;
 
-   for(std::size_t i = 0; i < mCfg.populationSize * mCfg.survivalRate; ++i)
+   for(std::size_t i = 0; i < std::max(1, static_cast<int>(mCfg.populationSize * mCfg.survivalRate)); ++i)
    {
        selected.splice(selected.end(), mPopulation, selectTournament(mPopulation));
    }
@@ -58,28 +108,23 @@ void Sori::populate()
 
 void Sori::evaluate()
 {
-   auto task = mTasks[Rng::genChoise(mTasks.size())];
-   std::vector<std::uint8_t> results(mPopulation.size());
+   auto& task = mTaskManager.pickNextTask(mGlobalTaskScores);
 
    std::vector<std::thread> threads;
    for(std::size_t i = 0; i < mCfg.numThreads; ++i)
    {
-       threads.push_back(std::thread([this, i, &results, task](){
-           Environment ev(mCfg.environmentSize, *task, mCurrentEnergyLimit);
+       threads.push_back(std::thread([this, i, &task](){
+           Environment ev(mCfg.environmentSize, task, mCurrentEnergyLimit);
            auto iter = mPopulation.begin();
            for(std::size_t popidx = 0; popidx < mPopulation.size(); ++popidx, ++iter)
            {
-               if(popidx % mCfg.numThreads == i)
+               if((popidx % mCfg.numThreads) == i)
                {
+                   if(mCfg.testMode && mCfg.numThreads == 1)
+                   {
+                       savePop("LastRunPop", *iter);
+                   }
                    ev.run(*iter);
-                   if(iter->getFitness().energyLeft == 0)
-                   {
-                       results[popidx] = 0;
-                   }
-                   else
-                   {
-                       results[popidx] = 1;
-                   }
                }
            }
        }));
@@ -90,25 +135,12 @@ void Sori::evaluate()
        t.join();
    }
 
-   std::size_t solutions = std::count(results.begin(), results.end(), 1);
-   auto& stats = mTaskStatistics[task->getName()];
-   if(stats.size() == 50)
+   mPopulation.sort([](auto& x, auto& y){return x.getFitness() > y.getFitness();});
+   if(mPopulation.begin()->getFitness().score < task.getMaxScore())
    {
-       stats.erase(stats.begin());
+       mCurrentEnergyLimit += 25;
    }
-
-   if(solutions == 0)
-   {
-       mCurrentEnergyLimit += 50;
-   }
-   else
-   {
-       task->advance();
-   }
-
-   stats.push_back(static_cast<double>(solutions) / mPopulation.size());
-
-   mPopulation.sort([](auto x, auto y){return x.getFitness() > y.getFitness();});
+   mGlobalTaskScores[task.getName()] = mPopulation.begin()->getFitness().score;
 }
 
 std::list<Pop>::iterator Sori::selectTournament(std::list<Pop>& pops)
@@ -137,6 +169,16 @@ std::list<Pop>::iterator Sori::selectTournament(std::list<Pop>& pops)
             }
         }
     }
+}
+
+const Pop& Sori::getTopPerformer() const
+{
+    return *mPopulation.begin();
+}
+
+std::size_t Sori::getEnergyLimit() const
+{
+    return mCurrentEnergyLimit;
 }
 
 }

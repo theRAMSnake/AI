@@ -62,6 +62,10 @@ public:
 
     Iterator begin() const
     {
+        if(mData.size() < BitLen)
+        {
+            return end();
+        }
         return Iterator(mData, 0);
     }
 

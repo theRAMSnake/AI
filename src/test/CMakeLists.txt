@@ -9,7 +9,11 @@ add_executable(test
     #NaturalSelectionTest.cpp
     #SnakeGATest.cpp
     SoriCompsTest.cpp
+    #SoriMutationsTest.cpp
+    #SoriSaveLoadTest.cpp
     SoriDataTest.cpp
+    SoriConvergenceTest.cpp
+    #SoriBrokenPopsTest.cpp
     #CrossoverTest.cpp
     #MutationTest.cpp
     #NeuroNetTest.cpp

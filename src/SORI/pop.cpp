@@ -1,7 +1,25 @@
 #include "pop.hpp"
 #include "gacommon/rng.hpp"
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/device/back_inserter.hpp>
+#include <boost/iostreams/stream.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <set>
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::CursorManipulator);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::ScreenReader);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::ConstantGenerator);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::RandomGenerator);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::PhasicGenerator);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::Storage);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::Extractor);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::Combiner);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::Filter);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::Matcher);
+BOOST_CLASS_EXPORT_IMPLEMENT(sori::LogicalOp);
 
 namespace sori
 {
@@ -10,7 +28,6 @@ Pop Pop::createMinimal()
 {
     Pop pop;
 
-    pop.addUnit<ConstantGenerator>(pop.genId());
     pop.addUnit<CursorManipulator>(pop.genId());
     pop.addUnit<ScreenReader>(pop.genId(), Size{5, 5});
     pop.addRandomUnit();
@@ -45,9 +62,7 @@ void Pop::addRandomConnection()
 
 UnitId Pop::genId() const
 {
-    // Do not forget to update during deserialisation
-    static std::uint64_t sId = 0;
-    return sId++;
+    return mNextId++;
 }
 
 Pop Pop::cloneMutated() const
@@ -59,22 +74,23 @@ Pop Pop::cloneMutated() const
     constexpr double REMOVE_CONNECTION_CHANCE = 0.05;
 
     Pop pop;
+    pop.mNextId = mNextId;
 
     std::set<std::uint32_t> removedUnits;
     for(const auto& unit : mUnits)
     {
+        if(Rng::genProbability(ADD_UNIT_CHANCE))
+        {
+            pop.addRandomUnit();
+        }
+
         if(Rng::genProbability(DESTROY_UNIT_CHANCE))
         {
             removedUnits.insert(unit->getId());
             continue;
         }
 
-        if(Rng::genProbability(ADD_UNIT_CHANCE))
-        {
-            pop.addRandomUnit();
-        }
-
-        auto newUnit = unit->clone(pop.genId());
+        auto newUnit = unit->clone(unit->getId());
         if(Rng::genProbability(MUTATE_UNIT_CHANCE))
         {
             newUnit->mutate();
@@ -87,7 +103,7 @@ Pop Pop::cloneMutated() const
     {
         if(Rng::genProbability(ADD_CONNECTION_CHANCE))
         {
-            unit->connect(mUnits[Rng::genChoise(mUnits.size())]->getId());
+            unit->connect(pop.mUnits[Rng::genChoise(pop.mUnits.size())]->getId());
         }
         if(Rng::genProbability(REMOVE_CONNECTION_CHANCE))
         {
@@ -101,10 +117,16 @@ Pop Pop::cloneMutated() const
 
     for(auto id : removedUnits)
     {
-        for(auto& c : mUnits)
+        for(auto& c : pop.mUnits)
         {
             c->removeConnections(id);
         }
+    }
+
+    //Keep at least three copms
+    for(std::size_t i = std::min(3lu, pop.mUnits.size()); i != 0; --i)
+    {
+        pop.addRandomUnit();
     }
 
     return pop;
@@ -123,12 +145,19 @@ Fitness Pop::getFitness() const
 std::size_t getMessageCost(const Message& c)
 {
     // 1 energy cost per 10 bits
-    return c.data->size() / 10;
+    return c.data.size() / 10;
 }
 
-void Pop::run(const std::size_t energyLimit, const Image& surface, std::unique_ptr<TaskContext> taskContext)
+void Pop::run(const std::size_t energyLimit, const Image& surface, TaskContext& taskContext)
 {
-    Context ctx(surface, *taskContext);
+    if(mUnits.empty())
+    {
+        mFitness.score = 0;
+        mFitness.energyLeft = 0;
+        return ;
+    }
+
+    Context ctx(surface, taskContext);
 
     std::size_t energySpent = 0;
     while(true)
@@ -139,31 +168,95 @@ void Pop::run(const std::size_t energyLimit, const Image& surface, std::unique_p
             for(const auto& msg : delivery)
             {
                 energySpent += getMessageCost(msg);
-                if(energySpent >= energyLimit)
-                {
-                    // Dead
-                    mFitness.errorRating = 0;
-                    mFitness.energyLeft = 0;
-                    return ;
-                }
-
                 getUnitById(msg.destination).postMessage(msg);
 
                 if(ctx.isDone())
                 {
                     // Done
-                    mFitness.errorRating = ctx.getErrorRating();
+                    mFitness.score = ctx.getScore();
                     mFitness.energyLeft = energyLimit - energySpent;
                     return ;
                 }
             }
+            if(energySpent >= energyLimit)
+            {
+                // Dead
+                mFitness.score = ctx.getScore();
+                mFitness.energyLeft = 0;
+                return ;
+            }
+
+            energySpent++;
         }
     }
 }
 
 Unit& Pop::getUnitById(const UnitId id)
 {
-    return **std::find_if(mUnits.begin(), mUnits.end(), [id](auto x){return x->getId() == id; });
+    auto pos = std::find_if(mUnits.begin(), mUnits.end(), [id](auto x){return x->getId() == id; });
+    assert(pos != mUnits.end());
+    return **pos;
+}
+
+void Pop::print() const
+{
+    std::cout << "[" << std::endl;
+    for(auto& u : mUnits)
+    {
+        u->print();
+    }
+    std::cout << "]" << std::endl;
+}
+
+void savePop(const std::string& filename, const Pop& pop)
+{
+    std::ofstream stream(filename, std::ios_base::binary | std::ios_base::trunc);
+    boost::archive::binary_oarchive ar(stream);
+    ar & pop;
+}
+
+Pop loadPop(const std::string& filename)
+{
+    std::ifstream stream(filename, std::ios_base::binary);
+    if(stream)
+    {
+        boost::archive::binary_iarchive ar(stream);
+        Pop result;
+        ar & result;
+        return result;
+    }
+    throw std::runtime_error("File not found: " + filename);
+}
+
+Pop popFromBinary(const std::vector<std::uint8_t>& in)
+{
+    std::string str;;
+    str.resize(in.size());
+    std::copy(in.begin(), in.end(), str.begin());
+
+    boost::iostreams::array_source source{str.data(), str.size()};
+    boost::iostreams::stream<boost::iostreams::array_source> is{source};
+    boost::archive::binary_iarchive ar(is);
+    Pop result;
+    ar & result;
+    return result;
+}
+
+std::vector<std::uint8_t> popToBinary(const Pop& pop)
+{
+    std::string serial_str;
+    {
+        boost::iostreams::back_insert_device<std::string> inserter(serial_str);
+        boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s(inserter);
+        boost::archive::binary_oarchive ar(s);
+        ar & pop;
+    }
+
+    std::vector<std::uint8_t> result;
+    result.resize(serial_str.size());
+    std::copy(serial_str.begin(), serial_str.end(), result.begin());
+
+    return result;
 }
 
 }

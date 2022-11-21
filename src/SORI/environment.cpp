@@ -13,7 +13,8 @@ Environment::Environment(const Size& sz, const ITask& task, const std::size_t en
 
 void Environment::run(Pop& pop)
 {
-    pop.run(mEnergyLimit, mSurface, mTask.createContext());
+    auto ctx = mTask.createContext();
+    pop.run(mEnergyLimit, mSurface, *ctx);
 }
 
 }

@@ -54,13 +54,25 @@ void Unit::removeConnections(const UnitId outCmpId)
 {
     std::erase_if(mOutputs, [outCmpId](auto x){return x == outCmpId;});
 }
+void Unit::print() const
+{
+    std::cout << "Id: " << mId << ", ";
+    printDetails();
+    std::cout << std::endl;
+    std::cout << "Connections: [";
+    for(auto c : mOutputs)
+    {
+        std::cout << c << ' ';
+    }
+    std::cout << "]" << std::endl;
+}
 Size Context::getSize() const
 {
     return {static_cast<uint16_t>(mSurface.width()), static_cast<uint16_t>(mSurface.height())};
 }
-int Context::getErrorRating() const
+int Context::getScore() const
 {
-    return mTaskCtx.getErrorRating();
+    return mTaskCtx.getScore();
 }
 void Context::onClick(const Point& pt)
 {
@@ -130,11 +142,17 @@ std::shared_ptr<Unit> CursorManipulator::clone(const UnitId newId) const
 {
     auto result = std::make_shared<CursorManipulator>(newId);
     result->mPos = mPos;
+    result->mOutputs = mOutputs;
     return result;
 }
 
 void CursorManipulator::mutate()
 {
+}
+
+void CursorManipulator::printDetails() const
+{
+    std::cout << "CursorManipulator - Pos: " << mPos;
 }
 
 Point calcPos(const Point& pt, const int xOffset, const int yOffset, const Context& ctx)
@@ -151,7 +169,7 @@ std::vector<Message> CursorManipulator::process(Context& ctx, const std::vector<
     int yOffset = 0;
     for(const auto& m : messages)
     {
-        DataReader<std::uint8_t, 3> reader(*m.data);
+        DataReader<std::uint8_t, 3> reader(m.data);
         for(auto val : reader)
         {
             switch(val)
@@ -222,7 +240,13 @@ std::shared_ptr<Unit> ScreenReader::clone(const UnitId newId) const
 {
     auto result = std::make_shared<ScreenReader>(newId, mSize);
     result->mBottomLeftPos = mBottomLeftPos;
+    result->mOutputs = mOutputs;
     return result;
+}
+
+void ScreenReader::printDetails() const
+{
+    std::cout << "ScreenReader - Size: " << mSize << ", BottomLeftPos: " << mBottomLeftPos;
 }
 
 void ScreenReader::mutate()
@@ -244,7 +268,7 @@ std::vector<Message> ScreenReader::process(Context& ctx, const std::vector<Messa
     int yOffset = 0;
     for(const auto& m : messages)
     {
-        DataReader<std::uint8_t, 2> reader(*m.data);
+        DataReader<std::uint8_t, 2> reader(m.data);
         for(auto val : reader)
         {
             switch(val)
@@ -284,8 +308,8 @@ std::vector<Message> ScreenReader::process(Context& ctx, const std::vector<Messa
         }
     };
 
-    auto out = std::make_shared<Data>();
-    DataWritter<unsigned char> writter(*out);
+    Data out;
+    DataWritter<unsigned char> writter(out);
     for_each_pixel(const_view(img), PixelInserter(&writter));
 
     std::vector<Message> result;
@@ -303,27 +327,31 @@ std::shared_ptr<Unit> ScreenReader::createRandom(const UnitId id)
 //---------------------------------------------------------------------------------------
 ConstantGenerator::ConstantGenerator(const UnitId id)
     : Unit(id)
-    , mConstant()
 {
 }
 
 std::shared_ptr<Unit> ConstantGenerator::clone(const UnitId newId) const
 {
     auto result = std::make_shared<ConstantGenerator>(newId);
-    result->mConstant = cloneData(mConstant);
+    result->mConstant = mConstant;
+    result->mOutputs = mOutputs;
     return result;
+}
+void ConstantGenerator::printDetails() const
+{
+    std::cout << "ConstantGenerator - Constant: " << mConstant;
 }
 
 void ConstantGenerator::mutate()
 {
     bool grow = Rng::genProbability(0.5);
-    if(!grow && mConstant->size() > 2)
+    if(!grow && mConstant.size() > 2)
     {
-        mConstant->pop_back();
+        mConstant.pop_back();
     }
     else
     {
-        mConstant->push_back(Rng::genProbability(0.5) ? 1 : 0);
+        mConstant.push_back(Rng::genProbability(0.5) ? 1 : 0);
     }
 }
 
@@ -332,7 +360,7 @@ std::vector<Message> ConstantGenerator::process(Context& ctx, const std::vector<
     std::vector<Message> result;
     for(auto d : mOutputs)
     {
-        result.push_back({cloneData(mConstant), d});
+        result.push_back({mConstant, d});
     }
     return result;
 }
@@ -340,8 +368,7 @@ std::vector<Message> ConstantGenerator::process(Context& ctx, const std::vector<
 std::shared_ptr<Unit> ConstantGenerator::createRandom(const UnitId id)
 {
     auto result = std::make_shared<ConstantGenerator>(id);
-    result->mConstant = std::make_shared<Data>();
-    result->mConstant->push_back(Rng::genProbability(0.5) ? 1 : 0);
+    result->mConstant.push_back(Rng::genProbability(0.5) ? 1 : 0);
     return result;
 }
 //---------------------------------------------------------------------------------------
@@ -355,6 +382,7 @@ std::shared_ptr<Unit> RandomGenerator::clone(const UnitId newId) const
     auto result = std::make_shared<RandomGenerator>(newId);
     result->mChance = mChance;
     result->mLen = mLen;
+    result->mOutputs = mOutputs;
     return result;
 }
 
@@ -363,16 +391,20 @@ void RandomGenerator::mutate()
     mChance = Rng::genReal();
     mutateIncDec(mLen);
 }
+void RandomGenerator::printDetails() const
+{
+    std::cout << "RandomGenerator - Length: " << mLen << ", Chance: " << mChance;
+}
 
 std::vector<Message> RandomGenerator::process(Context& ctx, const std::vector<Message>& messages)
 {
     std::vector<Message> result;
     if(Rng::genProbability(mChance))
     {
-        auto data = std::make_shared<Data>();
+        Data data;
         for(int i = 0; i < mLen; ++i)
         {
-            data->push_back(Rng::genProbability(0.5) ? 1 : 0);
+            data.push_back(Rng::genProbability(0.5) ? 1 : 0);
         }
         for(auto d : mOutputs)
         {
@@ -400,21 +432,27 @@ std::shared_ptr<Unit> PhasicGenerator::clone(const UnitId newId) const
     auto result = std::make_shared<PhasicGenerator>(newId);
     result->mPhase = mPhase;
     result->mStep = mStep;
-    result->mConstant = cloneData(mConstant);
+    result->mConstant = mConstant;
+    result->mOutputs = mOutputs;
     return result;
+}
+
+void PhasicGenerator::printDetails() const
+{
+    std::cout << "PhasicGenerator - Phase: " << mPhase << ", Step: " << mStep << ", Constant: " << mConstant;
 }
 
 void PhasicGenerator::mutate()
 {
     mutateIncDec(mPhase);
     bool grow = Rng::genProbability(0.5);
-    if(!grow && mConstant->size() > 2)
+    if(!grow && mConstant.size() > 2)
     {
-        mConstant->pop_back();
+        mConstant.pop_back();
     }
     else
     {
-        mConstant->push_back(Rng::genProbability(0.5) ? 1 : 0);
+        mConstant.push_back(Rng::genProbability(0.5) ? 1 : 0);
     }
 }
 
@@ -427,7 +465,7 @@ std::vector<Message> PhasicGenerator::process(Context& ctx, const std::vector<Me
         mStep = 0;
         for(auto d : mOutputs)
         {
-            result.push_back({cloneData(mConstant), d});
+            result.push_back({mConstant, d});
         }
     }
     return result;
@@ -437,8 +475,7 @@ std::shared_ptr<Unit> PhasicGenerator::createRandom(const UnitId id)
 {
     auto result = std::make_shared<PhasicGenerator>(id);
     result->mPhase = 2 + Rng::genChoise(5);
-    result->mConstant = std::make_shared<Data>();
-    result->mConstant->push_back(Rng::genProbability(0.5) ? 1 : 0);
+    result->mConstant.push_back(Rng::genProbability(0.5) ? 1 : 0);
     return result;
 }
 //---------------------------------------------------------------------------------------
@@ -450,12 +487,25 @@ Storage::Storage(const UnitId id)
 std::shared_ptr<Unit> Storage::clone(const UnitId newId) const
 {
     auto result = std::make_shared<Storage>(newId);
-    result->mSlot = cloneData(mSlot);
+    result->mSlot = mSlot;
+    result->mOutputs = mOutputs;
     return result;
 }
 
 void Storage::mutate()
 {
+}
+
+void Storage::printDetails() const
+{
+    if(mSlot.size() > 0)
+    {
+        std::cout << "Storage - Content: " << mSlot;
+    }
+    else
+    {
+        std::cout << "Storage - Content: empty";
+    }
 }
 
 std::vector<Message> Storage::process(Context& ctx, const std::vector<Message>& messages)
@@ -465,15 +515,15 @@ std::vector<Message> Storage::process(Context& ctx, const std::vector<Message>& 
     {
         //If 1 is recieved - releases, if 0 is recieved - clears
         //Otherwise stores
-        if(m.data->size() == 1)
+        if(m.data.size() == 1)
         {
-            if((*m.data)[0])
+            if((m.data)[0])
             {
-                if(mSlot)
+                if(mSlot.size() > 0)
                 {
                     for(auto d : mOutputs)
                     {
-                        result.push_back({cloneData(mSlot), d});
+                        result.push_back({mSlot, d});
                     }
                 }
             }
@@ -484,7 +534,7 @@ std::vector<Message> Storage::process(Context& ctx, const std::vector<Message>& 
         }
         else
         {
-            mSlot = cloneData(m.data);
+            mSlot = m.data;
         }
     }
 
@@ -507,15 +557,20 @@ Extractor::Extractor(const UnitId id, const std::size_t begin, const std::size_t
 std::shared_ptr<Unit> Extractor::clone(const UnitId newId) const
 {
     auto result = std::make_shared<Extractor>(newId, mBegin, mEnd);
+    result->mOutputs = mOutputs;
     return result;
 }
 
+void Extractor::printDetails() const
+{
+    std::cout << "Extractor - Begin: " << mBegin << ", End: " << mEnd;
+}
 void Extractor::mutate()
 {
     mutateIncDec(mBegin);
     mutateIncDec(mEnd);
 
-    if(mBegin < mEnd)
+    if(mBegin > mEnd)
     {
         std::swap(mBegin, mEnd);
     }
@@ -527,22 +582,22 @@ std::vector<Message> Extractor::process(Context& ctx, const std::vector<Message>
     const auto len = mBegin - mEnd;
     for(const auto& m : messages)
     {
-        if(m.data->size() < mBegin || len == 0)
+        if(m.data.size() < mBegin || len == 0)
         {
             for(auto d : mOutputs)
             {
-                result.push_back({cloneData(m.data), d});
+                result.push_back({m.data, d});
             }
             continue;
         }
 
-        auto minEnd = std::min(mEnd, m.data->size());
+        auto minEnd = std::min(mEnd, m.data.size());
         auto cutLen = minEnd - mBegin;
-        auto cut = std::make_shared<Data>(cutLen);
+        Data cut(cutLen);
 
         for(std::size_t i = 0; i < cutLen; ++i)
         {
-            (*cut)[i] = (*m.data)[mBegin + i];
+            (cut)[i] = (m.data)[mBegin + i];
         }
 
         for(auto d : mOutputs)
@@ -569,6 +624,7 @@ Combiner::Combiner(const UnitId id)
 std::shared_ptr<Unit> Combiner::clone(const UnitId newId) const
 {
     auto result = std::make_shared<Combiner>(newId);
+    result->mOutputs = mOutputs;
     return result;
 }
 
@@ -576,18 +632,22 @@ void Combiner::mutate()
 {
 }
 
+void Combiner::printDetails() const
+{
+    std::cout << "Combiner";
+}
 std::vector<Message> Combiner::process(Context& ctx, const std::vector<Message>& messages)
 {
     std::vector<Message> result;
-    auto combined = std::make_shared<Data>();
+    Data combined;
 
     for(std::size_t i = 0; i < messages.size(); i ++)
     {
         auto& a = messages[i];
 
-        for(std::size_t i = 0; i < a.data->size(); ++i)
+        for(std::size_t j = 0; j < a.data.size(); ++j)
         {
-            combined->push_back((*a.data)[i]);
+            combined.push_back((a.data)[j]);
         }
     }
 
@@ -614,9 +674,14 @@ Filter::Filter(const UnitId id, const Data& bitmask)
 std::shared_ptr<Unit> Filter::clone(const UnitId newId) const
 {
     auto result = std::make_shared<Filter>(newId, mBitmask);
+    result->mOutputs = mOutputs;
     return result;
 }
 
+void Filter::printDetails() const
+{
+    std::cout << "Filter - Bitmask: " << mBitmask;
+}
 void Filter::mutate()
 {
     bool grow = Rng::genProbability(0.5);
@@ -635,12 +700,12 @@ std::vector<Message> Filter::process(Context& ctx, const std::vector<Message>& m
     std::vector<Message> result;
     for(const auto& m : messages)
     {
-        auto filtered = cloneData(m.data);
+        auto filtered = m.data;
 
         std::size_t j = 0;
-        for(std::size_t i = 0; i < filtered->size(); ++i)
+        for(std::size_t i = 0; i < filtered.size(); ++i)
         {
-            (*filtered)[i] &= mBitmask[j];
+            (filtered)[i] &= mBitmask[j];
             j++;
             if(j == mBitmask.size())
             {
@@ -669,15 +734,12 @@ Matcher::Matcher(const UnitId id, const double threshold)
     : Unit(id)
     , mThreshold(threshold)
 {
-    mSignalTrue = std::make_shared<Data>(1);
-    (*mSignalTrue)[0] = true;
-    mSignalFalse = std::make_shared<Data>(1);
-    (*mSignalFalse)[0] = false;
 }
 
 std::shared_ptr<Unit> Matcher::clone(const UnitId newId) const
 {
     auto result = std::make_shared<Matcher>(newId, mThreshold);
+    result->mOutputs = mOutputs;
     return result;
 }
 
@@ -686,6 +748,10 @@ void Matcher::mutate()
     mThreshold += Rng::genPerturbation();
 }
 
+void Matcher::printDetails() const
+{
+    std::cout << "Matcher - Threshold: " << mThreshold;
+}
 std::shared_ptr<Unit> Matcher::createRandom(const UnitId id)
 {
     auto result = std::make_shared<Matcher>(id, Rng::genReal());
@@ -694,19 +760,28 @@ std::shared_ptr<Unit> Matcher::createRandom(const UnitId id)
 
 std::vector<Message> Matcher::process(Context& ctx, const std::vector<Message>& messages)
 {
+    static Data signalTrue(1);
+    (signalTrue)[0] = true;
+    static Data signalFalse(1);
+    (signalFalse)[0] = false;
+
     std::vector<Message> result;
+    if(messages.empty())
+    {
+        return {};
+    }
     for(std::size_t i = 0; i < messages.size() - 1; i += 2)
     {
         auto& a = messages[i];
         auto& b = messages[i + 1];
 
-        auto minSize = std::min(a.data->size(), b.data->size());
-        auto maxSize = std::max(a.data->size(), b.data->size());
+        auto minSize = std::min(a.data.size(), b.data.size());
+        auto maxSize = std::max(a.data.size(), b.data.size());
 
         std::size_t matches = 0;
         for(std::size_t i = 0; i < minSize; ++i)
         {
-            if((*a.data)[i] == (*b.data)[i])
+            if((a.data)[i] == (b.data)[i])
             {
                 matches++;
             }
@@ -716,14 +791,14 @@ std::vector<Message> Matcher::process(Context& ctx, const std::vector<Message>& 
         {
             for(auto d : mOutputs)
             {
-                result.push_back({mSignalTrue, d});
+                result.push_back({signalTrue, d});
             }
         }
         else
         {
             for(auto d : mOutputs)
             {
-                result.push_back({mSignalFalse, d});
+                result.push_back({signalFalse, d});
             }
         }
     }
@@ -740,7 +815,12 @@ LogicalOp::LogicalOp(const UnitId id, const Type t)
 std::shared_ptr<Unit> LogicalOp::clone(const UnitId newId) const
 {
     auto result = std::make_shared<LogicalOp>(newId, mType);
+    result->mOutputs = mOutputs;
     return result;
+}
+void LogicalOp::printDetails() const
+{
+    std::cout << "LogicalOp - Type: " << static_cast<int>(mType);
 }
 
 void LogicalOp::mutate()
@@ -776,33 +856,37 @@ std::vector<Message> LogicalOp::process(Context& ctx, const std::vector<Message>
     std::vector<Message> result;
     if(mType != Type::Not)
     {
+        if(messages.empty())
+        {
+            return {};
+        }
         for(std::size_t i = 0; i < messages.size() - 1; i += 2)
         {
             auto& a = messages[i];
             auto& b = messages[i + 1];
 
-            auto maxSize = std::max(a.data->size(), b.data->size());
-            auto minSize = std::min(a.data->size(), b.data->size());
+            auto maxSize = std::max(a.data.size(), b.data.size());
+            auto minSize = std::min(a.data.size(), b.data.size());
             if(minSize == 0)
             {
                 continue;
             }
-            auto combined = std::make_shared<Data>(maxSize);
+            Data combined(maxSize);
 
             std::size_t posa = 0;
             std::size_t posb = 0;
             for(std::size_t i = 0; i < maxSize; ++i)
             {
-                (*combined)[i] = logOp((*a.data)[posa], (*b.data)[posb], mType);
+                (combined)[i] = logOp((a.data)[posa], (b.data)[posb], mType);
 
                 posa++;
-                if(posa == a.data->size())
+                if(posa == a.data.size())
                 {
                     posa = 0;
                 }
 
                 posb++;
-                if(posb == b.data->size())
+                if(posb == b.data.size())
                 {
                     posb = 0;
                 }
@@ -818,9 +902,9 @@ std::vector<Message> LogicalOp::process(Context& ctx, const std::vector<Message>
     {
         for(const auto& m : messages)
         {
-            auto cloned = cloneData(m.data);
+            auto cloned = (m.data);
 
-            cloned->flip();
+            cloned.flip();
 
             for(auto d : mOutputs)
             {

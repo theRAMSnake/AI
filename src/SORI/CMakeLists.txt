@@ -7,10 +7,13 @@ include_directories("..")
 
 add_library(sori
     sori.cpp
+    components.cpp
     pop.cpp
     data.cpp
     environment.cpp
-    components.cpp
+    database.cpp
 )
 
-target_link_libraries(sori gacommon logger pthread)
+target_link_libraries(sori gacommon logger pthread sqlite3)
+
+add_subdirectory(pop_reader)

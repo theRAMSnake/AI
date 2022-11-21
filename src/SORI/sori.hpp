@@ -8,12 +8,14 @@
 #include "task.hpp"
 #include "pop.hpp"
 #include "environment.hpp"
+#include "database.hpp"
 
 namespace sori
 {
 
 struct Config
 {
+   bool testMode = false;
    std::size_t populationSize = 250;
    double survivalRate = 0.4;
 
@@ -24,10 +26,20 @@ struct Config
 class Sori
 {
 public:
-   Sori(const Config& cfg);
+   Sori(const Config& cfg, ITaskManager& taskManager);
+   Sori(ITaskManager& taskManager, Database& db);
 
    void step();
    void addTask(std::shared_ptr<ITask> task);
+
+   const Pop& getTopPerformer() const;
+   std::size_t getEnergyLimit() const;
+   std::size_t getGeneration() const;
+   Config getConfig() const;
+   const std::list<Pop>& getPopulation() const;
+   int getLastTaskScore(const std::string& taskName) const;
+
+   void checkpoint(Database& db);
 
 private:
    void select();
@@ -38,8 +50,8 @@ private:
 
    Config mCfg;
    std::list<Pop> mPopulation;
-   std::vector<std::shared_ptr<ITask>> mTasks;
-   std::map<std::string, std::vector<double>> mTaskStatistics;
+   ITaskManager& mTaskManager;
+   TaskScores mGlobalTaskScores;
    std::size_t mGeneration = 1;
    std::size_t mCurrentEnergyLimit = 100;
 };
