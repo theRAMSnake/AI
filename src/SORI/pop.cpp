@@ -29,7 +29,7 @@ Pop Pop::createMinimal()
     Pop pop;
 
     pop.addUnit<CursorManipulator>(pop.genId());
-    pop.addUnit<ScreenReader>(pop.genId(), Size{5, 5});
+    pop.addUnit<ScreenReader>(pop.genId(), dng::Size{5, 5});
     pop.addRandomUnit();
 
     for(int i = 0; i < 5; ++i)
@@ -148,7 +148,7 @@ std::size_t getMessageCost(const Message& c)
     return c.data.size() / 10;
 }
 
-void Pop::run(const std::size_t energyLimit, const Image& surface, TaskContext& taskContext)
+void Pop::run(const std::size_t energyLimit, const dng::Image& surface, TaskContext& taskContext)
 {
     if(mUnits.empty())
     {

@@ -5,6 +5,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/gil/extension/io/bmp/write.hpp>
 #include "SORI/components.hpp"
+#include "dng/drawing.hpp"
 
 class TestTaskContext : public sori::TaskContext
 {
@@ -171,25 +172,6 @@ BOOST_FIXTURE_TEST_CASE( CursorManipulatorTestDraw, SoriCompsTest )
             }
         }
     }
-}
-
-namespace drawing
-{
-
-void fillRect(sori::Image& target, const sori::Point& pos, const sori::Size& sz, boost::gil::rgb8_pixel_t color)
-{
-    auto v = boost::gil::subimage_view(boost::gil::view(target),
-                static_cast<int>(pos.x),
-                static_cast<int>(pos.y),
-                static_cast<int>(sz.x),
-                static_cast<int>(sz.y));
-
-    for(auto& p : v)
-    {
-        p = color;
-    }
-}
-
 }
 
 BOOST_FIXTURE_TEST_CASE( ScreenReaderTest, SoriCompsTest )

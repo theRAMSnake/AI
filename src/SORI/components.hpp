@@ -27,18 +27,18 @@ struct Message
 class Context
 {
 public:
-   Context(const Image& surface, TaskContext& taskCtx);
+   Context(const dng::Image& surface, TaskContext& taskCtx);
    bool isDone() const;
    int getScore() const;
-   Size getSize() const;
+   dng::Size getSize() const;
 
-   void onClick(const Point& pt);
-   void setProjection(const std::uint64_t key, const Point& pos, const Image& value);
-   Image read(const Point& pos, const Size& sz);
+   void onClick(const dng::Point& pt);
+   void setProjection(const std::uint64_t key, const dng::Point& pos, const dng::Image& value);
+   dng::Image read(const dng::Point& pos, const dng::Size& sz);
 
 private:
-   const Image& mSurface;
-   std::map<std::uint64_t, std::pair<Point, Image>> mProjections;
+   const dng::Image& mSurface;
+   std::map<std::uint64_t, std::pair<dng::Point, dng::Image>> mProjections;
    TaskContext& mTaskCtx;
 };
 
@@ -105,8 +105,8 @@ private:
    CursorManipulator(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    void printDetails() const override;
-   static Image sProjection;
-   Point mPos;
+   static dng::Image sProjection;
+   dng::Point mPos;
 };
 
 // Movable screen sensor
@@ -114,7 +114,7 @@ class ScreenReader : public Unit
 {
 public:
    friend class boost::serialization::access;
-   ScreenReader(const UnitId id, const Size& sz);
+   ScreenReader(const UnitId id, const dng::Size& sz);
    std::shared_ptr<Unit> clone(const UnitId newId) const override;
    void mutate() override;
 
@@ -134,8 +134,8 @@ private:
    ScreenReader(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
    void printDetails() const override;
-   Point mBottomLeftPos;
-   Size mSize;
+   dng::Point mBottomLeftPos;
+   dng::Size mSize;
 };
 
 // Generates constant message every frame

@@ -41,7 +41,7 @@ void Unit::removeConnection(const std::size_t index)
 {
     mOutputs.erase(mOutputs.begin() + index);
 }
-Context::Context(const Image& surface, TaskContext& taskCtx)
+Context::Context(const dng::Image& surface, TaskContext& taskCtx)
     : mSurface(surface)
     , mTaskCtx(taskCtx)
 {
@@ -66,7 +66,7 @@ void Unit::print() const
     }
     std::cout << "]" << std::endl;
 }
-Size Context::getSize() const
+dng::Size Context::getSize() const
 {
     return {static_cast<uint16_t>(mSurface.width()), static_cast<uint16_t>(mSurface.height())};
 }
@@ -74,17 +74,17 @@ int Context::getScore() const
 {
     return mTaskCtx.getScore();
 }
-void Context::onClick(const Point& pt)
+void Context::onClick(const dng::Point& pt)
 {
     mTaskCtx.onClick(pt);
 }
-void Context::setProjection(const std::uint64_t key, const Point& pt, const Image& value)
+void Context::setProjection(const std::uint64_t key, const dng::Point& pt, const dng::Image& value)
 {
     mProjections[key] = {pt, value};
 }
-Image Context::read(const Point& pos, const Size& sz)
+dng::Image Context::read(const dng::Point& pos, const dng::Size& sz)
 {
-    Image result(sz.x, sz.y);
+    dng::Image result(sz.x, sz.y);
 
     boost::gil::copy_pixels(boost::gil::subimage_view(boost::gil::const_view(mSurface),
                 static_cast<int>(pos.x),
@@ -104,7 +104,7 @@ Image Context::read(const Point& pos, const Size& sz)
             continue;
         }
 
-        Size projSize{static_cast<std::uint16_t>(x.second.second.width()), static_cast<std::uint16_t>(x.second.second.height())};
+        dng::Size projSize{static_cast<std::uint16_t>(x.second.second.width()), static_cast<std::uint16_t>(x.second.second.height())};
         if(projRelativeX + projSize.x > sz.x || projRelativeY + projSize.y > sz.y)
         {
             continue;
@@ -155,7 +155,7 @@ void CursorManipulator::printDetails() const
     std::cout << "CursorManipulator - Pos: " << mPos;
 }
 
-Point calcPos(const Point& pt, const int xOffset, const int yOffset, const Context& ctx)
+dng::Point calcPos(const dng::Point& pt, const int xOffset, const int yOffset, const Context& ctx)
 {
     int xPos = std::min(std::max(0, pt.x + xOffset), static_cast<int>(ctx.getSize().x - 1));
     int yPos = std::min(std::max(0, pt.y + yOffset), static_cast<int>(ctx.getSize().y - 1));
@@ -202,10 +202,10 @@ std::vector<Message> CursorManipulator::process(Context& ctx, const std::vector<
     return {};
 }
 
-Image createCursorProjection()
+dng::Image createCursorProjection()
 {
     boost::gil::rgb8_pixel_t pixel(255, 0, 0);
-    Image result(3, 3);
+    dng::Image result(3, 3);
     std::vector<bool> bMask = {false, true, false, true, true, true, false, true, false};
     auto v = boost::gil::view(result);
     auto b = v.begin();
@@ -223,14 +223,14 @@ Image createCursorProjection()
     return result;
 }
 
-Image CursorManipulator::sProjection = createCursorProjection();
+dng::Image CursorManipulator::sProjection = createCursorProjection();
 
 std::shared_ptr<Unit> CursorManipulator::createRandom(const UnitId id)
 {
     return std::make_shared<CursorManipulator>(id);
 }
 //---------------------------------------------------------------------------------------
-ScreenReader::ScreenReader(const UnitId id, const Size& sz)
+ScreenReader::ScreenReader(const UnitId id, const dng::Size& sz)
     : Unit(id)
     , mSize(sz)
 {
@@ -322,7 +322,7 @@ std::vector<Message> ScreenReader::process(Context& ctx, const std::vector<Messa
 
 std::shared_ptr<Unit> ScreenReader::createRandom(const UnitId id)
 {
-    return std::make_shared<ScreenReader>(id, Size{5, 5});
+    return std::make_shared<ScreenReader>(id, dng::Size{5, 5});
 }
 //---------------------------------------------------------------------------------------
 ConstantGenerator::ConstantGenerator(const UnitId id)

@@ -38,7 +38,7 @@ public:
    void setFitness(const Fitness);
    Fitness getFitness() const;
 
-   void run(const std::size_t energyLimit, const Image& surface, TaskContext& taskContext);
+   void run(const std::size_t energyLimit, const dng::Image& surface, TaskContext& taskContext);
 
    template<class Archive>
    void serialize(Archive & ar, const unsigned int version)

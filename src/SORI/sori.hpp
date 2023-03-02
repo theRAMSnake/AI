@@ -9,6 +9,7 @@
 #include "pop.hpp"
 #include "environment.hpp"
 #include "database.hpp"
+#include "statistics.hpp"
 
 namespace sori
 {
@@ -20,7 +21,7 @@ struct Config
    double survivalRate = 0.4;
 
    std::size_t numThreads = 3;
-   Size environmentSize = {100, 100};
+   dng::Size environmentSize = {100, 100};
 };
 
 class Sori
@@ -31,6 +32,8 @@ public:
 
    void step();
    void addTask(std::shared_ptr<ITask> task);
+   void reconfigure(const Config& cfg);
+   void setStatistics(IStatistics& stats);
 
    const Pop& getTopPerformer() const;
    std::size_t getEnergyLimit() const;
@@ -54,6 +57,8 @@ private:
    TaskScores mGlobalTaskScores;
    std::size_t mGeneration = 1;
    std::size_t mCurrentEnergyLimit = 100;
+
+   std::optional<std::reference_wrapper<IStatistics>> mStats;
 };
 
 }

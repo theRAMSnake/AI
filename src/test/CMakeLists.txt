@@ -24,7 +24,7 @@ add_executable(test
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-target_link_libraries(test neat snake4 sori ${Boost_LIBRARIES})
+target_link_libraries(test neat snake4 sori dng ${Boost_LIBRARIES})
 
 add_custom_command(
         TARGET test POST_BUILD

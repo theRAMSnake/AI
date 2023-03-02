@@ -3,18 +3,20 @@
 namespace sori
 {
 
-Environment::Environment(const Size& sz, const ITask& task, const std::size_t energyLimit)
-    : mSurface(static_cast<Image::coord_t>(sz.x), static_cast<Image::coord_t>(sz.y))
+Environment::Environment(const dng::Size& sz, const ITask& task, const std::size_t energyLimit)
+    : mSize(sz)
     , mTask(task)
     , mEnergyLimit(energyLimit)
 {
-    mTask.draw(mSurface);
 }
 
 void Environment::run(Pop& pop)
 {
-    auto ctx = mTask.createContext();
-    pop.run(mEnergyLimit, mSurface, *ctx);
+    auto ctx = mTask.createContext(mSize);
+    //Limitation: static drawing only
+    dng::Image surface(mSize.x, mSize.y);
+    ctx->draw(surface);
+    pop.run(mEnergyLimit, surface, *ctx);
 }
 
 }

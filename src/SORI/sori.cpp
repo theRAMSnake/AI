@@ -27,6 +27,16 @@ Sori::Sori(ITaskManager& taskManager, Database& db)
     mPopulation = db.loadPops();
 }
 
+void Sori::reconfigure(const Config& cfg)
+{
+    mCfg = cfg;
+}
+
+void Sori::setStatistics(IStatistics& stats)
+{
+    mStats = stats;
+}
+
 void Sori::checkpoint(Database& db)
 {
     db.saveParameter("env_size_x", mCfg.environmentSize.x);
@@ -136,11 +146,17 @@ void Sori::evaluate()
    }
 
    mPopulation.sort([](auto& x, auto& y){return x.getFitness() > y.getFitness();});
-   if(mPopulation.begin()->getFitness().score < task.getMaxScore())
+   const auto maxScore = mPopulation.begin()->getFitness().score;
+   if(mStats)
    {
-       mCurrentEnergyLimit += 25;
+       auto totalScore = std::accumulate(mPopulation.begin(), mPopulation.end(), 0, [](const int score, const auto& pop){return score + pop.getFitness().score;});
+       (*mStats).get().onStepResult(task.getName(), mGeneration, mCurrentEnergyLimit, maxScore, totalScore / mPopulation.size());
    }
-   mGlobalTaskScores[task.getName()] = mPopulation.begin()->getFitness().score;
+   if(maxScore < task.getMaxScore())
+   {
+       mCurrentEnergyLimit += 10;
+   }
+   mGlobalTaskScores[task.getName()] = maxScore;
 }
 
 std::list<Pop>::iterator Sori::selectTournament(std::list<Pop>& pops)
