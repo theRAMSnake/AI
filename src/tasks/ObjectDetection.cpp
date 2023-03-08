@@ -50,9 +50,9 @@ int StaticObjectDetection::getScore() const
 
 void StaticObjectDetection::draw(dng::Image& surface) const
 {
+    dng::fill(surface, mBackground);
     for(auto& s : mShapes)
     {
-        dng::fill(surface, mBackground);
         dng::draw(surface, *s);
     }
 }

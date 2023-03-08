@@ -2,11 +2,17 @@
 #include "primitives.hpp"
 #include "shape.hpp"
 #include "boost/gil/algorithm.hpp"
+#include "boost/geometry.hpp"
 
 namespace dng
 {
 
+namespace bg = boost::geometry;
+using bgpoint_t = bg::model::point<double, 2, bg::cs::cartesian>;
+using polygon_t = bg::model::polygon<bgpoint_t>;
+
 void fillRect(Image& target, const Point& pos, const Size& sz, const Color color);
+void fillPolygon(Image& target, const polygon_t& poly, const Color color);
 void fill(Image& target, const Color color);
 void draw(Image& target, const Shape& shape);
 Color genActiveColor();
@@ -23,5 +29,6 @@ void fillRect(Image& target, const Point& pos, const Size& sz, const Functor f)
 
     boost::gil::for_each_pixel_position(v, f);
 }
+
 
 }

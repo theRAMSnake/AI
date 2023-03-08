@@ -4,6 +4,10 @@
 #include "dng/geometry.hpp"
 #include "tasks/manager.hpp"
 #include "../../sqlite_modern_cpp/hdr/sqlite_modern_cpp.h"
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+
 
 namespace sori
 {
@@ -55,12 +59,48 @@ void print (T& stream, const X& entry)
     stream << std::endl;
 }
 
+std::stringstream format_duration(std::chrono::milliseconds duration) {
+    std::stringstream ss;
+
+    using std::chrono::duration_cast;
+    using std::chrono::hours;
+    using std::chrono::minutes;
+    using std::chrono::seconds;
+    using std::chrono::milliseconds;
+
+    // Extract the number of whole days and adjust the duration
+    auto days = duration_cast<hours>(duration) / 24;
+    duration -= hours(24 * days);
+
+    // Extract the remaining hours, minutes, seconds, and milliseconds
+    auto hrs = duration_cast<hours>(duration);
+    duration -= hrs;
+    auto min = duration_cast<minutes>(duration);
+    duration -= min;
+    auto sec = duration_cast<seconds>(duration);
+    duration -= sec;
+    auto ms = duration_cast<milliseconds>(duration);
+
+    // Output the duration as days, hours, minutes, seconds, and milliseconds
+    ss << days.count() << " days, ";
+    ss << std::setfill('0') << std::setw(2) << hrs.count() << ":";
+    ss << std::setfill('0') << std::setw(2) << min.count() << ":";
+    ss << std::setfill('0') << std::setw(2) << sec.count() << ".";
+    ss << std::setfill('0') << std::setw(3) << ms.count();
+
+    return ss;
+}
+
 class StatisticsDatabase : public IStatistics
 {
 public:
     StatisticsDatabase(const std::filesystem::path& dbPath)
         : mDbPath(dbPath)
     {
+        sqlite::database db(*mDbPath);
+        std::uint64_t ms;
+        db << "SELECT val FROM statsValues WHERE name = 'totalExecutionTime'" >> ms;
+        mTotalExecutionTime = std::chrono::milliseconds(ms);
     }
 
     StatisticsDatabase()
@@ -72,8 +112,14 @@ public:
         mNonPersistEntries.push_back({taskName, genNumber, energyLimit, maxScore, avgScore});
     }
 
+    void incTimer(const std::chrono::milliseconds& val)
+    {
+        mTotalExecutionTime += val;
+    }
+
     void printLatestStatistics(const int number, std::stringstream& stream)
     {
+        stream << "Total execution time: " << format_duration(mTotalExecutionTime).str() << std::endl;
         int deficit = number - static_cast<int>(mNonPersistEntries.size());
         for(int i = 0; i < mNonPersistEntries.size() && i < number; ++i)
         {
@@ -103,6 +149,8 @@ public:
             ins << x.taskName << x.genNumber << x.energyLimit << x.maxScore << x.avgScore;
             ins++;
         }
+        db << "CREATE TABLE IF NOT EXISTS statsValues(name text primary key, val int)";
+        db << "INSERT OR REPLACE INTO statsValues VALUES('totalExecutionTime', ?)" << mTotalExecutionTime.count();
         db << "COMMIT";
 
         mNonPersistEntries.clear();
@@ -116,11 +164,11 @@ private:
         std::size_t energyLimit;
         int maxScore;
         int avgScore;
-
     };
 
     std::vector<StepResultEntry> mNonPersistEntries;
     std::optional<std::filesystem::path> mDbPath;
+    std::chrono::milliseconds mTotalExecutionTime;
 };
 
 class Project : public IProject
@@ -160,7 +208,9 @@ public:
 
     void step() override
     {
+        auto startTime = std::chrono::system_clock::now();
         mImpl->step();
+        mStats->incTimer(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime));
     }
 
     void saveState(const std::string& fileName) override

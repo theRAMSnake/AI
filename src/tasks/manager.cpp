@@ -1,6 +1,7 @@
 #include "manager.hpp"
 #include "gacommon/rng.hpp"
 #include "ObjectDetection.hpp"
+#include <boost/gil/extension/io/bmp/write.hpp>
 
 namespace tlib
 {
@@ -40,14 +41,27 @@ TaskDefinition createDefinition()
 
 const std::vector<TaskDefinition> gAllTasks = {
     createDefinition<ObjectDetection1>(),
-    createDefinition<ObjectDetection2>(),
-    createDefinition<ObjectDetection3>(),
-    createDefinition<ObjectDetection4>(),
-    createDefinition<ObjectDetection5>()
+    createDefinition<ObjectDetection2>("ObjectDetection1", 950),
+    createDefinition<ObjectDetection3>("ObjectDetection2", 950),
+    createDefinition<ObjectDetection4>("ObjectDetection3", 950),
+    createDefinition<ObjectDetection5>("ObjectDetection4", 950)
 };
+
+void TaskManager::dumpDemoPictures(const std::filesystem::path& dirName) const
+{
+    for(auto& d : gAllTasks)
+    {
+        dng::Image surface(300, 300);
+        d.task->createContext({300, 300})->draw(surface);
+        auto fileName = dirName / d.task->getName();
+        boost::gil::write_view(fileName, boost::gil::view(surface), boost::gil::bmp_tag());
+    }
+}
 
 sori::ITask& TaskManager::pickNextTask(const sori::TaskScores& taskScores)
 {
+    //Policy here is task is elegible if it has no prerequisites or at least one of the prerequisites is reached specified score
+    //If task is maxed it got only 10% chance to be used
     std::vector<TaskDefinition> candidates;
 
     for(auto& d : gAllTasks)

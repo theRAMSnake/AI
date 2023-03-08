@@ -15,7 +15,7 @@ public:
         return false;
     }
 
-    void onClick(const sori::Point& pos) const override
+    void onClick(const dng::Point& pos) override
     {
         mLastClickPos = pos;
     }
@@ -25,13 +25,17 @@ public:
         return 0;
     }
 
-    mutable sori::Point mLastClickPos;
+    void draw(dng::Image& surface) const override
+    {
+    }
+
+    dng::Point mLastClickPos;
 };
 
 class SoriCompsTest
 {
 protected:
-    sori::Image mSurface {100, 100};
+    dng::Image mSurface {100, 100};
     TestTaskContext mTaskCtx;
 };
 
@@ -144,14 +148,14 @@ BOOST_FIXTURE_TEST_CASE( CursorManipulatorTestDraw, SoriCompsTest )
     auto result = unit.activate(ctx);
     BOOST_CHECK_EQUAL(0, result.size());
 
-    std::vector<sori::Point> expectedPoints;
+    std::vector<dng::Point> expectedPoints;
     expectedPoints.push_back({6, 6});
     expectedPoints.push_back({5, 6});
     expectedPoints.push_back({7, 6});
     expectedPoints.push_back({6, 5});
     expectedPoints.push_back({6, 7});
 
-    sori::Image expected {100, 100};
+    dng::Image expected {100, 100};
     boost::gil::rgb8_pixel_t red(255, 0, 0);
     boost::gil::rgb8_pixel_t black(0, 0, 0);
 
@@ -162,7 +166,7 @@ BOOST_FIXTURE_TEST_CASE( CursorManipulatorTestDraw, SoriCompsTest )
     {
         for(std::uint16_t y = 0; y < 100; ++y)
         {
-            if(std::find(expectedPoints.begin(), expectedPoints.end(), sori::Point{x, y}) != expectedPoints.end())
+            if(std::find(expectedPoints.begin(), expectedPoints.end(), dng::Point{x, y}) != expectedPoints.end())
             {
                 BOOST_CHECK(red == v(x, y));
             }
@@ -180,10 +184,10 @@ BOOST_FIXTURE_TEST_CASE( ScreenReaderTest, SoriCompsTest )
     sori::Context ctx(mSurface, mTaskCtx);
 
     boost::gil::rgb8_pixel_t blue(0, 0, 255);
-    drawing::fillRect(mSurface, {5, 5}, {20, 20}, blue);
+    dng::fillRect(mSurface, {5, 5}, {20, 20}, blue);
 
     boost::gil::rgb8_pixel_t green(0, 255, 0);
-    drawing::fillRect(mSurface, {5, 25}, {20, 20}, green);
+    dng::fillRect(mSurface, {5, 25}, {20, 20}, green);
 
     //boost::gil::write_view("test.bmp", boost::gil::view(mSurface), boost::gil::bmp_tag());
 

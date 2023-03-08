@@ -6,7 +6,7 @@ namespace sori
 Database::Database(const std::string& filename)
     : mDb(filename)
 {
-    mDb << "CREATE TABLE IF NOT EXISTS params(name text, value text)";
+    mDb << "CREATE TABLE IF NOT EXISTS params(name text primary key, value text)";
     mDb << "CREATE TABLE IF NOT EXISTS pops(id integer, pop blob)";
     mDb << "CREATE TABLE IF NOT EXISTS task_scores(name text, score integer)";
 }

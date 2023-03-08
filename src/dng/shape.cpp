@@ -83,17 +83,22 @@ Hex::Hex(const Point& bottomLeft, const Size& sz, const Color color)
 {
 }
 
+polygon_t makeHexPolygon(const Point& pt, const Size& sz)
+{
+    return polygon_t{{
+        {pt.x, pt.y + sz.y / 2},
+        {pt.x + sz.x / 3, pt.y + sz.y},
+        {pt.x + (sz.x / 3) * 2, pt.y + sz.y},
+        {pt.x + sz.x, pt.y + sz.y / 2},
+        {pt.x + (sz.x / 3) * 2, pt.y},
+        {pt.x + sz.x / 3, pt.y},
+        {pt.x, pt.y + sz.y / 2}
+    }};
+}
+
 bool Hex::contains(const Point& pt) const
 {
-    polygon_t hx {{
-        {mBlPos.x, mBlPos.y + mSize.y / 2},
-        {mBlPos.x + mSize.x / 3, mBlPos.y + mSize.y},
-        {mBlPos.x + (mSize.x / 3) * 2, mBlPos.y + mSize.y},
-        {mBlPos.x + mSize.x, mBlPos.y + mSize.y / 2},
-        {mBlPos.x + (mSize.x / 3) * 2, mBlPos.y},
-        {mBlPos.x + mSize.x / 3, mBlPos.y},
-        {mBlPos.x, mBlPos.y + mSize.y / 2}
-    }};
+    polygon_t hx = makeHexPolygon(mBlPos, mSize);
     return boost::geometry::within(bgpoint_t{pt.x, pt.y}, hx);
 }
 
@@ -104,17 +109,81 @@ Point Hex::getCenterPoint() const
 
 void Hex::project(Image& target) const
 {
-    polygon_t hx {{
-        {mBlPos.x, mBlPos.y + mSize.y / 2},
-        {mBlPos.x + mSize.x / 3, mBlPos.y + mSize.y},
-        {mBlPos.x + (mSize.x / 3) * 2, mBlPos.y + mSize.y},
-        {mBlPos.x + mSize.x, mBlPos.y + mSize.y / 2},
-        {mBlPos.x + (mSize.x / 3) * 2, mBlPos.y},
-        {mBlPos.x + mSize.x / 3, mBlPos.y},
-        {mBlPos.x, mBlPos.y + mSize.y / 2}
-    }};
+    polygon_t hx = makeHexPolygon(mBlPos, mSize);
+    fillPolygon(target, hx, mColor);
+}
+Triangle::Triangle(const Point& bottomLeft, const Size& sz, const Color color)
+    : mBlPos(bottomLeft)
+    , mSize(sz)
+    , mColor(color)
+{
+}
 
-    auto f = [hx, this] (auto x) {
-    };
+polygon_t makeTrianglePolygon(const Point& pt, const Size& sz)
+{
+    bgpoint_t a = {pt.x, pt.y};
+    bgpoint_t b = {pt.x + sz.x / 2, pt.y + sz.y};
+    bgpoint_t c = {pt.x + sz.x, pt.y};
+
+    return polygon_t{{
+        a, b, c, a
+    }};
+}
+
+bool Triangle::contains(const Point& pt) const
+{
+    polygon_t t = makeTrianglePolygon(mBlPos, mSize);
+    return boost::geometry::within(bgpoint_t{pt.x, pt.y}, t);
+}
+
+Point Triangle::getCenterPoint() const
+{
+    return {static_cast<uint16_t>(mBlPos.x + mSize.x / 2), static_cast<uint16_t>(mBlPos.y + mSize.y / 2)};
+}
+
+void Triangle::project(Image& target) const
+{
+    polygon_t hx = makeTrianglePolygon(mBlPos, mSize);
+    fillPolygon(target, hx, mColor);
+}
+Circle::Circle(const Point& bottomLeft, const Size& sz, const Color color)
+    : mBlPos(bottomLeft)
+    , mSize(sz)
+    , mColor(color)
+{
+}
+
+polygon_t makeCirclePolygon(const Point& pt, const Size& sz)
+{
+    boost::geometry::strategy::buffer::point_circle point_strategy(360);
+    boost::geometry::strategy::buffer::distance_symmetric<double> distance_strategy(sz.x / 2);
+    boost::geometry::strategy::buffer::join_round join_strategy;
+    boost::geometry::strategy::buffer::end_round end_strategy;
+    boost::geometry::strategy::buffer::side_straight side_strategy;
+
+    bg::model::multi_polygon<bg::model::polygon<bgpoint_t> > multi;
+    boost::geometry::buffer(bgpoint_t{pt.x + sz.x / 2, pt.y + sz.y / 2}, multi,
+                distance_strategy, side_strategy,
+                join_strategy, end_strategy, point_strategy);
+
+    polygon_t result(multi[0]);
+
+    return result;
+}
+bool Circle::contains(const Point& pt) const
+{
+    polygon_t t = makeCirclePolygon(mBlPos, mSize);
+    return boost::geometry::within(bgpoint_t{pt.x, pt.y}, t);
+}
+
+Point Circle::getCenterPoint() const
+{
+    return {static_cast<uint16_t>(mBlPos.x + mSize.x / 2), static_cast<uint16_t>(mBlPos.y + mSize.y / 2)};
+}
+
+void Circle::project(Image& target) const
+{
+    polygon_t hx = makeCirclePolygon(mBlPos, mSize);
+    fillPolygon(target, hx, mColor);
 }
 }

@@ -1,5 +1,6 @@
 #include "drawing.hpp"
 #include "gacommon/rng.hpp"
+#include <boost/gil/algorithm.hpp>
 
 namespace dng
 {
@@ -41,6 +42,34 @@ Color genActiveColor()
 Color genBgColor()
 {
     return Color(Rng::gen32() % 127, Rng::gen32() % 127, Rng::gen32() % 127);
+}
+
+std::vector<bgpoint_t> points_within_polygon(const polygon_t& poly)
+{
+    std::vector<bgpoint_t> points;
+    boost::geometry::model::box<bgpoint_t> b;
+    boost::geometry::envelope(poly, b);
+    auto min_corner = b.min_corner();
+    auto max_corner = b.max_corner();
+    for (double x = min_corner.get<0>(); x <= max_corner.get<0>(); ++x) {
+        for (double y = min_corner.get<1>(); y <= max_corner.get<1>(); ++y) {
+            bgpoint_t p(x, y);
+            if (boost::geometry::within(p, poly)) {
+                points.push_back(p);
+            }
+        }
+    }
+    return points;
+}
+
+void fillPolygon(Image& target, const polygon_t& poly, const Color color)
+{
+    auto points = points_within_polygon(poly);
+    auto v = boost::gil::view(target);
+    for(auto p : points)
+    {
+        v(p.get<0>(), p.get<1>()) = color;
+    }
 }
 
 }

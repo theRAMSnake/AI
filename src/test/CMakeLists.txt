@@ -5,14 +5,16 @@ LIST(APPEND CMAKE_MODULE_PATH "..")
 
 include_directories("..")
 
-add_executable(test 
+add_executable(test
     #NaturalSelectionTest.cpp
     #SnakeGATest.cpp
     SoriCompsTest.cpp
     #SoriMutationsTest.cpp
     #SoriSaveLoadTest.cpp
     SoriDataTest.cpp
-    SoriConvergenceTest.cpp
+    TaskLibTest.cpp
+    ShapeTest.cpp
+    #SoriConvergenceTest.cpp
     #SoriBrokenPopsTest.cpp
     #CrossoverTest.cpp
     #MutationTest.cpp
@@ -24,7 +26,7 @@ add_executable(test
 
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-target_link_libraries(test neat snake4 sori dng ${Boost_LIBRARIES})
+target_link_libraries(test neat tasks sori dng ${Boost_LIBRARIES})
 
 add_custom_command(
         TARGET test POST_BUILD
