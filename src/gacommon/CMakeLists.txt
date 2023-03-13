@@ -12,4 +12,4 @@ rng.cpp
 
 find_package(Boost COMPONENTS serialization REQUIRED)
 
-target_link_libraries(gacommon logger ${Boost_LIBRARIES})
+target_link_libraries(gacommon logger ${Boost_LIBRARIES} profiler)

@@ -38,6 +38,21 @@ boost::property_tree::ptree makeDefaultProjectConfig()
     return result;
 }
 
+void Host::exportPop(const std::size_t idx, const std::string& filename) const
+{
+    if(mState != HostState::Ready)
+    {
+        throw std::runtime_error("Cannot create a project in this state");
+    }
+
+    mCurrentProject->exportPop(idx, filename);
+}
+
+std::string Host::play(const std::size_t popIdx, const std::string& taskName)
+{
+    return "Not implemented";
+}
+
 void Host::createProject(const std::string& name)
 {
     if(mState != HostState::Empty && mState != HostState::Ready)

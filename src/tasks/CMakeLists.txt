@@ -10,4 +10,4 @@ add_library(tasks
     ObjectDetection.cpp
 )
 
-target_link_libraries(tasks sori )
+target_link_libraries(tasks sori profiler)

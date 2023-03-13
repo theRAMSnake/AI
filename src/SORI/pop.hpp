@@ -46,10 +46,11 @@ public:
         ar & mFitness.score;
         ar & mFitness.energyLeft;
         ar & mNextId;
+        ar & mUnitPos;
         ar & mUnits;
    }
 
-   void print() const;
+   std::string print() const;
 
 private:
    template<class Unit, class... params>
@@ -67,6 +68,7 @@ private:
    Fitness mFitness;
    mutable std::uint64_t mNextId = 0;
 
+   std::size_t mUnitPos = 0;
    std::vector<std::shared_ptr<Unit>> mUnits;
 };
 

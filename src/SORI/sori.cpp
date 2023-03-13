@@ -152,7 +152,7 @@ void Sori::evaluate()
        auto totalScore = std::accumulate(mPopulation.begin(), mPopulation.end(), 0, [](const int score, const auto& pop){return score + pop.getFitness().score;});
        (*mStats).get().onStepResult(task.getName(), mGeneration, mCurrentEnergyLimit, maxScore, totalScore / mPopulation.size());
    }
-   if(maxScore < task.getMaxScore())
+   if(maxScore < task.getSolvedScore())
    {
        mCurrentEnergyLimit += 10;
    }

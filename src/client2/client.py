@@ -33,6 +33,13 @@ def parseMessageFromParams():
             sys.exit()
         result["minutes"] = sys.argv[2]
 
+    if funcName == "exportPop":
+        if len(sys.argv) != 4:
+            print("Expected exportPop <idx> <filename>")
+            sys.exit()
+        result["pop"] = sys.argv[2]
+        result["filename"] = sys.argv[3]
+
     if funcName == "set":
         if len(sys.argv) != 4:
             print("Expected set <key> <value>")

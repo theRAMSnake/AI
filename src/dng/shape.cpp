@@ -28,7 +28,7 @@ std::shared_ptr<Shape> genShape(const Size& envSize)
     boost::mpl::for_each<ShapeTypes, boost::mpl::make_identity<boost::mpl::_1>>([&i, envSize, pos, &result](auto arg) {
             if(i++ == pos)
             {
-                Size sz {static_cast<uint16_t>(Rng::gen32() % 20 + 5), static_cast<uint16_t>(Rng::gen32() % 20 + 5)};
+                Size sz {static_cast<uint16_t>(Rng::gen32() % 100 + 10), static_cast<uint16_t>(Rng::gen32() % 100 + 10)};
                 result = std::make_shared<typename decltype(arg)::type>(genCoordsToFit(envSize, sz), sz, genActiveColor());
             }
         });
@@ -155,20 +155,31 @@ Circle::Circle(const Point& bottomLeft, const Size& sz, const Color color)
 
 polygon_t makeCirclePolygon(const Point& pt, const Size& sz)
 {
+    auto minsz = std::min(sz.x, sz.y);
     boost::geometry::strategy::buffer::point_circle point_strategy(360);
-    boost::geometry::strategy::buffer::distance_symmetric<double> distance_strategy(sz.x / 2);
+    boost::geometry::strategy::buffer::distance_symmetric<double> distance_strategy(minsz / 2);
     boost::geometry::strategy::buffer::join_round join_strategy;
     boost::geometry::strategy::buffer::end_round end_strategy;
     boost::geometry::strategy::buffer::side_straight side_strategy;
 
     bg::model::multi_polygon<bg::model::polygon<bgpoint_t> > multi;
-    boost::geometry::buffer(bgpoint_t{pt.x + sz.x / 2, pt.y + sz.y / 2}, multi,
+    boost::geometry::buffer(bgpoint_t{pt.x + sz.x / 2, pt.y + sz.x / 2}, multi,
                 distance_strategy, side_strategy,
                 join_strategy, end_strategy, point_strategy);
 
     polygon_t result(multi[0]);
 
-    return result;
+    polygon_t clipArea{{
+            {pt.x, pt.y},
+            {pt.x, pt.y + sz.x - 1},
+            {pt.x + sz.x -1, pt.y + sz.x -1},
+            {pt.x + sz.x -1, pt.y},
+            {pt.x, pt.y}
+        }};
+
+    bg::model::multi_polygon<bg::model::polygon<bgpoint_t> > isec;
+    boost::geometry::intersection(result, clipArea, isec);
+    return isec[0];
 }
 bool Circle::contains(const Point& pt) const
 {

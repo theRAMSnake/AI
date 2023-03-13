@@ -11,4 +11,4 @@ add_library(dng
     shape.cpp
 )
 
-target_link_libraries(dng sori)
+target_link_libraries(dng sori profiler)

@@ -54,17 +54,19 @@ void Unit::removeConnections(const UnitId outCmpId)
 {
     std::erase_if(mOutputs, [outCmpId](auto x){return x == outCmpId;});
 }
-void Unit::print() const
+std::string Unit::print() const
 {
-    std::cout << "Id: " << mId << ", ";
-    printDetails();
-    std::cout << std::endl;
-    std::cout << "Connections: [";
+    std::stringstream str;
+    str << "Id: " << mId << ", ";
+    printDetails(str);
+    str << std::endl;
+    str << "Connections: [";
     for(auto c : mOutputs)
     {
-        std::cout << c << ' ';
+        str << c << ' ';
     }
-    std::cout << "]" << std::endl;
+    str << "]" << std::endl;
+    return str.str();
 }
 dng::Size Context::getSize() const
 {
@@ -150,9 +152,9 @@ void CursorManipulator::mutate()
 {
 }
 
-void CursorManipulator::printDetails() const
+void CursorManipulator::printDetails(std::stringstream& str) const
 {
-    std::cout << "CursorManipulator - Pos: " << mPos;
+    str << "CursorManipulator - Pos: " << mPos;
 }
 
 dng::Point calcPos(const dng::Point& pt, const int xOffset, const int yOffset, const Context& ctx)
@@ -244,9 +246,9 @@ std::shared_ptr<Unit> ScreenReader::clone(const UnitId newId) const
     return result;
 }
 
-void ScreenReader::printDetails() const
+void ScreenReader::printDetails(std::stringstream& str) const
 {
-    std::cout << "ScreenReader - Size: " << mSize << ", BottomLeftPos: " << mBottomLeftPos;
+    str << "ScreenReader - Size: " << mSize << ", BottomLeftPos: " << mBottomLeftPos;
 }
 
 void ScreenReader::mutate()
@@ -295,6 +297,11 @@ std::vector<Message> ScreenReader::process(Context& ctx, const std::vector<Messa
     mBottomLeftPos.x = std::min(mBottomLeftPos.x, static_cast<std::uint16_t>(ctx.getSize().x - mSize.x));
     mBottomLeftPos.y = std::min(mBottomLeftPos.y, static_cast<std::uint16_t>(ctx.getSize().y - mSize.y));
 
+    if(mOutputs.empty())
+    {
+        return {};
+    }
+
     using namespace boost::gil;
     auto img = ctx.read(mBottomLeftPos, mSize);
 
@@ -337,9 +344,9 @@ std::shared_ptr<Unit> ConstantGenerator::clone(const UnitId newId) const
     result->mOutputs = mOutputs;
     return result;
 }
-void ConstantGenerator::printDetails() const
+void ConstantGenerator::printDetails(std::stringstream& str) const
 {
-    std::cout << "ConstantGenerator - Constant: " << mConstant;
+    str << "ConstantGenerator - Constant: " << mConstant;
 }
 
 void ConstantGenerator::mutate()
@@ -391,9 +398,9 @@ void RandomGenerator::mutate()
     mChance = Rng::genReal();
     mutateIncDec(mLen);
 }
-void RandomGenerator::printDetails() const
+void RandomGenerator::printDetails(std::stringstream& str) const
 {
-    std::cout << "RandomGenerator - Length: " << mLen << ", Chance: " << mChance;
+    str << "RandomGenerator - Length: " << mLen << ", Chance: " << mChance;
 }
 
 std::vector<Message> RandomGenerator::process(Context& ctx, const std::vector<Message>& messages)
@@ -437,9 +444,9 @@ std::shared_ptr<Unit> PhasicGenerator::clone(const UnitId newId) const
     return result;
 }
 
-void PhasicGenerator::printDetails() const
+void PhasicGenerator::printDetails(std::stringstream& str) const
 {
-    std::cout << "PhasicGenerator - Phase: " << mPhase << ", Step: " << mStep << ", Constant: " << mConstant;
+    str << "PhasicGenerator - Phase: " << mPhase << ", Step: " << mStep << ", Constant: " << mConstant;
 }
 
 void PhasicGenerator::mutate()
@@ -496,15 +503,15 @@ void Storage::mutate()
 {
 }
 
-void Storage::printDetails() const
+void Storage::printDetails(std::stringstream& str) const
 {
     if(mSlot.size() > 0)
     {
-        std::cout << "Storage - Content: " << mSlot;
+        str << "Storage - Content: " << mSlot;
     }
     else
     {
-        std::cout << "Storage - Content: empty";
+        str << "Storage - Content: empty";
     }
 }
 
@@ -561,9 +568,9 @@ std::shared_ptr<Unit> Extractor::clone(const UnitId newId) const
     return result;
 }
 
-void Extractor::printDetails() const
+void Extractor::printDetails(std::stringstream& str) const
 {
-    std::cout << "Extractor - Begin: " << mBegin << ", End: " << mEnd;
+    str << "Extractor - Begin: " << mBegin << ", End: " << mEnd;
 }
 void Extractor::mutate()
 {
@@ -632,9 +639,9 @@ void Combiner::mutate()
 {
 }
 
-void Combiner::printDetails() const
+void Combiner::printDetails(std::stringstream& str) const
 {
-    std::cout << "Combiner";
+    str << "Combiner";
 }
 std::vector<Message> Combiner::process(Context& ctx, const std::vector<Message>& messages)
 {
@@ -678,9 +685,9 @@ std::shared_ptr<Unit> Filter::clone(const UnitId newId) const
     return result;
 }
 
-void Filter::printDetails() const
+void Filter::printDetails(std::stringstream& str) const
 {
-    std::cout << "Filter - Bitmask: " << mBitmask;
+    str << "Filter - Bitmask: " << mBitmask;
 }
 void Filter::mutate()
 {
@@ -748,9 +755,9 @@ void Matcher::mutate()
     mThreshold += Rng::genPerturbation();
 }
 
-void Matcher::printDetails() const
+void Matcher::printDetails(std::stringstream& str) const
 {
-    std::cout << "Matcher - Threshold: " << mThreshold;
+    str << "Matcher - Threshold: " << mThreshold;
 }
 std::shared_ptr<Unit> Matcher::createRandom(const UnitId id)
 {
@@ -818,9 +825,9 @@ std::shared_ptr<Unit> LogicalOp::clone(const UnitId newId) const
     result->mOutputs = mOutputs;
     return result;
 }
-void LogicalOp::printDetails() const
+void LogicalOp::printDetails(std::stringstream& str) const
 {
-    std::cout << "LogicalOp - Type: " << static_cast<int>(mType);
+    str << "LogicalOp - Type: " << static_cast<int>(mType);
 }
 
 void LogicalOp::mutate()

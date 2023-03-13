@@ -3,6 +3,7 @@
 #include <boost/test/unit_test.hpp>
 #include "SORI/sori.hpp"
 #include <iostream>
+#include <set>
 #include "gacommon/rng.hpp"
 #include <math.h>
 
@@ -14,10 +15,16 @@ public:
         return mNumClicked == 5;
     }
 
-    void onClick(const sori::Point& pos) const override
+    void onClick(const dng::Point& pos) override
     {
         mNumClicked++;
     }
+
+    void draw(dng::Image& surface) const override
+    {
+
+    }
+
 
     int getScore() const override
     {
@@ -35,17 +42,12 @@ public:
         return "Task1";
     }
 
-    void draw(sori::Image& surface) const override
-    {
-
-    }
-
-    std::unique_ptr<sori::TaskContext> createContext() const override
+    std::unique_ptr<sori::TaskContext> createContext(const dng::Size& envSize) const override
     {
         return std::make_unique<TestTask1Context>();
     }
 
-    int getMaxScore() const override
+    int getSolvedScore() const override
     {
         return 5;
     }
@@ -66,7 +68,7 @@ private:
 class SoriConvergenceTest
 {
 protected:
-    sori::Image mSurface {100, 100};
+    dng::Image mSurface {100, 100};
 
     void doConvergenceTest(sori::Sori& s, const int maxScore)
     {
@@ -118,9 +120,14 @@ public:
         return mPoints.size() == 4;
     }
 
-    void onClick(const sori::Point& pos) const override
+    void onClick(const dng::Point& pos)override
     {
         mPoints.insert(pos);
+    }
+
+    void draw(dng::Image& surface) const override
+    {
+
     }
 
     int getScore() const override
@@ -128,7 +135,7 @@ public:
         return mPoints.size();
     }
 
-    mutable std::set<sori::Point> mPoints;
+    std::set<dng::Point> mPoints;
 };
 
 class Test2Task : public sori::ITask
@@ -139,17 +146,12 @@ public:
         return "Task2";
     }
 
-    void draw(sori::Image& surface) const override
-    {
-
-    }
-
-    std::unique_ptr<sori::TaskContext> createContext() const override
+    std::unique_ptr<sori::TaskContext> createContext(const dng::Size& envSize) const override
     {
         return std::make_unique<TestTask2Context>();
     }
 
-    int getMaxScore() const override
+    int getSolvedScore() const override
     {
         return 4;
     }
@@ -183,7 +185,7 @@ public:
         return mDone;
     }
 
-    void onClick(const sori::Point& pos) const override
+    void onClick(const dng::Point& pos) override
     {
         if(mTarget == pos)
         {
@@ -201,12 +203,17 @@ public:
         }
     }
 
+    void draw(dng::Image& surface) const override
+    {
+
+    }
+
     int getScore() const override
     {
         return mScore;
     }
 
-    const sori::Point mTarget {20, 20};
+    const dng::Point mTarget {20, 20};
     mutable int mScore = 0;
     mutable bool mDone = false;
 };
@@ -219,17 +226,12 @@ public:
         return "Task2";
     }
 
-    void draw(sori::Image& surface) const override
-    {
-
-    }
-
-    std::unique_ptr<sori::TaskContext> createContext() const override
+    std::unique_ptr<sori::TaskContext> createContext(const dng::Size& envSize) const override
     {
         return std::make_unique<TestTask3Context>();
     }
 
-    int getMaxScore() const override
+    int getSolvedScore() const override
     {
         return 1000;
     }

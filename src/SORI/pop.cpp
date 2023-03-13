@@ -67,8 +67,8 @@ UnitId Pop::genId() const
 
 Pop Pop::cloneMutated() const
 {
-    constexpr double DESTROY_UNIT_CHANCE = 0.02;
-    constexpr double ADD_UNIT_CHANCE = 0.02;
+    constexpr double DESTROY_UNIT_CHANCE = 0.01;
+    constexpr double ADD_UNIT_CHANCE = 0.01;
     constexpr double MUTATE_UNIT_CHANCE = 0.05;
     constexpr double ADD_CONNECTION_CHANCE = 0.05;
     constexpr double REMOVE_CONNECTION_CHANCE = 0.05;
@@ -101,11 +101,11 @@ Pop Pop::cloneMutated() const
 
     for(auto& unit : pop.mUnits)
     {
-        if(Rng::genProbability(ADD_CONNECTION_CHANCE))
+        while(Rng::genProbability(ADD_CONNECTION_CHANCE))
         {
             unit->connect(pop.mUnits[Rng::genChoise(pop.mUnits.size())]->getId());
         }
-        if(Rng::genProbability(REMOVE_CONNECTION_CHANCE))
+        while(Rng::genProbability(REMOVE_CONNECTION_CHANCE))
         {
             auto outs = unit->getNumConnections();
             if(outs != 0)
@@ -123,7 +123,7 @@ Pop Pop::cloneMutated() const
         }
     }
 
-    //Keep at least three copms
+    //Keep at least three comps
     for(std::size_t i = std::min(3lu, pop.mUnits.size()); i != 0; --i)
     {
         pop.addRandomUnit();
@@ -158,17 +158,26 @@ void Pop::run(const std::size_t energyLimit, const dng::Image& surface, TaskCont
     }
 
     Context ctx(surface, taskContext);
+    std::unordered_map<UnitId, std::shared_ptr<Unit>> units;
+    for(auto& unit : mUnits)
+    {
+        units[unit->getId()] = unit;
+    }
 
-    std::size_t energySpent = 0;
+    //Discourage wide pops with many unused comps by setting their minimum energy spent as 1 per component
+    std::size_t energySpent = mUnits.size();
     while(true)
     {
-        for(auto& unit : mUnits)
+        while(mUnitPos != mUnits.size())
         {
+            auto& unit = mUnits[mUnitPos];
             auto delivery = unit->activate(ctx);
+            mUnitPos++;
+
             for(const auto& msg : delivery)
             {
                 energySpent += getMessageCost(msg);
-                getUnitById(msg.destination).postMessage(msg);
+                units[msg.destination]->postMessage(msg);
 
                 if(ctx.isDone())
                 {
@@ -188,24 +197,20 @@ void Pop::run(const std::size_t energyLimit, const dng::Image& surface, TaskCont
 
             energySpent++;
         }
+        mUnitPos = 0;
     }
 }
 
-Unit& Pop::getUnitById(const UnitId id)
+std::string Pop::print() const
 {
-    auto pos = std::find_if(mUnits.begin(), mUnits.end(), [id](auto x){return x->getId() == id; });
-    assert(pos != mUnits.end());
-    return **pos;
-}
-
-void Pop::print() const
-{
-    std::cout << "[" << std::endl;
+    std::stringstream str;
+    str << "[ Num comps: " << mUnits.size() << std::endl;
     for(auto& u : mUnits)
     {
-        u->print();
+        str << u->print();
     }
-    std::cout << "]" << std::endl;
+    str << "]" << std::endl;
+    return str.str();
 }
 
 void savePop(const std::string& filename, const Pop& pop)

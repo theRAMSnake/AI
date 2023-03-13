@@ -2,6 +2,7 @@
 #include "gacommon/rng.hpp"
 #include "dng/geometry.hpp"
 #include "dng/drawing.hpp"
+#include <algorithm>
 
 namespace tlib
 {
@@ -20,6 +21,7 @@ bool StaticObjectDetection::isDone() const
 
 void StaticObjectDetection::onClick(const dng::Point& pos)
 {
+    mClickedAtLeastOnce = true;
     bool clickOnSpot = false;
     for(int i = 0; i < mShapes.size(); ++i)
     {
@@ -44,8 +46,15 @@ void StaticObjectDetection::onClick(const dng::Point& pos)
 
 int StaticObjectDetection::getScore() const
 {
-    //Value = 1000 - 250 * untagged_shapes - total_distance_of_missclicks
-    return 1000 - std::count(mTagged.begin(), mTagged.end(), false) * 250 - mPenalty;
+    if(mClickedAtLeastOnce)
+    {
+        //Value = 1000 - 250 * untagged_shapes - penalty
+        return std::max(0, 1000 - static_cast<int>(std::count(mTagged.begin(), mTagged.end(), false)) * 250 - mPenalty);
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void StaticObjectDetection::draw(dng::Image& surface) const

@@ -56,6 +56,8 @@ std::string to_string(const HostState& src)
     return "Uknown";
 }
 
+static bool gQuit = false;
+
 std::string executeOperation(const boost::property_tree::ptree& tr)
 {
     auto opName = getOrThrow<std::string>(tr, "operation");
@@ -109,6 +111,34 @@ std::string executeOperation(const boost::property_tree::ptree& tr)
 
         return "Done";
     }
+    else if(opName == "quit")
+    {
+        if(gHost.getState() == HostState::Ready || gHost.getState() == HostState::Empty)
+        {
+            gQuit = true;
+            return "Quit";
+        }
+        else
+        {
+            return "Cannot quit as this state";
+        }
+    }
+    else if(opName == "play")
+    {
+        auto pop = getOrThrow<std::size_t>(tr, "pop");
+        auto task = getOrThrow<std::string>(tr, "task");
+
+        return gHost.play(pop, task);
+    }
+    else if(opName == "exportPop")
+    {
+        auto pop = getOrThrow<std::size_t>(tr, "pop");
+        auto filename = getOrThrow<std::string>(tr, "filename");
+
+        gHost.exportPop(pop, filename);
+
+        return "Done";
+    }
     else if(opName == "recentStats")
     {
         return gHost.printLatestStatistics();
@@ -128,17 +158,21 @@ std::string executeOperation(const boost::property_tree::ptree& tr)
 
 std::string handleMessage(const std::string& input)
 {
+    std::string result;
     try
     {
         boost::property_tree::ptree tree;
         std::stringstream str(input);
         boost::property_tree::read_json(str, tree);
-        return executeOperation(tree);
+        result =  executeOperation(tree);
     }
     catch(std::exception& ex)
     {
         return "Error: " + std::string(ex.what());
     }
+
+
+    return result;
 }
 
 class Connection : public boost::enable_shared_from_this<Connection>
@@ -163,6 +197,10 @@ public:
 private:
     void handleWrite(const boost::system::error_code err)
     {
+        if(gQuit)
+        {
+            throw std::logic_error("Quitting");
+        }
     }
 
     void handleRead(const boost::system::error_code err)

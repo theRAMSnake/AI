@@ -14,6 +14,6 @@ add_library(sori
     database.cpp
 )
 
-target_link_libraries(sori gacommon logger pthread sqlite3)
+target_link_libraries(sori gacommon logger pthread sqlite3 profiler)
 
 add_subdirectory(pop_reader)

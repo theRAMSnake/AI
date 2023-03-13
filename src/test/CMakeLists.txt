@@ -14,7 +14,7 @@ add_executable(test
     SoriDataTest.cpp
     TaskLibTest.cpp
     ShapeTest.cpp
-    #SoriConvergenceTest.cpp
+    SoriConvergenceTest.cpp
     #SoriBrokenPopsTest.cpp
     #CrossoverTest.cpp
     #MutationTest.cpp

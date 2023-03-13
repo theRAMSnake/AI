@@ -19,13 +19,14 @@ private:
     const dng::Color mBackground;
     std::vector<bool> mTagged;
     int mPenalty = 0;
+    bool mClickedAtLeastOnce = false;
 };
 
 class ObjectDetection1 : public StaticObjectDetection
 {
 public:
     constexpr static const char* const TASK_NAME = "ObjectDetection1";
-    static const int MAX_SCORE = 1000;
+    constexpr static const int SOLVED_SCORE = 1000;
 
     ObjectDetection1(const dng::Size& envSize);
 };
@@ -33,7 +34,7 @@ class ObjectDetection2 : public StaticObjectDetection
 {
 public:
     constexpr static const char* const TASK_NAME = "ObjectDetection2";
-    static const int MAX_SCORE = 1000;
+    constexpr static const int SOLVED_SCORE = 1000;
 
     ObjectDetection2(const dng::Size& envSize);
 };
@@ -41,7 +42,7 @@ class ObjectDetection3 : public StaticObjectDetection
 {
 public:
     constexpr static const char* const TASK_NAME = "ObjectDetection3";
-    static const int MAX_SCORE = 1000;
+    constexpr static const int SOLVED_SCORE = 1000;
 
     ObjectDetection3(const dng::Size& envSize);
 };
@@ -49,7 +50,7 @@ class ObjectDetection4 : public StaticObjectDetection
 {
 public:
     constexpr static const char* const TASK_NAME = "ObjectDetection4";
-    static const int MAX_SCORE = 1000;
+    constexpr static const int SOLVED_SCORE = 1000;
 
     ObjectDetection4(const dng::Size& envSize);
 };
@@ -57,7 +58,7 @@ class ObjectDetection5 : public StaticObjectDetection
 {
 public:
     constexpr static const char* const TASK_NAME = "ObjectDetection5";
-    static const int MAX_SCORE = 1000;
+    constexpr static const int SOLVED_SCORE = 1000;
 
     ObjectDetection5(const dng::Size& envSize);
 };

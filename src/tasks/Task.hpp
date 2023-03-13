@@ -8,9 +8,9 @@ template<class TContext>
 class Task : public sori::ITask
 {
 public:
-    Task(const std::string& name, const int maxScore)
+    Task(const std::string& name, const int solvedScore)
         : mName(name)
-        , mMaxScore(maxScore)
+        , mSolvedScore(solvedScore)
     {
     }
 
@@ -24,14 +24,14 @@ public:
         return std::make_unique<TContext>(envSize);
     }
 
-    int getMaxScore() const override
+    int getSolvedScore() const override
     {
-        return mMaxScore;
+        return mSolvedScore;
     }
 
 private:
     const std::string mName;
-    const int mMaxScore;
+    const int mSolvedScore;
 };
 
 }

@@ -18,10 +18,10 @@ struct Config
 {
    bool testMode = false;
    std::size_t populationSize = 250;
-   double survivalRate = 0.4;
+   double survivalRate = 0.25;
 
-   std::size_t numThreads = 3;
-   dng::Size environmentSize = {100, 100};
+   std::size_t numThreads = 4;
+   dng::Size environmentSize = {500, 364};
 };
 
 class Sori

@@ -7,6 +7,7 @@
 #include <chrono>
 #include <iomanip>
 #include <sstream>
+#include <fstream>
 
 
 namespace sori
@@ -30,11 +31,11 @@ Config toSoriConfig(const boost::property_tree::ptree& cfg)
 {
     Config result;
 
-    result.environmentSize.x = getOrDefault("environmentSize_x", cfg, 100);
-    result.environmentSize.y = getOrDefault("environmentSize_y", cfg, 100);
-    result.numThreads = getOrDefault("numThreads", cfg, 3);
-    result.populationSize = getOrDefault("populationSize", cfg, 100);
-    result.survivalRate = getOrDefault("survivalRate", cfg, 0.4);
+    result.environmentSize.x = getOrDefault("environmentSize_x", cfg, result.environmentSize.x);
+    result.environmentSize.y = getOrDefault("environmentSize_y", cfg, result.environmentSize.y);
+    result.numThreads = getOrDefault("numThreads", cfg, result.numThreads);
+    result.populationSize = getOrDefault("populationSize", cfg, result.populationSize);
+    result.survivalRate = getOrDefault("survivalRate", cfg, result.survivalRate);
 
     return result;
 }
@@ -206,6 +207,21 @@ public:
         mCfg = cfg;
     }
 
+    void exportPop(const std::size_t idx, const std::string& filename) const override
+    {
+        if(mImpl->getPopulation().size() > idx)
+        {
+            auto iter = mImpl->getPopulation().begin();
+            std::advance(iter, idx);
+            std::ofstream out(filename, std::ios_base::out);
+            out << iter->print();
+        }
+        else
+        {
+            throw std::runtime_error("Pop index is out of bounds");
+        }
+    }
+
     void step() override
     {
         auto startTime = std::chrono::system_clock::now();
@@ -218,6 +234,11 @@ public:
         Database db(fileName);
         mImpl->checkpoint(db);
         mStats->persist(fileName);
+    }
+
+    std::string play(const std::size_t popIdx, const std::string& taskName)
+    {
+        return "";
     }
 
     std::size_t getGenerationNumber() const override

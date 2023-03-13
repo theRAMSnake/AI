@@ -12,7 +12,7 @@ Host.cpp
 )
 
 find_package(Boost COMPONENTS filesystem REQUIRED)
-target_link_libraries(host2 gacommon dng sori tasks ${Boost_LIBRARIES})
+target_link_libraries(host2 gacommon dng sori tasks ${Boost_LIBRARIES} profiler)
 
 add_custom_command(
         TARGET host2 POST_BUILD

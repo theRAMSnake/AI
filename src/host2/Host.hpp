@@ -32,11 +32,14 @@ public:
     void deleteProject(const std::string& name);
 
     void run(const StopCondition& condition);
+    std::string play(const std::size_t popIdx, const std::string& taskName);
     void stop();
 
     void set(const std::string& key, const std::string& value);
     boost::property_tree::ptree getConfig() const;
     std::string printLatestStatistics() const;
+
+    void exportPop(const std::size_t idx, const std::string& filename) const;
 
 private:
     const std::string mRootDir;

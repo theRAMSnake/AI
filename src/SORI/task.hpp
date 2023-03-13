@@ -24,7 +24,7 @@ public:
 
     virtual std::string getName() const = 0;
     virtual std::unique_ptr<TaskContext> createContext(const dng::Size& envSize) const = 0;
-    virtual int getMaxScore() const = 0;
+    virtual int getSolvedScore() const = 0;
 };
 
 using TaskScores = std::map<std::string, int>;

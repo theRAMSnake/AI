@@ -68,7 +68,14 @@ void fillPolygon(Image& target, const polygon_t& poly, const Color color)
     auto v = boost::gil::view(target);
     for(auto p : points)
     {
-        v(p.get<0>(), p.get<1>()) = color;
+        auto x = p.get<0>();
+        auto y = p.get<1>();
+        if(x < 0 || x >= v.width() || y < 0 || y >= v.height())
+        {
+            std::cout << "Trying to draw wrong pixel: " << x << " " << y << std::endl;
+            continue;
+        }
+        v(x, y) = color;
     }
 }
 

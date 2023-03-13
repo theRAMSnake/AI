@@ -12,6 +12,7 @@ public:
     virtual void step() = 0;
     virtual void saveState(const std::string& fileName) = 0;
     virtual std::size_t getGenerationNumber() const = 0;
+    virtual void exportPop(const std::size_t idx, const std::string& filename) const = 0;
 
     //Callable any time
     virtual std::string printRecentStats() const = 0;

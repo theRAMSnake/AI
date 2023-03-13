@@ -68,12 +68,12 @@ public:
        ar & mOutputs;
    }
 
-   void print() const;
+   std::string print() const;
 
 protected:
    Unit(){}
    virtual std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) = 0;
-   virtual void printDetails() const = 0;
+   virtual void printDetails(std::stringstream& s) const = 0;
 
    std::vector<UnitId> mOutputs;
    std::vector<Message> mMessages;
@@ -104,7 +104,7 @@ public:
 private:
    CursorManipulator(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    static dng::Image sProjection;
    dng::Point mPos;
 };
@@ -133,7 +133,7 @@ public:
 private:
    ScreenReader(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    dng::Point mBottomLeftPos;
    dng::Size mSize;
 };
@@ -159,7 +159,7 @@ public:
 private:
    ConstantGenerator(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    Data mConstant;
 };
 
@@ -185,7 +185,7 @@ public:
 private:
    RandomGenerator(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    double mChance = 0.0;
    std::size_t mLen = 0;
 };
@@ -213,7 +213,7 @@ public:
 private:
    PhasicGenerator(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    std::uint8_t mStep = 0;
    std::uint8_t mPhase = 0;
    Data mConstant;
@@ -240,7 +240,7 @@ public:
 private:
    Storage(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    Data mSlot;
 };
 
@@ -266,7 +266,7 @@ public:
 private:
    Extractor(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    std::size_t mBegin = 0;
    std::size_t mEnd = 0;
 };
@@ -290,7 +290,7 @@ public:
 private:
    Combiner(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
 };
 
 // Applies bitmask on data
@@ -314,7 +314,7 @@ public:
 private:
    Filter(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    Data mBitmask;
 };
 
@@ -339,7 +339,7 @@ public:
 private:
    Matcher() { }
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    double mThreshold = 0.0;
 };
 
@@ -371,7 +371,7 @@ public:
 private:
    LogicalOp(){}
    std::vector<Message> process(Context& ctx, const std::vector<Message>& messages) override;
-   void printDetails() const override;
+   void printDetails(std::stringstream& str) const override;
    Type mType = Type::And;
 };
 

@@ -22,8 +22,8 @@ std::uint16_t distance(const Point& a, const Point& b)
 Point genCoordsToFit(const Size& area, const Size& size)
 {
     return {
-        static_cast<uint16_t>(Rng::gen32() % (area.x - size.x)),
-        static_cast<uint16_t>(Rng::gen32() % (area.y - size.y))
+        static_cast<uint16_t>(1 + Rng::gen32() % (area.x - size.x - 1)),
+        static_cast<uint16_t>(1 + Rng::gen32() % (area.y - size.y - 1))
     };
 }
 
