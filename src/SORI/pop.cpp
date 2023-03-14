@@ -115,14 +115,6 @@ Pop Pop::cloneMutated() const
         }
     }
 
-    for(auto id : removedUnits)
-    {
-        for(auto& c : pop.mUnits)
-        {
-            c->removeConnections(id);
-        }
-    }
-
     //Keep at least three comps
     for(std::size_t i = std::min(3lu, pop.mUnits.size()); i != 0; --i)
     {
@@ -177,7 +169,11 @@ void Pop::run(const std::size_t energyLimit, const dng::Image& surface, TaskCont
             for(const auto& msg : delivery)
             {
                 energySpent += getMessageCost(msg);
-                units[msg.destination]->postMessage(msg);
+                auto dest = units.find(msg.destination);
+                if(dest != units.end())
+                {
+                    dest->second->postMessage(msg);
+                }
 
                 if(ctx.isDone())
                 {
